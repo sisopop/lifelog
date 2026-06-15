@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
 
 class EntryDetailScreen extends ConsumerWidget {
@@ -93,7 +92,7 @@ class EntryDetailScreen extends ConsumerWidget {
                   final path = entry.mediaUrls[i];
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: _photo(path, width: 260, height: 200),
+                    child: PhotoView(path, width: 260, height: 200, iconSize: 40),
                   );
                 },
               ),
@@ -138,24 +137,5 @@ class EntryDetailScreen extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  /// Renders a local file path or a network URL gracefully.
-  Widget _photo(String path, {required double width, required double height}) {
-    final isNetwork = path.startsWith('http');
-    final errorBox = Container(
-      width: width,
-      height: height,
-      color: AppColors.primarySoft,
-      child: const Icon(Icons.broken_image, color: AppColors.primary),
-    );
-    if (isNetwork) {
-      return Image.network(path,
-          width: width, height: height, fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => errorBox);
-    }
-    return Image.file(File(path),
-        width: width, height: height, fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => errorBox);
   }
 }

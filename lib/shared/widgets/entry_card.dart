@@ -1,10 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../models/diary_entry.dart';
+import 'photo.dart';
 
 class EntryCard extends StatelessWidget {
   const EntryCard(this.entry, {super.key, this.onTap});
@@ -62,7 +61,8 @@ class EntryCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: _Thumb(entry.mediaUrls.first),
+                      child: PhotoView(entry.mediaUrls.first,
+                          width: 54, height: 54),
                     ),
                   ],
                 ],
@@ -89,29 +89,5 @@ class EntryCard extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _Thumb extends StatelessWidget {
-  const _Thumb(this.path);
-  final String path;
-
-  @override
-  Widget build(BuildContext context) {
-    const size = 54.0;
-    final fallback = Container(
-      width: size,
-      height: size,
-      color: AppColors.primarySoft,
-      child: const Icon(Icons.image, size: 20, color: AppColors.primary),
-    );
-    if (path.startsWith('http')) {
-      return Image.network(path,
-          width: size, height: size, fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => fallback);
-    }
-    return Image.file(File(path),
-        width: size, height: size, fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback);
   }
 }

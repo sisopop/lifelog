@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +9,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/mood_chip.dart';
+import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
 
 class WriteScreen extends ConsumerStatefulWidget {
@@ -65,9 +66,15 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   Future<void> _pickPhotos() async {
     try {
       final picked = await _picker.pickMultiImage();
-      if (picked.isNotEmpty) {
-        setState(() => _photoPaths.addAll(picked.map((x) => x.path)));
+      if (picked.isEmpty) return;
+      // Encode as base64 data URLs so photos persist in the local DB and
+      // render on every platform (web included). See shared/widgets/photo.dart.
+      final encoded = <String>[];
+      for (final x in picked) {
+        final bytes = await x.readAsBytes();
+        encoded.add('data:${_mimeFor(x.name)};base64,${base64Encode(bytes)}');
       }
+      if (mounted) setState(() => _photoPaths.addAll(encoded));
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -75,6 +82,15 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         );
       }
     }
+  }
+
+  String _mimeFor(String name) {
+    final n = name.toLowerCase();
+    if (n.endsWith('.png')) return 'image/png';
+    if (n.endsWith('.gif')) return 'image/gif';
+    if (n.endsWith('.webp')) return 'image/webp';
+    if (n.endsWith('.heic')) return 'image/heic';
+    return 'image/jpeg';
   }
 
   Future<void> _addTag() async {
@@ -211,8 +227,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.file(File(_photoPaths[i]),
-                          width: 84, height: 84, fit: BoxFit.cover),
+                      child: PhotoView(_photoPaths[i], width: 84, height: 84),
                     ),
                     Positioned(
                       right: 2,

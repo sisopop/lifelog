@@ -48,7 +48,15 @@ class DiaryEntries extends Table {
 @DriftDatabase(tables: [DiaryEntries])
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: 'lifelog'));
+      : super(executor ??
+            driftDatabase(
+              name: 'lifelog',
+              // Web needs explicit wasm + worker locations (files live in web/).
+              web: DriftWebOptions(
+                sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+                driftWorker: Uri.parse('drift_worker.js'),
+              ),
+            ));
 
   @override
   int get schemaVersion => 1;

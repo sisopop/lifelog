@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
@@ -13,6 +14,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+    final todayLabel = DateFormat('yyyy년 M월 d일 (E)', 'ko').format(DateTime.now());
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -21,14 +23,14 @@ class HomeScreen extends ConsumerWidget {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('2026년 6월 14일 (일)',
-                          style: TextStyle(fontSize: 13, color: AppColors.textHint)),
-                      SizedBox(height: 4),
-                      Text('오늘 어떤 하루였나요?',
+                      Text(todayLabel,
+                          style: const TextStyle(fontSize: 13, color: AppColors.textHint)),
+                      const SizedBox(height: 4),
+                      const Text('오늘 어떤 하루였나요?',
                           style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -53,10 +55,25 @@ class HomeScreen extends ConsumerWidget {
             const Text('최근 기록',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
-            ...entries.map((e) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: EntryCard(e, onTap: () => context.push('/entry/${e.entryId}')),
-                )),
+            if (entries.isEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 36),
+                alignment: Alignment.center,
+                child: const Column(
+                  children: [
+                    Icon(Icons.edit_note, size: 40, color: AppColors.textHint),
+                    SizedBox(height: 8),
+                    Text('아직 기록이 없어요.\n오늘 첫 기록을 남겨보세요.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: AppColors.textHint, height: 1.5)),
+                  ],
+                ),
+              )
+            else
+              ...entries.map((e) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: EntryCard(e, onTap: () => context.push('/entry/${e.entryId}')),
+                  )),
           ],
         ),
       ),
