@@ -43,6 +43,7 @@ dependencies:
   drift_flutter: ^0.3.0
   image_picker: ^1.2.2
   shared_preferences: ^2.5.5
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:

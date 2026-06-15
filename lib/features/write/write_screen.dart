@@ -141,15 +141,13 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     final now = DateTime.now();
     final notifier = ref.read(entriesProvider.notifier);
     if (_isEditing && _editing != null) {
-      // Edit: keep id/createdAt, regenerate AI summary, refresh.
-      await notifier.saveEntry(
+      // Edit: keep id/createdAt; editEntry regenerates the AI summary.
+      await notifier.editEntry(
         _editing!.copyWith(
           title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
           content: _contentCtrl.text.trim(),
           mood: _mood,
           visibility: visibility,
-          aiStatus: AiStatus.done,
-          aiSummary: _editing!.aiSummary,
           mediaUrls: List.of(_photoPaths),
           tags: List.of(_tags),
         ),

@@ -13,6 +13,7 @@ class ReviewScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(monthlyStatsProvider);
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+    final report = ref.watch(monthlyReportProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('회고', style: TextStyle(fontWeight: FontWeight.w800))),
       body: ListView(
@@ -63,7 +64,11 @@ class ReviewScreen extends ConsumerWidget {
                 ]),
                 const SizedBox(height: 10),
                 Text(
-                  monthlyNarrative(stats, entries),
+                  report.when(
+                    data: (t) => t,
+                    loading: () => monthlyNarrative(stats, entries),
+                    error: (_, _) => monthlyNarrative(stats, entries),
+                  ),
                   style: const TextStyle(color: AppColors.textPrimary, height: 1.5),
                 ),
               ],

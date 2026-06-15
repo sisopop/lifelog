@@ -5,8 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/db/app_database.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
-import 'ai_summary.dart';
 import 'diary_repository.dart';
+import 'gemini_service.dart';
 
 /// Single database instance for the app.
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
@@ -17,6 +17,12 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 
 final diaryRepositoryProvider = Provider<DiaryRepository>((ref) {
   return DiaryRepository(ref.watch(appDatabaseProvider));
+});
+
+/// AI summarizer (Gemini 2.5 Flash, falls back to local mock without a key).
+final geminiServiceProvider = Provider<GeminiService>((ref) {
+  final service = GeminiService();
+  return service;
 });
 
 /// Loads entries from the Drift cache (seeds demo data on first run).
@@ -42,18 +48,29 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
     state = AsyncData(await _repo.getAll());
   }
 
+  /// Save edits to an entry and regenerate its AI summary (content changed).
+  Future<void> editEntry(DiaryEntry entry) async {
+    final pending = entry.copyWith(
+      updatedAt: DateTime.now(),
+      aiStatus: AiStatus.pending,
+    );
+    await _repo.save(pending);
+    state = AsyncData(await _repo.getAll());
+    unawaited(_generateSummary(pending));
+  }
+
   Future<void> delete(String entryId) async {
     await _repo.delete(entryId);
     state = AsyncData(await _repo.getAll());
   }
 
-  /// Simulates async AI summarization locally (placeholder for the real
-  /// `/ai/summarize` endpoint — see TECH_DESIGN.md).
+  /// Generates the AI summary via Gemini (or the local mock fallback) and
+  /// persists it (pending -> done).
   Future<void> _generateSummary(DiaryEntry entry) async {
     if (entry.aiStatus != AiStatus.pending) return;
-    await Future.delayed(const Duration(milliseconds: 700));
+    final summary = await ref.read(geminiServiceProvider).summarize(entry);
     final summarized = entry.copyWith(
-      aiSummary: mockSummarize(entry),
+      aiSummary: summary,
       aiStatus: AiStatus.done,
     );
     await _repo.save(summarized);

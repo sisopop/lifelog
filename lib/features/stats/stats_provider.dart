@@ -4,6 +4,32 @@ import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../entries/entries_provider.dart';
 
+/// Async monthly AI report: Gemini if a key is set, else the local narrative.
+final monthlyReportProvider = FutureProvider<String>((ref) async {
+  final stats = ref.watch(monthlyStatsProvider);
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final local = monthlyNarrative(stats, entries);
+
+  final gemini = ref.read(geminiServiceProvider);
+  if (!gemini.enabled || stats.isEmpty) return local;
+
+  final moodLine = stats.moodRatio.entries
+      .map((e) => '${e.key.label} ${(e.value * 100).round()}%')
+      .join(', ');
+  final tagLine = stats.topTags.isEmpty
+      ? '(없음)'
+      : stats.topTags.map((t) => '${t.key}(${t.value})').join(', ');
+  final context = '''
+- 기간: ${stats.year}년 ${stats.month}월
+- 기록한 날: ${stats.daysRecorded}일, 총 기록: ${stats.total}개
+- 감정 분포: $moodLine
+- 자주 쓴 태그: $tagLine
+''';
+
+  final ai = await gemini.monthlyReport(context);
+  return (ai != null && ai.isNotEmpty) ? ai : local;
+});
+
 /// One day in the weekly strip.
 class DayDot {
   const DayDot(this.label, this.done);

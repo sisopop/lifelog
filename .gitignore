@@ -33,6 +33,9 @@ migrate_working_dir/
 /build/
 /coverage/
 
+# API keys (never commit real keys — use api_keys.example.dart as template)
+lib/core/config/api_keys.dart
+
 # Symbolication related
 app.*.symbols
 
