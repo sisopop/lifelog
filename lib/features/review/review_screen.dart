@@ -1,0 +1,137 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/theme/app_colors.dart';
+import '../../shared/models/enums.dart';
+import '../entries/entries_provider.dart';
+import '../stats/stats_provider.dart';
+
+class ReviewScreen extends ConsumerWidget {
+  const ReviewScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(monthlyStatsProvider);
+    final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+    return Scaffold(
+      appBar: AppBar(title: const Text('회고', style: TextStyle(fontWeight: FontWeight.w800))),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          Text('${stats.year}년 ${stats.month}월',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _StatBox(label: '기록한 날', value: '${stats.daysRecorded}일')),
+              const SizedBox(width: 12),
+              Expanded(child: _StatBox(label: '총 기록', value: '${stats.total}개')),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text('감정 분포', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          for (final m in Mood.values) _MoodBar(m, stats.moodRatio[m] ?? 0),
+          if (stats.topTags.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            const Text('자주 쓴 태그', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: stats.topTags
+                  .map((t) => Chip(label: Text('#${t.key} ${t.value}')))
+                  .toList(),
+            ),
+          ],
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: AppColors.primarySoft,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(children: [
+                  Icon(Icons.auto_awesome, size: 18, color: AppColors.primaryDark),
+                  SizedBox(width: 6),
+                  Text('AI 요약 리포트',
+                      style: TextStyle(
+                          color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+                ]),
+                const SizedBox(height: 10),
+                Text(
+                  monthlyNarrative(stats, entries),
+                  style: const TextStyle(color: AppColors.textPrimary, height: 1.5),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatBox extends StatelessWidget {
+  const _StatBox({required this.label, required this.value});
+  final String label;
+  final String value;
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textHint)),
+          const SizedBox(height: 6),
+          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
+  }
+}
+
+class _MoodBar extends StatelessWidget {
+  const _MoodBar(this.mood, this.ratio);
+  final Mood mood;
+  final double ratio;
+
+  Color get _color => switch (mood) {
+        Mood.good => AppColors.moodGood,
+        Mood.neutral => AppColors.moodNeutral,
+        Mood.hard => AppColors.moodHard,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          SizedBox(width: 80, child: Text('${mood.emoji} ${mood.label}', style: const TextStyle(fontSize: 13))),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: ratio,
+                minHeight: 12,
+                backgroundColor: AppColors.divider,
+                valueColor: AlwaysStoppedAnimation(_color),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text('${(ratio * 100).round()}%', style: const TextStyle(fontSize: 12)),
+        ],
+      ),
+    );
+  }
+}
