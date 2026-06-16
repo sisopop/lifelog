@@ -6,6 +6,8 @@ import '../../features/auth/login_screen.dart';
 import '../../features/auth/session.dart';
 import '../../features/entry_detail/entry_detail_screen.dart';
 import '../../features/home/home_screen.dart';
+import '../../features/journals/journal_detail_screen.dart';
+import '../../features/journals/new_journal_screen.dart';
 import '../../features/people/people_screen.dart';
 import '../../features/review/review_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -36,7 +38,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/write',
         parentNavigatorKey: _rootKey,
-        builder: (_, _) => const WriteScreen(),
+        builder: (_, state) =>
+            WriteScreen(journalId: state.uri.queryParameters['journalId']),
+      ),
+      GoRoute(
+        path: '/journal/new',
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const NewJournalScreen(),
+      ),
+      GoRoute(
+        path: '/journal/:id',
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) =>
+            JournalDetailScreen(journalId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: '/settings',

@@ -21,6 +21,25 @@ enum EntryVisibility {
   final String icon;
 }
 
+/// Journal kind. A journal is the sharing unit (see TECH_DESIGN.md).
+/// personal: 개인(나만), couple: 둘만의 일기장, exchange: 친구와 교환.
+enum JournalType {
+  personal('개인', '📔'),
+  couple('커플', '💞'),
+  exchange('교환', '🔁');
+
+  const JournalType(this.label, this.emoji);
+  final String label;
+  final String emoji;
+}
+
+/// Lifecycle of a journal. ended = 읽기전용 아카이브(커플 종료 등), hidden = 숨김.
+enum JournalStatus { active, ended, hidden }
+
+/// Role of a participant in a shared journal (couple/exchange).
+/// owner = 만든 사람, partner = 초대로 합류한 사람.
+enum MemberRole { owner, partner }
+
 /// Media attachment type.
 enum MediaType { image, audio }
 

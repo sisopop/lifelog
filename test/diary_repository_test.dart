@@ -29,6 +29,7 @@ void main() {
     final entry = DiaryEntry(
       entryId: 'x1',
       userId: 'me',
+      journalId: 'jr_default',
       title: '테스트',
       content: '본문',
       mood: Mood.good,
@@ -51,6 +52,7 @@ void main() {
     final entry = DiaryEntry(
       entryId: 'x2',
       userId: 'me',
+      journalId: 'jr_default',
       content: '본문',
       createdAt: DateTime(2026, 6, 14),
       updatedAt: DateTime(2026, 6, 14),
@@ -68,6 +70,7 @@ void main() {
     await repo.insert(DiaryEntry(
       entryId: 'old',
       userId: 'me',
+      journalId: 'jr_default',
       content: 'old',
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
@@ -75,6 +78,7 @@ void main() {
     await repo.insert(DiaryEntry(
       entryId: 'new',
       userId: 'me',
+      journalId: 'jr_default',
       content: 'new',
       createdAt: DateTime(2026, 6, 1),
       updatedAt: DateTime(2026, 6, 1),

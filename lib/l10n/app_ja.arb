@@ -1,0 +1,37 @@
+{
+  "@@locale": "ja",
+  "appTitle": "lifelog",
+
+  "navHome": "ホーム",
+  "navReview": "ふりかえり",
+  "navAlerts": "お知らせ",
+  "navFriends": "友だち",
+  "navWrite": "作成",
+
+  "settingsTitle": "設定",
+  "settingsProfile": "プロフィール",
+  "settingsLanguage": "言語",
+  "settingsNotifications": "通知設定",
+  "settingsLogout": "ログアウト",
+  "settingsTerms": "規約 / お問い合わせ",
+
+  "languageKorean": "한국어",
+  "languageEnglish": "English",
+  "languageJapanese": "日本語",
+  "languageSystem": "端末の言語に従う",
+
+  "commonSave": "保存",
+  "commonCancel": "キャンセル",
+  "commonDelete": "削除",
+  "commonEdit": "編集",
+  "commonShare": "共有",
+  "commonConfirm": "OK",
+
+  "moodGood": "よかった",
+  "moodNeutral": "ふつう",
+  "moodHard": "つらかった",
+
+  "writeHint": "今日はどんな一日でしたか？",
+  "aiSummaryTitle": "AI要約",
+  "aiSummaryPending": "要約を作成しています…"
+}

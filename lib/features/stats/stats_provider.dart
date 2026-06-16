@@ -39,7 +39,10 @@ class DayDot {
 
 /// Last 7 days (oldest -> today) with whether an entry exists that day.
 final weeklyProgressProvider = Provider<List<DayDot>>((ref) {
-  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  // Top-level records only — 답장(reply) records shouldn't count as a day's entry.
+  final entries = (ref.watch(entriesProvider).asData?.value ?? const [])
+      .where((e) => e.replyToEntryId == null)
+      .toList();
   const labels = ['일', '월', '화', '수', '목', '금', '토'];
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
@@ -79,8 +82,12 @@ class MonthlyStats {
 final monthlyStatsProvider = Provider<MonthlyStats>((ref) {
   final entries = ref.watch(entriesProvider).asData?.value ?? const [];
   final now = DateTime.now();
+  // Exclude 답장(reply) records so counts/ratios reflect real diary entries.
   final monthEntries = entries
-      .where((e) => e.createdAt.year == now.year && e.createdAt.month == now.month)
+      .where((e) =>
+          e.replyToEntryId == null &&
+          e.createdAt.year == now.year &&
+          e.createdAt.month == now.month)
       .toList();
 
   final days = monthEntries.map((e) => e.createdAt.day).toSet().length;

@@ -42,6 +42,30 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
     unawaited(_generateSummary(entry));
   }
 
+  /// 답장형 기록: adds a short reply attached to [parent]. Replies live in the
+  /// same journal, inherit visibility, and skip AI summarization.
+  Future<void> addReply({
+    required DiaryEntry parent,
+    required String content,
+    String userId = 'me',
+  }) async {
+    final now = DateTime.now();
+    await _repo.insert(
+      DiaryEntry(
+        entryId: now.microsecondsSinceEpoch.toString(),
+        userId: userId,
+        journalId: parent.journalId,
+        replyToEntryId: parent.entryId,
+        lang: parent.lang,
+        content: content,
+        visibility: parent.visibility,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    state = AsyncData(await _repo.getAll());
+  }
+
   /// Upsert an existing entry (e.g. visibility change) and refresh state.
   Future<void> saveEntry(DiaryEntry entry) async {
     await _repo.save(entry.copyWith(updatedAt: DateTime.now()));

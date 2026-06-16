@@ -1,0 +1,37 @@
+{
+  "@@locale": "en",
+  "appTitle": "lifelog",
+
+  "navHome": "Home",
+  "navReview": "Review",
+  "navAlerts": "Alerts",
+  "navFriends": "Friends",
+  "navWrite": "Write",
+
+  "settingsTitle": "Settings",
+  "settingsProfile": "Profile",
+  "settingsLanguage": "Language",
+  "settingsNotifications": "Notifications",
+  "settingsLogout": "Log out",
+  "settingsTerms": "Terms / Support",
+
+  "languageKorean": "한국어",
+  "languageEnglish": "English",
+  "languageJapanese": "日本語",
+  "languageSystem": "Follow system",
+
+  "commonSave": "Save",
+  "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
+  "commonShare": "Share",
+  "commonConfirm": "OK",
+
+  "moodGood": "Good",
+  "moodNeutral": "Okay",
+  "moodHard": "Tough",
+
+  "writeHint": "How was your day?",
+  "aiSummaryTitle": "AI summary",
+  "aiSummaryPending": "Generating a summary…"
+}

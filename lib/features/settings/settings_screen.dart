@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/i18n/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 import '../auth/session.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -11,8 +13,9 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
+    final l = L10n.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('설정')),
+      appBar: AppBar(title: Text(l.settingsTitle)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -25,13 +28,13 @@ class SettingsScreen extends ConsumerWidget {
               ),
               title: Text(session.name ?? '나',
                   style: const TextStyle(fontWeight: FontWeight.w700)),
-              subtitle: const Text('프로필'),
+              subtitle: Text(l.settingsProfile),
             ),
           ),
           const SizedBox(height: 16),
-          const _SectionTile(icon: Icons.notifications_none, label: '알림 설정'),
-          const _SectionTile(icon: Icons.lock_outline, label: '개인정보 / 보안'),
-          const _SectionTile(icon: Icons.help_outline, label: '문의하기'),
+          _LanguageTile(),
+          _SectionTile(icon: Icons.notifications_none, label: l.settingsNotifications),
+          _SectionTile(icon: Icons.help_outline, label: l.settingsTerms),
           const SizedBox(height: 24),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
@@ -40,13 +43,74 @@ class SettingsScreen extends ConsumerWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
             icon: const Icon(Icons.logout, color: AppColors.moodHard),
-            label: const Text('로그아웃', style: TextStyle(color: AppColors.moodHard)),
+            label: Text(l.settingsLogout, style: const TextStyle(color: AppColors.moodHard)),
             onPressed: () async {
               await ref.read(sessionProvider.notifier).logout();
               if (context.mounted) context.go('/login');
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// App-language picker. `null` = follow device language.
+class _LanguageTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = L10n.of(context);
+    final current = ref.watch(localeProvider);
+
+    String labelFor(Locale? loc) {
+      switch (loc?.languageCode) {
+        case 'ko':
+          return l.languageKorean;
+        case 'en':
+          return l.languageEnglish;
+        case 'ja':
+          return l.languageJapanese;
+        default:
+          return l.languageSystem;
+      }
+    }
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: const Icon(Icons.language, color: AppColors.textSecondary),
+        title: Text(l.settingsLanguage),
+        subtitle: Text(labelFor(current)),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        onTap: () async {
+          const systemCode = '__system__';
+          final options = <Locale?>[null, ...supportedAppLocales];
+          // Pop a String code (never null) so we can tell "dismissed" apart
+          // from the "follow system" choice.
+          final picked = await showModalBottomSheet<String>(
+            context: context,
+            builder: (ctx) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final loc in options)
+                    ListTile(
+                      title: Text(labelFor(loc)),
+                      trailing: (current?.languageCode ?? systemCode) ==
+                              (loc?.languageCode ?? systemCode)
+                          ? const Icon(Icons.check, color: AppColors.primary)
+                          : null,
+                      onTap: () =>
+                          Navigator.pop(ctx, loc?.languageCode ?? systemCode),
+                    ),
+                ],
+              ),
+            ),
+          );
+          if (picked == null) return; // dismissed without choosing
+          final next = picked == systemCode ? null : Locale(picked);
+          await ref.read(localeProvider.notifier).setLocale(next);
+        },
       ),
     );
   }

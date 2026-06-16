@@ -6,6 +6,9 @@ class DiaryEntry {
   const DiaryEntry({
     required this.entryId,
     required this.userId,
+    required this.journalId,
+    this.replyToEntryId,
+    this.lang = 'ko',
     this.title,
     required this.content,
     this.aiSummary,
@@ -22,6 +25,16 @@ class DiaryEntry {
 
   final String entryId;
   final String userId;
+
+  /// Owning journal (일기장). Required — every entry belongs to a journal.
+  final String journalId;
+
+  /// 답장형 기록: the entry this one replies to (null for top-level entries).
+  final String? replyToEntryId;
+
+  /// Original authoring language (ko/en/ja...). Used as the source for the
+  /// on-demand "번역 보기" feature in the global phase (see TECH_DESIGN.md §8).
+  final String lang;
   final String? title;
   final String content;
   final String? aiSummary;
@@ -36,6 +49,9 @@ class DiaryEntry {
   final SyncStatus syncStatus;
 
   DiaryEntry copyWith({
+    String? journalId,
+    String? replyToEntryId,
+    String? lang,
     String? title,
     String? content,
     String? aiSummary,
@@ -51,6 +67,9 @@ class DiaryEntry {
     return DiaryEntry(
       entryId: entryId,
       userId: userId,
+      journalId: journalId ?? this.journalId,
+      replyToEntryId: replyToEntryId ?? this.replyToEntryId,
+      lang: lang ?? this.lang,
       title: title ?? this.title,
       content: content ?? this.content,
       aiSummary: aiSummary ?? this.aiSummary,

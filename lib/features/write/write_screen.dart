@@ -11,12 +11,16 @@ import '../../shared/models/enums.dart';
 import '../../shared/widgets/mood_chip.dart';
 import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
+import '../journals/journal_repository.dart';
 
 class WriteScreen extends ConsumerStatefulWidget {
-  const WriteScreen({super.key, this.editId});
+  const WriteScreen({super.key, this.editId, this.journalId});
 
   /// When set, the screen edits an existing entry instead of creating one.
   final String? editId;
+
+  /// Target journal for a new entry. Defaults to the user's default journal.
+  final String? journalId;
 
   @override
   ConsumerState<WriteScreen> createState() => _WriteScreenState();
@@ -157,6 +161,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         DiaryEntry(
           entryId: now.microsecondsSinceEpoch.toString(),
           userId: 'me',
+          journalId: widget.journalId ?? JournalRepository.defaultJournalId,
           title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
           content: _contentCtrl.text.trim(),
           mood: _mood,

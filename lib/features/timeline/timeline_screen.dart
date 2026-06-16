@@ -17,17 +17,22 @@ class TimelineScreen extends ConsumerWidget {
       body: entriesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('불러오기 실패: $e')),
-        data: (entries) => entries.isEmpty
-            ? const _Empty()
-            : ListView.separated(
-                padding: const EdgeInsets.all(20),
-                itemCount: entries.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
-                itemBuilder: (_, i) => EntryCard(
-                  entries[i],
-                  onTap: () => context.push('/entry/${entries[i].entryId}'),
-                ),
-              ),
+        data: (all) {
+          // Show top-level entries only; replies live in entry detail.
+          final entries =
+              all.where((e) => e.replyToEntryId == null).toList();
+          return entries.isEmpty
+              ? const _Empty()
+              : ListView.separated(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: entries.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (_, i) => EntryCard(
+                    entries[i],
+                    onTap: () => context.push('/entry/${entries[i].entryId}'),
+                  ),
+                );
+        },
       ),
     );
   }

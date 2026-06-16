@@ -4,28 +4,39 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:lifelog/features/home/home_screen.dart';
-import 'package:lifelog/features/entries/entries_provider.dart';
-import 'package:lifelog/shared/models/diary_entry.dart';
+import 'package:lifelog/features/journals/journals_provider.dart';
+import 'package:lifelog/shared/models/enums.dart';
+import 'package:lifelog/shared/models/journal.dart';
 
 /// Avoids touching the Drift database in a pure widget test.
-class _FakeEntriesNotifier extends EntriesNotifier {
+class _FakeJournalsNotifier extends JournalsNotifier {
   @override
-  Future<List<DiaryEntry>> build() async => const [];
+  Future<List<Journal>> build() async => [
+        Journal(
+          journalId: 'jr_default',
+          ownerId: 'me',
+          type: JournalType.personal,
+          title: '나의 일기장',
+          createdAt: DateTime(2026, 6, 1),
+        ),
+      ];
 }
 
 void main() {
-  setUpAll(() => initializeDateFormatting('ko'));
+  setUpAll(() => initializeDateFormatting());
 
-  testWidgets('Home renders the AI prompt card', (tester) async {
+  testWidgets('Home lists journals and the new-journal action', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          entriesProvider.overrideWith(_FakeEntriesNotifier.new),
+          journalsProvider.overrideWith(_FakeJournalsNotifier.new),
+          journalEntryCountsProvider.overrideWith((ref) async => {'jr_default': 3}),
         ],
         child: const MaterialApp(home: HomeScreen()),
       ),
     );
     await tester.pump();
-    expect(find.text('오늘 가장 기억하고 싶은 순간은?'), findsOneWidget);
+    expect(find.text('새 일기장 만들기'), findsOneWidget);
+    expect(find.text('나의 일기장'), findsOneWidget);
   });
 }

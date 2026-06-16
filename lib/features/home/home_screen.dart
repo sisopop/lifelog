@@ -4,17 +4,22 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../shared/widgets/entry_card.dart';
-import '../entries/entries_provider.dart';
-import '../stats/stats_provider.dart';
+import '../../shared/models/journal.dart';
+import '../journals/journals_provider.dart';
 
+/// Home = the user's list of journals (일기장 목록). Tapping a journal opens
+/// its timeline; "+ 새 일기장" launches the 3-step creation wizard.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final entries = ref.watch(entriesProvider).asData?.value ?? const [];
-    final todayLabel = DateFormat('yyyy년 M월 d일 (E)', 'ko').format(DateTime.now());
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final todayLabel = DateFormat.yMMMMEEEEd(locale).format(DateTime.now());
+    final journals = ref.watch(journalsProvider).asData?.value ?? const [];
+    final counts =
+        ref.watch(journalEntryCountsProvider).asData?.value ?? const {};
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -28,9 +33,10 @@ class HomeScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(todayLabel,
-                          style: const TextStyle(fontSize: 13, color: AppColors.textHint)),
+                          style: const TextStyle(
+                              fontSize: 13, color: AppColors.textHint)),
                       const SizedBox(height: 4),
-                      const Text('오늘 어떤 하루였나요?',
+                      const Text('내 일기장',
                           style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
@@ -48,31 +54,25 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 20),
-            _AiPromptCard(onWrite: () => context.push('/write')),
+            _NewJournalCard(onTap: () => context.push('/journal/new')),
             const SizedBox(height: 16),
-            const _WeeklyProgress(),
-            const SizedBox(height: 24),
-            const Text('최근 기록',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            if (entries.isEmpty)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 36),
-                alignment: Alignment.center,
-                child: const Column(
-                  children: [
-                    Icon(Icons.edit_note, size: 40, color: AppColors.textHint),
-                    SizedBox(height: 8),
-                    Text('아직 기록이 없어요.\n오늘 첫 기록을 남겨보세요.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: AppColors.textHint, height: 1.5)),
-                  ],
+            if (journals.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 36),
+                child: Center(
+                  child: Text('아직 일기장이 없어요.\n첫 일기장을 만들어보세요.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textHint, height: 1.5)),
                 ),
               )
             else
-              ...entries.map((e) => Padding(
+              ...journals.map((j) => Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: EntryCard(e, onTap: () => context.push('/entry/${e.entryId}')),
+                    child: _JournalCard(
+                      journal: j,
+                      entryCount: counts[j.journalId] ?? 0,
+                      onTap: () => context.push('/journal/${j.journalId}'),
+                    ),
                   )),
           ],
         ),
@@ -81,94 +81,118 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-class _AiPromptCard extends StatelessWidget {
-  const _AiPromptCard({required this.onWrite});
-  final VoidCallback onWrite;
+class _NewJournalCard extends StatelessWidget {
+  const _NewJournalCard({required this.onTap});
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.primaryDark],
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.primary, width: 1.4),
+          color: AppColors.primarySoft.withValues(alpha: 0.4),
         ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.auto_awesome, color: Colors.white, size: 18),
-              SizedBox(width: 6),
-              Text('AI 질문',
-                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w600)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const Text('오늘 가장 기억하고 싶은 순간은?',
-              style: TextStyle(
-                  color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: AppColors.primaryDark,
-              ),
-              onPressed: onWrite,
-              child: const Text('바로 쓰기'),
-            ),
-          ),
-        ],
+        child: const Row(
+          children: [
+            Icon(Icons.add_circle_outline, color: AppColors.primary),
+            SizedBox(width: 10),
+            Text('새 일기장 만들기',
+                style: TextStyle(
+                    color: AppColors.primaryDark, fontWeight: FontWeight.w700)),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _WeeklyProgress extends ConsumerWidget {
-  const _WeeklyProgress();
+class _JournalCard extends StatelessWidget {
+  const _JournalCard({
+    required this.journal,
+    required this.entryCount,
+    required this.onTap,
+  });
+  final Journal journal;
+  final int entryCount;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final week = ref.watch(weeklyProgressProvider);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) {
+    final color = Color(journal.coverColor);
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: LinearGradient(
+            colors: [color, color.withValues(alpha: 0.78)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Row(
           children: [
-            const Text('이번 주 기록률',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: week.map((d) {
-                return Column(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: d.done ? AppColors.primary : AppColors.primarySoft,
-                        shape: BoxShape.circle,
+            Text(journal.displayIcon, style: const TextStyle(fontSize: 30)),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(journal.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800)),
                       ),
-                      child: d.done
-                          ? const Icon(Icons.check, color: Colors.white, size: 16)
-                          : null,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(d.label,
-                        style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
-                  ],
-                );
-              }).toList(),
+                      const SizedBox(width: 8),
+                      _TypeBadge(journal.type.label),
+                      if (journal.isArchived) ...[
+                        const SizedBox(width: 6),
+                        _TypeBadge('보관'),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text('기록 $entryCount개',
+                      style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                ],
+              ),
             ),
+            const Icon(Icons.chevron_right, color: Colors.white70),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _TypeBadge extends StatelessWidget {
+  const _TypeBadge(this.label);
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white24,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(label,
+          style: const TextStyle(
+              color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
     );
   }
 }

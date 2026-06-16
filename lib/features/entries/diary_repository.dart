@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../../core/db/app_database.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../journals/journal_repository.dart';
 
 /// Bridges the domain model (`DiaryEntry`) and the Drift cache (`DiaryEntryRow`).
 /// Later this is where REST sync logic will live (see TECH_DESIGN.md).
@@ -42,6 +43,9 @@ class DiaryRepository {
   DiaryEntry _toDomain(DiaryEntryRow r) => DiaryEntry(
         entryId: r.entryId,
         userId: r.userId,
+        journalId: r.journalId,
+        replyToEntryId: r.replyToEntryId,
+        lang: r.lang,
         title: r.title,
         content: r.content,
         aiSummary: r.aiSummary,
@@ -59,6 +63,9 @@ class DiaryRepository {
   DiaryEntriesCompanion _toCompanion(DiaryEntry e) => DiaryEntriesCompanion(
         entryId: Value(e.entryId),
         userId: Value(e.userId),
+        journalId: Value(e.journalId),
+        replyToEntryId: Value(e.replyToEntryId),
+        lang: Value(e.lang),
         title: Value(e.title),
         content: Value(e.content),
         aiSummary: Value(e.aiSummary),
@@ -77,6 +84,7 @@ class DiaryRepository {
     DiaryEntry(
       entryId: '1',
       userId: 'me',
+      journalId: JournalRepository.defaultJournalId,
       title: '제주도에서의 하루',
       content: '아침 일찍 일어나 바닷가를 걸었다. 바람이 시원했고 가족과 함께한 시간이 좋았다.',
       aiSummary: '가족과 함께한 제주 여행, 평온하고 만족스러운 하루.',
@@ -91,6 +99,7 @@ class DiaryRepository {
     DiaryEntry(
       entryId: '2',
       userId: 'me',
+      journalId: JournalRepository.defaultJournalId,
       title: '아이와 산책',
       content: '동네 공원을 한 바퀴 돌았다. 사소하지만 소중한 시간.',
       mood: Mood.neutral,

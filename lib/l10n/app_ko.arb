@@ -1,0 +1,38 @@
+{
+  "@@locale": "ko",
+  "appTitle": "lifelog",
+  "@appTitle": { "description": "App name shown in title bar" },
+
+  "navHome": "홈",
+  "navReview": "회고",
+  "navAlerts": "알림",
+  "navFriends": "친구",
+  "navWrite": "작성",
+
+  "settingsTitle": "설정",
+  "settingsProfile": "프로필",
+  "settingsLanguage": "앱 언어",
+  "settingsNotifications": "알림 설정",
+  "settingsLogout": "로그아웃",
+  "settingsTerms": "약관 / 문의",
+
+  "languageKorean": "한국어",
+  "languageEnglish": "English",
+  "languageJapanese": "日本語",
+  "languageSystem": "기기 언어 따름",
+
+  "commonSave": "저장",
+  "commonCancel": "취소",
+  "commonDelete": "삭제",
+  "commonEdit": "수정",
+  "commonShare": "공유하기",
+  "commonConfirm": "확인",
+
+  "moodGood": "좋았어요",
+  "moodNeutral": "보통",
+  "moodHard": "힘들었어요",
+
+  "writeHint": "오늘 하루는 어땠나요?",
+  "aiSummaryTitle": "AI 요약",
+  "aiSummaryPending": "요약을 만들고 있어요…"
+}
