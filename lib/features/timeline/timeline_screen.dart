@@ -13,7 +13,16 @@ class TimelineScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entriesAsync = ref.watch(entriesProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('기록', style: TextStyle(fontWeight: FontWeight.w800))),
+      appBar: AppBar(
+        title: const Text('기록', style: TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: '검색',
+            onPressed: () => context.push('/search'),
+          ),
+        ],
+      ),
       body: entriesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('불러오기 실패: $e')),
