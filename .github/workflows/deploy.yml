@@ -1,0 +1,48 @@
+name: Deploy web to GitHub Pages
+
+# main에 푸시할 때마다 Flutter 웹을 빌드해 gh-pages 브랜치로 자동 배포합니다.
+# 공개 배포이므로 Gemini 키는 넣지 않습니다(api_keys.example.dart 사용 →
+# hasGemini=false, AI 요약은 로컬 폴백으로 동작). 키가 필요하면 저장소
+# Secrets에 GEMINI_API_KEY를 추가하고 아래 build 스텝에 --dart-define을 더하세요.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.1'
+          channel: stable
+          cache: true
+
+      - name: Provide keyless API keys (public build)
+        run: cp lib/core/config/api_keys.example.dart lib/core/config/api_keys.dart
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build web
+        run: flutter build web --release --base-href /lifelog/
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          publish_branch: gh-pages
