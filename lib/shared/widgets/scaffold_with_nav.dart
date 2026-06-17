@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../features/journals/default_journal_provider.dart';
 
 /// Bottom navigation with 5 slots. The center (+) is not a branch —
-/// it pushes the write screen on top of the current branch.
-class ScaffoldWithNav extends StatelessWidget {
+/// it pushes the write screen for the user's default journal.
+class ScaffoldWithNav extends ConsumerWidget {
   const ScaffoldWithNav({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
@@ -22,9 +24,11 @@ class ScaffoldWithNav extends StatelessWidget {
   int _branchToNav(int branch) => branch < 2 ? branch : branch + 1;
   int _navToBranch(int nav) => nav < 2 ? nav : nav - 1;
 
-  void _onTap(BuildContext context, int navIndex) {
+  void _onTap(BuildContext context, WidgetRef ref, int navIndex) {
     if (navIndex == 2) {
-      context.push('/write');
+      // Quick-write goes to the user's default journal (Settings → 기본 일기장).
+      final target = ref.read(defaultJournalProvider);
+      context.push(writeRouteForJournal(ref, target));
       return;
     }
     final branch = _navToBranch(navIndex);
@@ -35,7 +39,7 @@ class ScaffoldWithNav extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final currentNav = _branchToNav(navigationShell.currentIndex);
     return Scaffold(
       body: navigationShell,
@@ -51,11 +55,13 @@ class ScaffoldWithNav extends StatelessWidget {
             child: Row(
               children: List.generate(_items.length, (i) {
                 final spec = _items[i];
-                if (i == 2) return _CenterButton(onTap: () => _onTap(context, i));
+                if (i == 2) {
+                  return _CenterButton(onTap: () => _onTap(context, ref, i));
+                }
                 final selected = i == currentNav;
                 return Expanded(
                   child: InkWell(
-                    onTap: () => _onTap(context, i),
+                    onTap: () => _onTap(context, ref, i),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [

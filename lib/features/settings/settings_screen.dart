@@ -6,6 +6,8 @@ import '../../core/i18n/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../auth/session.dart';
+import '../journals/default_journal_provider.dart';
+import '../journals/journals_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -32,6 +34,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
+          _DefaultJournalTile(),
           _LanguageTile(),
           _SectionTile(icon: Icons.notifications_none, label: l.settingsNotifications),
           _SectionTile(icon: Icons.help_outline, label: l.settingsTerms),
@@ -110,6 +113,66 @@ class _LanguageTile extends ConsumerWidget {
           if (picked == null) return; // dismissed without choosing
           final next = picked == systemCode ? null : Locale(picked);
           await ref.read(localeProvider.notifier).setLocale(next);
+        },
+      ),
+    );
+  }
+}
+
+/// Picks the journal the bottom (+) quick-write button targets.
+class _DefaultJournalTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final journals = (ref.watch(journalsProvider).asData?.value ?? const [])
+        .where((j) => !j.isArchived)
+        .toList();
+    final defaultId = ref.watch(defaultJournalProvider);
+    final current = journals.where((j) => j.journalId == defaultId).firstOrNull;
+    final subtitle = current != null
+        ? '${current.displayIcon} ${current.title}'
+        : '기본 일기장';
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: const Icon(Icons.bookmark_border, color: AppColors.textSecondary),
+        title: const Text('기본 일기장'),
+        subtitle: Text('빠른 기록(+)이 쓰이는 곳 · $subtitle'),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        onTap: () async {
+          final picked = await showModalBottomSheet<String>(
+            context: context,
+            builder: (ctx) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('기본 일기장 선택',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                  for (final j in journals)
+                    ListTile(
+                      leading: Text(j.displayIcon,
+                          style: const TextStyle(fontSize: 20)),
+                      title: Text(j.title),
+                      subtitle: Text(j.type.label),
+                      trailing: j.journalId == defaultId
+                          ? const Icon(Icons.check, color: AppColors.primary)
+                          : null,
+                      onTap: () => Navigator.pop(ctx, j.journalId),
+                    ),
+                ],
+              ),
+            ),
+          );
+          if (picked != null) {
+            await ref.read(defaultJournalProvider.notifier).set(picked);
+          }
         },
       ),
     );

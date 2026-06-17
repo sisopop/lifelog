@@ -54,17 +54,22 @@ class JournalDetailScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: color,
         foregroundColor: Colors.white,
-        title: Row(
-          children: [
-            if (journal != null) ...[
-              Text(journal.displayIcon, style: const TextStyle(fontSize: 20)),
-              const SizedBox(width: 8),
+        title: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => _switchJournal(context, ref),
+          child: Row(
+            children: [
+              if (journal != null) ...[
+                Text(journal.displayIcon, style: const TextStyle(fontSize: 20)),
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: Text(journal?.title ?? '일기장',
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+              ),
+              const Icon(Icons.arrow_drop_down),
             ],
-            Expanded(
-              child: Text(journal?.title ?? '일기장',
-                  maxLines: 1, overflow: TextOverflow.ellipsis),
-            ),
-          ],
+          ),
         ),
         actions: [
           if (journal != null)
@@ -130,6 +135,46 @@ class JournalDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Opens a bottom sheet to jump to another active journal.
+  Future<void> _switchJournal(BuildContext context, WidgetRef ref) async {
+    final journals = (ref.read(journalsProvider).asData?.value ?? const [])
+        .where((j) => !j.isArchived)
+        .toList();
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('일기장 이동',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              ),
+            ),
+            for (final j in journals)
+              ListTile(
+                leading:
+                    Text(j.displayIcon, style: const TextStyle(fontSize: 20)),
+                title: Text(j.title),
+                subtitle: Text(j.type.label),
+                trailing: j.journalId == journalId
+                    ? const Icon(Icons.check, color: AppColors.primary)
+                    : null,
+                onTap: () => Navigator.pop(ctx, j.journalId),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && picked != journalId && context.mounted) {
+      context.pushReplacement('/journal/$picked');
+    }
   }
 
   /// FAB. For exchange journals it writes as the current turn holder and
