@@ -227,15 +227,18 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           const SizedBox(height: 8),
           const Text('오늘의 감정', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 10),
-          Row(
-            children: Mood.values
-                .map((m) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: MoodChip(m,
-                          selected: _mood == m,
-                          onTap: () => setState(() => _mood = m)),
-                    ))
-                .toList(),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: Mood.values
+                  .map((m) => Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: MoodChip(m,
+                            selected: _mood == m,
+                            onTap: () => setState(() => _mood = m)),
+                      ))
+                  .toList(),
+            ),
           ),
           const SizedBox(height: 20),
           TextField(
