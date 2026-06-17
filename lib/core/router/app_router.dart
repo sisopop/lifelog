@@ -38,8 +38,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/write',
         parentNavigatorKey: _rootKey,
-        builder: (_, state) =>
-            WriteScreen(journalId: state.uri.queryParameters['journalId']),
+        builder: (_, state) {
+          final qp = state.uri.queryParameters;
+          return WriteScreen(
+            journalId: qp['journalId'],
+            authorId: qp['authorId'],
+            advanceTurn: qp['advance'] == '1',
+          );
+        },
       ),
       GoRoute(
         path: '/journal/new',

@@ -10,17 +10,32 @@ import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/mood_chip.dart';
 import '../../shared/widgets/photo.dart';
+import '../../shared/models/journal.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journal_repository.dart';
+import '../journals/journals_provider.dart';
+import '../journals/turn_provider.dart';
 
 class WriteScreen extends ConsumerStatefulWidget {
-  const WriteScreen({super.key, this.editId, this.journalId});
+  const WriteScreen({
+    super.key,
+    this.editId,
+    this.journalId,
+    this.authorId,
+    this.advanceTurn = false,
+  });
 
   /// When set, the screen edits an existing entry instead of creating one.
   final String? editId;
 
   /// Target journal for a new entry. Defaults to the user's default journal.
   final String? journalId;
+
+  /// Who the new entry is attributed to (교환일기 차례 멤버). Defaults to 'me'.
+  final String? authorId;
+
+  /// After saving, advance the exchange-journal turn to the next member.
+  final bool advanceTurn;
 
   @override
   ConsumerState<WriteScreen> createState() => _WriteScreenState();
@@ -157,11 +172,12 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         ),
       );
     } else {
+      final journalId = widget.journalId ?? JournalRepository.defaultJournalId;
       await notifier.add(
         DiaryEntry(
           entryId: now.microsecondsSinceEpoch.toString(),
-          userId: 'me',
-          journalId: widget.journalId ?? JournalRepository.defaultJournalId,
+          userId: widget.authorId ?? 'me',
+          journalId: journalId,
           title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
           content: _contentCtrl.text.trim(),
           mood: _mood,
@@ -173,12 +189,24 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           updatedAt: now,
         ),
       );
+      // 교환일기: 기록 후 다음 멤버에게 차례를 넘긴다.
+      if (widget.advanceTurn) {
+        await ref.read(exchangeTurnControllerProvider).advance(journalId);
+      }
     }
     if (mounted) context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Shared journals (커플/교환) record entries as shared by default;
+    // personal journals keep the private-first flow.
+    final journals =
+        ref.watch(journalsProvider).asData?.value ?? const <Journal>[];
+    final jid = widget.journalId ?? JournalRepository.defaultJournalId;
+    final journal = journals.where((j) => j.journalId == jid).firstOrNull;
+    final shared = journal != null && journal.type != JournalType.personal;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? '기록 수정' : '새 기록'),
@@ -272,13 +300,24 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             ],
           ),
           const SizedBox(height: 28),
-          ElevatedButton(
-            onPressed: () => _save(
-              visibility: _editing?.visibility ?? EntryVisibility.private,
+          if (_isEditing)
+            ElevatedButton(
+              onPressed: () => _save(
+                visibility: _editing?.visibility ?? EntryVisibility.private,
+              ),
+              child: const Text('수정 저장'),
+            )
+          else if (shared) ...[
+            // 커플/교환 일기장은 멤버와 함께 보는 공동 기록이 기본.
+            ElevatedButton(
+              onPressed: () => _save(visibility: EntryVisibility.link),
+              child: const Text('함께 저장'),
             ),
-            child: Text(_isEditing ? '수정 저장' : '비공개 저장'),
-          ),
-          if (!_isEditing) ...[
+          ] else ...[
+            ElevatedButton(
+              onPressed: () => _save(visibility: EntryVisibility.private),
+              child: const Text('비공개 저장'),
+            ),
             const SizedBox(height: 10),
             OutlinedButton(
               style: OutlinedButton.styleFrom(

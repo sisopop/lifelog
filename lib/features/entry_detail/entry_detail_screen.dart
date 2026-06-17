@@ -60,6 +60,17 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final date = DateFormat.yMMMMEEEEd(locale).format(entry.createdAt);
 
+    // Author label for shared journals (멤버가 2명 이상일 때만 표시).
+    final members =
+        ref.watch(journalMembersProvider(entry.journalId)).asData?.value ??
+            const <JournalMember>[];
+    final author = members.where((m) => m.userId == entry.userId).firstOrNull;
+    final authorName = members.length < 2
+        ? null
+        : (author == null
+            ? (entry.userId == MembersRepository.meUserId ? '나' : '참여자')
+            : (author.isMe ? '나' : author.displayName));
+
     return Scaffold(
       appBar: AppBar(actions: [_menu(context, entry)]),
       body: Column(
@@ -68,7 +79,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                _header(entry, date),
+                _header(entry, date, authorName),
                 const SizedBox(height: 20),
                 if (entry.mediaUrls.isNotEmpty) ...[
                   _gallery(entry),
@@ -151,7 +162,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     );
   }
 
-  Widget _header(DiaryEntry entry, String date) {
+  Widget _header(DiaryEntry entry, String date, String? authorName) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -170,8 +181,29 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
           ],
         ),
         const SizedBox(height: 6),
-        Text('$date · ${entry.location ?? ''}',
-            style: const TextStyle(color: AppColors.textHint, fontSize: 13)),
+        Row(
+          children: [
+            if (authorName != null) ...[
+              CircleAvatar(
+                radius: 9,
+                backgroundColor: AppColors.primarySoft,
+                child: Text(authorName.characters.first,
+                    style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.primaryDark,
+                        fontWeight: FontWeight.w700)),
+              ),
+              const SizedBox(width: 5),
+              Text('$authorName · ',
+                  style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.primaryDark,
+                      fontWeight: FontWeight.w600)),
+            ],
+            Text('$date · ${entry.location ?? ''}',
+                style: const TextStyle(color: AppColors.textHint, fontSize: 13)),
+          ],
+        ),
       ],
     );
   }

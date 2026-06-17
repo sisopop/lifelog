@@ -7,7 +7,9 @@ import '../../shared/models/enums.dart';
 import '../../shared/models/journal.dart';
 import 'journals_provider.dart';
 
-/// 3-step new-journal wizard: 이름 → 타입 → (초대).
+/// 3-step new-journal wizard: 타입 → 이름/표지색 → (초대).
+/// Type is the first, most defining choice (개인/커플/교환 behave differently);
+/// it sets a sensible default cover color and name hint for the next step.
 /// See PRD.md §4-1. Invite step is informational in the MVP (couple/exchange
 /// invites are wired to the relationship flow later).
 class NewJournalScreen extends ConsumerStatefulWidget {
@@ -27,6 +29,22 @@ class _NewJournalScreenState extends ConsumerState<NewJournalScreen> {
   ];
   int _color = _palette.first;
 
+  /// Default cover color per type (applied when a type is chosen).
+  static const _typeColor = {
+    JournalType.personal: 0xFF7C6FF0,
+    JournalType.couple: 0xFFEF6F9E,
+    JournalType.exchange: 0xFF53B7A8,
+  };
+
+  String get _nameHint => switch (_type) {
+        JournalType.personal => '예: 나의 일기장, 감사일기',
+        JournalType.couple => '예: 우리 둘, 사랑 기록',
+        JournalType.exchange => '예: 친구와 교환일기',
+      };
+
+  void _selectType(JournalType t) =>
+      setState(() => _color = _typeColor[(_type = t)]!);
+
   @override
   void dispose() {
     _titleCtrl.dispose();
@@ -34,7 +52,8 @@ class _NewJournalScreenState extends ConsumerState<NewJournalScreen> {
   }
 
   bool get _canNext {
-    if (_step == 0) return _titleCtrl.text.trim().isNotEmpty;
+    // Step 1 (name) requires a title; type/invite steps are always passable.
+    if (_step == 1) return _titleCtrl.text.trim().isNotEmpty;
     return true;
   }
 
@@ -97,17 +116,15 @@ class _NewJournalScreenState extends ConsumerState<NewJournalScreen> {
   Widget _buildStep() {
     switch (_step) {
       case 0:
+        return _StepType(selected: _type, onSelect: _selectType);
+      case 1:
         return _StepName(
           controller: _titleCtrl,
+          hint: _nameHint,
           color: _color,
           palette: _palette,
           onColor: (c) => setState(() => _color = c),
           onChanged: () => setState(() {}),
-        );
-      case 1:
-        return _StepType(
-          selected: _type,
-          onSelect: (t) => setState(() => _type = t),
         );
       default:
         return _StepInvite(type: _type);
@@ -142,12 +159,14 @@ class _StepDots extends StatelessWidget {
 class _StepName extends StatelessWidget {
   const _StepName({
     required this.controller,
+    required this.hint,
     required this.color,
     required this.palette,
     required this.onColor,
     required this.onChanged,
   });
   final TextEditingController controller;
+  final String hint;
   final int color;
   final List<int> palette;
   final ValueChanged<int> onColor;
@@ -164,9 +183,9 @@ class _StepName extends StatelessWidget {
           controller: controller,
           autofocus: true,
           onChanged: (_) => onChanged(),
-          decoration: const InputDecoration(
-            hintText: '예: 나의 일기장, 우리 둘, 친구와 교환',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: hint,
+            border: const OutlineInputBorder(),
           ),
         ),
         const SizedBox(height: 28),

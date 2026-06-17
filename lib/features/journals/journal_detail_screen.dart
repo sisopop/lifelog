@@ -5,11 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/models/journal.dart';
+import '../../shared/models/journal_member.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
 import 'journal_members_panel.dart';
 import 'journal_repository.dart';
 import 'journals_provider.dart';
+import 'members_provider.dart';
+import 'turn_provider.dart';
 
 /// A single journal's timeline: its entries, newest first, with a button to
 /// add a new entry into this journal.
@@ -30,6 +33,21 @@ class JournalDetailScreen extends ConsumerWidget {
 
     final color = journal != null ? Color(journal.coverColor) : AppColors.primary;
     final readOnly = journal?.isArchived ?? false;
+
+    final isShared = journal != null && journal.type != JournalType.personal;
+    final isExchange = journal?.type == JournalType.exchange;
+    final members = isShared
+        ? (ref.watch(journalMembersProvider(journalId)).asData?.value ??
+            const <JournalMember>[])
+        : const <JournalMember>[];
+    final turn = isExchange ? ref.watch(exchangeTurnProvider(journalId)) : null;
+
+    // Resolves an entry's author to a display label (커플/교환 only).
+    String authorLabel(String userId) {
+      final m = members.where((m) => m.userId == userId).firstOrNull;
+      if (m == null) return userId == 'me' ? '나' : '참여자';
+      return m.isMe ? '나' : m.displayName;
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -55,12 +73,7 @@ class JournalDetailScreen extends ConsumerWidget {
       ),
       floatingActionButton: readOnly
           ? null
-          : FloatingActionButton.extended(
-              backgroundColor: color,
-              onPressed: () => context.push('/write?journalId=$journalId'),
-              icon: const Icon(Icons.edit, color: Colors.white),
-              label: const Text('기록', style: TextStyle(color: Colors.white)),
-            ),
+          : _buildFab(context, color, isExchange ? turn : null),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -69,6 +82,18 @@ class JournalDetailScreen extends ConsumerWidget {
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: _ArchivedBanner(),
+              ),
+            // Exchange journals: 차례 안내 + 이어쓰기/차례 넘기기.
+            if (isExchange && !readOnly && turn != null)
+              _TurnBanner(
+                turn: turn,
+                onContinue: turn.previousAuthorId != null
+                    ? () => context.push(
+                        '/write?journalId=$journalId&authorId=${turn.previousAuthorId}')
+                    : null,
+                onSkip: () => ref
+                    .read(exchangeTurnControllerProvider)
+                    .advance(journalId),
               ),
             // Shared journals (couple/exchange) show participants + invite.
             if (journal != null && journal.type != JournalType.personal)
@@ -95,11 +120,101 @@ class JournalDetailScreen extends ConsumerWidget {
             else
               ...entries.map((e) => Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: EntryCard(e,
-                        onTap: () => context.push('/entry/${e.entryId}')),
+                    child: EntryCard(
+                      e,
+                      authorName: isShared ? authorLabel(e.userId) : null,
+                      onTap: () => context.push('/entry/${e.entryId}'),
+                    ),
                   )),
           ],
         ),
+      ),
+    );
+  }
+
+  /// FAB. For exchange journals it writes as the current turn holder and
+  /// advances the turn; otherwise a plain new-entry button.
+  Widget _buildFab(BuildContext context, Color color, ExchangeTurn? turn) {
+    if (turn == null) {
+      return FloatingActionButton.extended(
+        backgroundColor: color,
+        onPressed: () => context.push('/write?journalId=$journalId'),
+        icon: const Icon(Icons.edit, color: Colors.white),
+        label: const Text('기록', style: TextStyle(color: Colors.white)),
+      );
+    }
+    final holder = turn.holder;
+    final label = holder == null
+        ? '기록'
+        : (holder.isMe ? '내 차례 · 기록' : '${holder.displayName} 차례 · 기록');
+    final extra =
+        holder == null ? '' : '&authorId=${holder.userId}&advance=1';
+    return FloatingActionButton.extended(
+      backgroundColor: color,
+      onPressed: () => context.push('/write?journalId=$journalId$extra'),
+      icon: const Icon(Icons.edit, color: Colors.white),
+      label: Text(label, style: const TextStyle(color: Colors.white)),
+    );
+  }
+}
+
+/// 교환일기 차례 안내 배너. 상대가 오래 안 쓰면 이어쓰기/차례 넘기기를 연다.
+class _TurnBanner extends StatelessWidget {
+  const _TurnBanner({required this.turn, this.onContinue, this.onSkip});
+  final ExchangeTurn turn;
+  final VoidCallback? onContinue;
+  final VoidCallback? onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    final holder = turn.holder;
+    final who = holder == null ? '' : (holder.isMe ? '내' : '${holder.displayName}님');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🔁', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text('지금은 $who 차례예요',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryDark)),
+              ),
+            ],
+          ),
+          if (turn.overdue && !turn.isMyTurn) ...[
+            const SizedBox(height: 6),
+            const Text('상대가 한동안 기록이 없어요. 이어서 쓰거나 차례를 넘길 수 있어요.',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                if (onContinue != null)
+                  OutlinedButton.icon(
+                    onPressed: onContinue,
+                    icon: const Icon(Icons.edit_note, size: 18),
+                    label: const Text('이어쓰기'),
+                  ),
+                const SizedBox(width: 8),
+                if (onSkip != null)
+                  TextButton.icon(
+                    onPressed: onSkip,
+                    icon: const Icon(Icons.skip_next, size: 18),
+                    label: const Text('차례 넘기기'),
+                  ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -6,10 +6,13 @@ import '../models/diary_entry.dart';
 import 'photo.dart';
 
 class EntryCard extends StatelessWidget {
-  const EntryCard(this.entry, {super.key, this.onTap});
+  const EntryCard(this.entry, {super.key, this.onTap, this.authorName});
 
   final DiaryEntry entry;
   final VoidCallback? onTap;
+
+  /// Author label for shared journals (커플/교환). Null → not shown.
+  final String? authorName;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +73,25 @@ class EntryCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
+                  if (authorName != null) ...[
+                    CircleAvatar(
+                      radius: 9,
+                      backgroundColor: AppColors.primarySoft,
+                      child: Text(
+                        authorName!.characters.first,
+                        style: const TextStyle(
+                            fontSize: 10,
+                            color: AppColors.primaryDark,
+                            fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Text('$authorName · ',
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.primaryDark,
+                            fontWeight: FontWeight.w600)),
+                  ],
                   Text(date, style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
                   const Spacer(),
                   ...entry.tags.take(2).map(
