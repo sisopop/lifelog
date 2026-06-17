@@ -31,8 +31,26 @@ class ExchangeTurn {
 }
 
 /// Members ordered by join time = fixed turn rotation order.
-List<JournalMember> _ordered(List<JournalMember> members) =>
+List<JournalMember> orderedTurnMembers(List<JournalMember> members) =>
     [...members]..sort((a, b) => a.joinedAt.compareTo(b.joinedAt));
+
+/// Resolves the current holder from the stored holder id, falling back to the
+/// first member in rotation when the id is unknown. [ordered] must be non-empty.
+JournalMember resolveHolder(List<JournalMember> ordered, String? storedId) =>
+    ordered.firstWhere((m) => m.userId == storedId, orElse: () => ordered.first);
+
+/// The next member's userId in rotation after [currentId]. Returns null when
+/// [ordered] is empty.
+String? nextHolderId(List<JournalMember> ordered, String? currentId) {
+  if (ordered.isEmpty) return null;
+  final id = currentId ?? ordered.first.userId;
+  final idx = ordered.indexWhere((m) => m.userId == id);
+  return ordered[(idx + 1) % ordered.length].userId;
+}
+
+/// Whether the current holder is overdue (no entry within [exchangeTurnTimeout]).
+bool isTurnOverdue(DateTime? lastEntryAt, DateTime now) =>
+    lastEntryAt != null && now.difference(lastEntryAt) > exchangeTurnTimeout;
 
 /// Computes the current turn for an exchange journal from its members,
 /// the last top-level entry, and the persisted turn holder.
@@ -41,7 +59,7 @@ final exchangeTurnProvider =
   final members =
       ref.watch(journalMembersProvider(journalId)).asData?.value ??
           const <JournalMember>[];
-  final ordered = _ordered(members);
+  final ordered = orderedTurnMembers(members);
   if (ordered.isEmpty) return const ExchangeTurn();
 
   final entries = (ref.watch(entriesProvider).asData?.value ?? const [])
@@ -51,13 +69,9 @@ final exchangeTurnProvider =
   final last = entries.isEmpty ? null : entries.last;
 
   final storedId = ref.watch(sharedPrefsProvider).getString(_turnKey(journalId));
-  final holder = ordered.firstWhere(
-    (m) => m.userId == storedId,
-    orElse: () => ordered.first,
-  );
+  final holder = resolveHolder(ordered, storedId);
 
-  final overdue = last != null &&
-      DateTime.now().difference(last.createdAt) > exchangeTurnTimeout;
+  final overdue = isTurnOverdue(last?.createdAt, DateTime.now());
 
   return ExchangeTurn(
     holder: holder,
@@ -80,13 +94,11 @@ class ExchangeTurnController {
   Future<void> advance(String journalId) async {
     final members =
         await _ref.read(journalMembersProvider(journalId).future);
-    final ordered = _ordered(members);
-    if (ordered.isEmpty) return;
-    final currentId =
-        _p.getString(_turnKey(journalId)) ?? ordered.first.userId;
-    final idx = ordered.indexWhere((m) => m.userId == currentId);
-    final next = ordered[(idx + 1) % ordered.length];
-    await _p.setString(_turnKey(journalId), next.userId);
+    final ordered = orderedTurnMembers(members);
+    final currentId = _p.getString(_turnKey(journalId));
+    final nextId = nextHolderId(ordered, currentId);
+    if (nextId == null) return;
+    await _p.setString(_turnKey(journalId), nextId);
     _ref.invalidate(exchangeTurnProvider(journalId));
   }
 
