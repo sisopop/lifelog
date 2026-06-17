@@ -19,6 +19,12 @@ class MembersRepository {
     return rows.map(_toDomain).toList();
   }
 
+  /// All members across every journal (used by the 사람 aggregate view).
+  Future<List<JournalMember>> getAll() async {
+    final rows = await _db.getAllMembers();
+    return rows.map(_toDomain).toList();
+  }
+
   Future<void> save(JournalMember member) {
     return _db.upsertMember(_toCompanion(member));
   }
