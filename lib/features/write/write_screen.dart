@@ -51,7 +51,18 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   DiaryEntry? _editing;
   bool _prefilled = false;
 
+  /// Target journal for a new entry. Defaults to the route param / default
+  /// journal, but can be changed via the journal selector at the top.
+  String? _journalId;
+
   bool get _isEditing => widget.editId != null;
+
+  /// Whether the user can change the target journal here. Editing keeps the
+  /// entry's own journal; exchange-turn writes are pinned to keep turn order.
+  bool get _canSwitchJournal => !_isEditing && !widget.advanceTurn;
+
+  String get _targetJournalId =>
+      _journalId ?? widget.journalId ?? JournalRepository.defaultJournalId;
 
   @override
   void didChangeDependencies() {
@@ -172,7 +183,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         ),
       );
     } else {
-      final journalId = widget.journalId ?? JournalRepository.defaultJournalId;
+      final journalId = _targetJournalId;
       await notifier.add(
         DiaryEntry(
           entryId: now.microsecondsSinceEpoch.toString(),
@@ -197,13 +208,51 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     if (mounted) context.pop();
   }
 
+  /// Bottom sheet to change which journal this new entry is saved into.
+  Future<void> _pickJournal(List<Journal> journals) async {
+    final active = journals.where((j) => !j.isArchived).toList();
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('어느 일기장에 쓸까요?',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              ),
+            ),
+            for (final j in active)
+              ListTile(
+                leading:
+                    Text(j.displayIcon, style: const TextStyle(fontSize: 20)),
+                title: Text(j.title),
+                subtitle: Text(j.type.label),
+                trailing: j.journalId == _targetJournalId
+                    ? const Icon(Icons.check, color: AppColors.primary)
+                    : null,
+                onTap: () => Navigator.pop(ctx, j.journalId),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked != null && picked != _targetJournalId) {
+      setState(() => _journalId = picked);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Shared journals (커플/교환) record entries as shared by default;
     // personal journals keep the private-first flow.
     final journals =
         ref.watch(journalsProvider).asData?.value ?? const <Journal>[];
-    final jid = widget.journalId ?? JournalRepository.defaultJournalId;
+    final jid = _targetJournalId;
     final journal = journals.where((j) => j.journalId == jid).firstOrNull;
     final shared = journal != null && journal.type != JournalType.personal;
 
@@ -215,6 +264,17 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          // Shows (and, for new entries, lets you change) the target journal.
+          if (!_isEditing && journal != null) ...[
+            _JournalSelector(
+              journal: journal,
+              canSwitch: _canSwitchJournal,
+              onTap: _canSwitchJournal
+                  ? () => _pickJournal(journals)
+                  : null,
+            ),
+            const SizedBox(height: 12),
+          ],
           TextField(
             controller: _titleCtrl,
             decoration: const InputDecoration(
@@ -334,6 +394,59 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Header chip showing the target journal. Tappable (with a ▾) when the
+/// journal can be changed; otherwise a static label.
+class _JournalSelector extends StatelessWidget {
+  const _JournalSelector({
+    required this.journal,
+    required this.canSwitch,
+    this.onTap,
+  });
+  final Journal journal;
+  final bool canSwitch;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Color(journal.coverColor);
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          children: [
+            Text(journal.displayIcon, style: const TextStyle(fontSize: 18)),
+            const SizedBox(width: 8),
+            const Text('일기장 · ',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+            Flexible(
+              child: Text(
+                journal.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 14, fontWeight: FontWeight.w700),
+              ),
+            ),
+            if (canSwitch) ...[
+              const Spacer(),
+              const Text('변경',
+                  style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+              const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+            ],
+          ],
+        ),
       ),
     );
   }
