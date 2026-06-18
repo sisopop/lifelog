@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
+import '../journals/journals_provider.dart';
 import 'entry_search.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
@@ -69,14 +70,22 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         text: "'$query'에 대한 결과가 없어요",
       );
     }
+    final journals = ref.watch(journalsProvider).asData?.value ?? const [];
+    final journalMap = {for (final j in journals) j.journalId: j};
     return ListView.separated(
       padding: const EdgeInsets.all(20),
       itemCount: results.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (_, i) => EntryCard(
-        results[i],
-        onTap: () => context.push('/entry/${results[i].entryId}'),
-      ),
+      itemBuilder: (_, i) {
+        final e = results[i];
+        final j = journalMap[e.journalId];
+        return EntryCard(
+          e,
+          journalName: j?.title,
+          journalIcon: j?.displayIcon,
+          onTap: () => context.push('/entry/${e.entryId}'),
+        );
+      },
     );
   }
 }

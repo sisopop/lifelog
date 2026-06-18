@@ -6,13 +6,27 @@ import '../models/diary_entry.dart';
 import 'photo.dart';
 
 class EntryCard extends StatelessWidget {
-  const EntryCard(this.entry, {super.key, this.onTap, this.authorName});
+  const EntryCard(
+    this.entry, {
+    super.key,
+    this.onTap,
+    this.authorName,
+    this.journalName,
+    this.journalIcon,
+  });
 
   final DiaryEntry entry;
   final VoidCallback? onTap;
 
   /// Author label for shared journals (커플/교환). Null → not shown.
   final String? authorName;
+
+  /// Owning journal name, shown as a small label on mixed lists (기록/검색).
+  /// Null → not shown (e.g. a single-journal detail view).
+  final String? journalName;
+
+  /// Emoji/icon of the owning journal, shown beside [journalName].
+  final String? journalIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +40,29 @@ class EntryCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (journalName != null) ...[
+                Row(
+                  children: [
+                    if (journalIcon != null) ...[
+                      Text(journalIcon!, style: const TextStyle(fontSize: 12)),
+                      const SizedBox(width: 4),
+                    ],
+                    Flexible(
+                      child: Text(
+                        journalName!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textHint,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+              ],
               Row(
                 children: [
                   if (entry.mood != null) ...[

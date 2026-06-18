@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
+import '../journals/journals_provider.dart';
 import 'timeline_filter.dart';
 
 class TimelineScreen extends ConsumerWidget {
@@ -32,6 +33,8 @@ class TimelineScreen extends ConsumerWidget {
           final filter = ref.watch(timelineFilterProvider);
           final entries = ref.watch(filteredTimelineProvider);
           final tags = ref.watch(availableTagsProvider);
+          final journals = ref.watch(journalsProvider).asData?.value ?? const [];
+          final journalMap = {for (final j in journals) j.journalId: j};
           return Column(
             children: [
               _FilterBar(filter: filter, tags: tags),
@@ -42,11 +45,16 @@ class TimelineScreen extends ConsumerWidget {
                         padding: const EdgeInsets.all(20),
                         itemCount: entries.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (_, i) => EntryCard(
-                          entries[i],
-                          onTap: () =>
-                              context.push('/entry/${entries[i].entryId}'),
-                        ),
+                        itemBuilder: (_, i) {
+                          final e = entries[i];
+                          final j = journalMap[e.journalId];
+                          return EntryCard(
+                            e,
+                            journalName: j?.title,
+                            journalIcon: j?.displayIcon,
+                            onTap: () => context.push('/entry/${e.entryId}'),
+                          );
+                        },
                       ),
               ),
             ],
