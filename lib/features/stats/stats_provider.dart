@@ -78,16 +78,63 @@ class MonthlyStats {
   bool get isEmpty => total == 0;
 }
 
-/// Aggregates the current month's entries into review stats.
-final monthlyStatsProvider = Provider<MonthlyStats>((ref) {
-  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
-  final now = DateTime.now();
-  // Exclude 답장(reply) records so counts/ratios reflect real diary entries.
+/// The (year, month) currently shown on the 회고 screen.
+class ReviewMonth {
+  const ReviewMonth(this.year, this.month);
+  final int year;
+  final int month;
+
+  ReviewMonth get previous =>
+      month == 1 ? ReviewMonth(year - 1, 12) : ReviewMonth(year, month - 1);
+  ReviewMonth get next =>
+      month == 12 ? ReviewMonth(year + 1, 1) : ReviewMonth(year, month + 1);
+
+  /// True if this month is at or after [other] (i.e. can't go further forward).
+  bool isAtOrAfter(ReviewMonth other) =>
+      year > other.year || (year == other.year && month >= other.month);
+
+  @override
+  bool operator ==(Object other) =>
+      other is ReviewMonth && other.year == year && other.month == month;
+
+  @override
+  int get hashCode => Object.hash(year, month);
+}
+
+/// Holds the month the user is reviewing; starts at the current month and
+/// never advances past it (no future months to review).
+class ReviewMonthNotifier extends Notifier<ReviewMonth> {
+  @override
+  ReviewMonth build() {
+    final now = DateTime.now();
+    return ReviewMonth(now.year, now.month);
+  }
+
+  ReviewMonth get _current {
+    final now = DateTime.now();
+    return ReviewMonth(now.year, now.month);
+  }
+
+  bool get canGoNext => !state.isAtOrAfter(_current);
+
+  void goPrevious() => state = state.previous;
+  void goNext() {
+    if (canGoNext) state = state.next;
+  }
+}
+
+final reviewMonthProvider =
+    NotifierProvider<ReviewMonthNotifier, ReviewMonth>(ReviewMonthNotifier.new);
+
+/// Pure aggregation: entries → review stats for the given year/month.
+/// Excludes 답장(reply) records so counts/ratios reflect real diary entries.
+MonthlyStats computeMonthlyStats(
+    List<DiaryEntry> entries, int year, int month) {
   final monthEntries = entries
       .where((e) =>
           e.replyToEntryId == null &&
-          e.createdAt.year == now.year &&
-          e.createdAt.month == now.month)
+          e.createdAt.year == year &&
+          e.createdAt.month == month)
       .toList();
 
   final days = monthEntries.map((e) => e.createdAt.day).toSet().length;
@@ -112,18 +159,25 @@ final monthlyStatsProvider = Provider<MonthlyStats>((ref) {
     ..sort((a, b) => b.value.compareTo(a.value));
 
   return MonthlyStats(
-    year: now.year,
-    month: now.month,
+    year: year,
+    month: month,
     daysRecorded: days,
     total: total,
     moodRatio: moodRatio,
     topTags: topTags.take(5).toList(),
   );
+}
+
+/// Aggregates the selected month's entries into review stats.
+final monthlyStatsProvider = Provider<MonthlyStats>((ref) {
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final m = ref.watch(reviewMonthProvider);
+  return computeMonthlyStats(entries, m.year, m.month);
 });
 
 /// Used by the review AI report card.
 String monthlyNarrative(MonthlyStats s, List<DiaryEntry> _) {
-  if (s.isEmpty) return '아직 이번 달 기록이 없어요. 오늘 첫 기록을 남겨보세요.';
+  if (s.isEmpty) return '${s.month}월에는 남긴 기록이 없어요.';
   final topTag = s.topTags.isNotEmpty ? s.topTags.first.key : null;
   final dominant = s.moodRatio.entries
       .reduce((a, b) => a.value >= b.value ? a : b)

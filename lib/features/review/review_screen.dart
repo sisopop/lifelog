@@ -14,13 +14,34 @@ class ReviewScreen extends ConsumerWidget {
     final stats = ref.watch(monthlyStatsProvider);
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
     final report = ref.watch(monthlyReportProvider);
+    final monthCtrl = ref.read(reviewMonthProvider.notifier);
+    final canGoNext = monthCtrl.canGoNext;
     return Scaffold(
       appBar: AppBar(title: const Text('회고', style: TextStyle(fontWeight: FontWeight.w800))),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text('${stats.year}년 ${stats.month}월',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                tooltip: '이전 달',
+                onPressed: monthCtrl.goPrevious,
+              ),
+              Expanded(
+                child: Text('${stats.year}년 ${stats.month}월',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.w800)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                tooltip: '다음 달',
+                color: canGoNext ? null : AppColors.textHint.withValues(alpha: 0.4),
+                onPressed: canGoNext ? monthCtrl.goNext : null,
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           Row(
             children: [
