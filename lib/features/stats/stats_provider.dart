@@ -175,6 +175,25 @@ final monthlyStatsProvider = Provider<MonthlyStats>((ref) {
   return computeMonthlyStats(entries, m.year, m.month);
 });
 
+/// Days (1..31) of the given month that have at least one top-level record.
+Set<int> recordedDaysOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  return {
+    for (final e in entries)
+      if (e.replyToEntryId == null &&
+          e.createdAt.year == year &&
+          e.createdAt.month == month)
+        e.createdAt.day,
+  };
+}
+
+/// Recorded-day set for the month currently shown on the 회고 screen.
+final recordedDaysProvider = Provider<Set<int>>((ref) {
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final m = ref.watch(reviewMonthProvider);
+  return recordedDaysOfMonth(entries, m.year, m.month);
+});
+
 /// Used by the review AI report card.
 String monthlyNarrative(MonthlyStats s, List<DiaryEntry> _) {
   if (s.isEmpty) return '${s.month}월에는 남긴 기록이 없어요.';

@@ -58,6 +58,24 @@ void main() {
     });
   });
 
+  group('recordedDaysOfMonth', () {
+    final entries = [
+      _e(id: '1', at: DateTime(2026, 6, 1)),
+      _e(id: '2', at: DateTime(2026, 6, 1)), // same day → one entry in set
+      _e(id: '3', at: DateTime(2026, 6, 12)),
+      _e(id: '4', at: DateTime(2026, 6, 12), replyTo: '3'), // reply excluded
+      _e(id: '5', at: DateTime(2026, 5, 30)), // other month
+    ];
+
+    test('returns distinct top-level days of the target month', () {
+      expect(recordedDaysOfMonth(entries, 2026, 6), {1, 12});
+    });
+
+    test('empty for a month with no records', () {
+      expect(recordedDaysOfMonth(entries, 2026, 1), isEmpty);
+    });
+  });
+
   group('ReviewMonth navigation', () {
     test('previous rolls back across year boundary', () {
       expect(const ReviewMonth(2026, 1).previous, const ReviewMonth(2025, 12));

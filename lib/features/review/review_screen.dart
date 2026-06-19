@@ -51,6 +51,14 @@ class ReviewScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 20),
+          const Text('기록 달력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          _MonthCalendar(
+            year: stats.year,
+            month: stats.month,
+            recordedDays: ref.watch(recordedDaysProvider),
+          ),
+          const SizedBox(height: 20),
           const Text('감정 분포', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           for (final m in Mood.values) _MoodBar(m, stats.moodRatio[m] ?? 0),
@@ -120,6 +128,77 @@ class _StatBox extends StatelessWidget {
           const SizedBox(height: 6),
           Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
         ],
+      ),
+    );
+  }
+}
+
+/// A compact month grid (일~토) highlighting days that have a record.
+class _MonthCalendar extends StatelessWidget {
+  const _MonthCalendar({
+    required this.year,
+    required this.month,
+    required this.recordedDays,
+  });
+  final int year;
+  final int month;
+  final Set<int> recordedDays;
+
+  static const _weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+
+  @override
+  Widget build(BuildContext context) {
+    final daysInMonth = DateTime(year, month + 1, 0).day;
+    // Sunday-first: leading blanks before day 1.
+    final leading = DateTime(year, month, 1).weekday % 7;
+    final cells = <Widget>[
+      for (final w in _weekdayLabels)
+        Center(
+          child: Text(w,
+              style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
+        ),
+      for (var i = 0; i < leading; i++) const SizedBox.shrink(),
+      for (var d = 1; d <= daysInMonth; d++) _DayCell(d, recordedDays.contains(d)),
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: GridView.count(
+        crossAxisCount: 7,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 6,
+        crossAxisSpacing: 6,
+        children: cells,
+      ),
+    );
+  }
+}
+
+class _DayCell extends StatelessWidget {
+  const _DayCell(this.day, this.recorded);
+  final int day;
+  final bool recorded;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: recorded ? AppColors.primary : AppColors.background,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '$day',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: recorded ? FontWeight.w700 : FontWeight.w500,
+          color: recorded ? Colors.white : AppColors.textSecondary,
+        ),
       ),
     );
   }
