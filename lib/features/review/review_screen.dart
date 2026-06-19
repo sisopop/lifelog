@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
@@ -158,7 +159,15 @@ class _MonthCalendar extends StatelessWidget {
               style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
         ),
       for (var i = 0; i < leading; i++) const SizedBox.shrink(),
-      for (var d = 1; d <= daysInMonth; d++) _DayCell(d, recordedDays.contains(d)),
+      for (var d = 1; d <= daysInMonth; d++)
+        _DayCell(
+          d,
+          recordedDays.contains(d),
+          onTap: recordedDays.contains(d)
+              ? () => context.push(
+                  '/day/$year-${month.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}')
+              : null,
+        ),
     ];
 
     return Container(
@@ -180,24 +189,29 @@ class _MonthCalendar extends StatelessWidget {
 }
 
 class _DayCell extends StatelessWidget {
-  const _DayCell(this.day, this.recorded);
+  const _DayCell(this.day, this.recorded, {this.onTap});
   final int day;
   final bool recorded;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: recorded ? AppColors.primary : AppColors.background,
-        shape: BoxShape.circle,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        '$day',
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: recorded ? FontWeight.w700 : FontWeight.w500,
-          color: recorded ? Colors.white : AppColors.textSecondary,
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        decoration: BoxDecoration(
+          color: recorded ? AppColors.primary : AppColors.background,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          '$day',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: recorded ? FontWeight.w700 : FontWeight.w500,
+            color: recorded ? Colors.white : AppColors.textSecondary,
+          ),
         ),
       ),
     );

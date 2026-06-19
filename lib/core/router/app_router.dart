@@ -9,6 +9,7 @@ import '../../features/home/home_screen.dart';
 import '../../features/journals/journal_detail_screen.dart';
 import '../../features/journals/new_journal_screen.dart';
 import '../../features/people/people_screen.dart';
+import '../../features/review/day_entries_screen.dart';
 import '../../features/review/review_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/settings/settings_screen.dart';
@@ -68,6 +69,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/search',
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: '/day/:date', // date = yyyy-MM-dd
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) => DayEntriesScreen(
+          day: DateTime.parse(state.pathParameters['date']!),
+        ),
       ),
       GoRoute(
         path: '/entry/:id',
