@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
 import '../entries/entries_provider.dart';
 import '../stats/stats_provider.dart';
+import '../stats/streak.dart';
 
 class ReviewScreen extends ConsumerWidget {
   const ReviewScreen({super.key});
@@ -43,6 +44,8 @@ class ReviewScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          _StreakBanner(ref.watch(streakProvider)),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -128,6 +131,44 @@ class _StatBox extends StatelessWidget {
           Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textHint)),
           const SizedBox(height: 6),
           Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
+  }
+}
+
+/// History-wide streak banner (current run + best run).
+class _StreakBanner extends StatelessWidget {
+  const _StreakBanner(this.streak);
+  final StreakInfo streak;
+
+  @override
+  Widget build(BuildContext context) {
+    final cur = streak.current;
+    final headline =
+        cur > 0 ? '🔥 $cur일 연속 기록 중!' : '오늘 기록하고 연속 기록을 시작해보세요';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.primary, AppColors.primaryDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(headline,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800)),
+          const SizedBox(height: 4),
+          Text('최장 연속 기록 ${streak.longest}일',
+              style: const TextStyle(color: Colors.white70, fontSize: 13)),
         ],
       ),
     );
