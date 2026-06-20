@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/models/journal.dart';
 import '../journals/journals_provider.dart';
 import '../memories/on_this_day_section.dart';
+import '../memories/random_memory_section.dart';
 
 /// Home = the user's list of journals (일기장 목록). Tapping a journal opens
 /// its timeline; "+ 새 일기장" launches the 3-step creation wizard.
@@ -58,6 +59,7 @@ class HomeScreen extends ConsumerWidget {
             _NewJournalCard(onTap: () => context.push('/journal/new')),
             const SizedBox(height: 16),
             const OnThisDaySection(),
+            const RandomMemorySection(),
             if (journals.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 36),
