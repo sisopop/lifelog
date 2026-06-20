@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/diary_entry.dart';
+import 'entry_clipboard.dart';
 import '../../shared/models/journal_member.dart';
 import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
@@ -194,6 +196,14 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       onSelected: (v) async {
         if (v == 'edit') {
           context.push('/entry/${widget.entryId}/edit');
+        } else if (v == 'copy') {
+          await Clipboard.setData(
+              ClipboardData(text: entryClipboardText(entry)));
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('기록을 클립보드에 복사했어요')),
+            );
+          }
         } else if (v == 'delete') {
           final ok = await showDialog<bool>(
             context: context,
@@ -218,6 +228,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       },
       itemBuilder: (_) => const [
         PopupMenuItem(value: 'edit', child: Text('수정')),
+        PopupMenuItem(value: 'copy', child: Text('복사')),
         PopupMenuItem(value: 'delete', child: Text('삭제')),
       ],
     );
