@@ -32,6 +32,16 @@ List<DiaryEntry> filterEntries(List<DiaryEntry> entries, TimelineFilter filter) 
   }).toList();
 }
 
+/// Returns [entries] sorted by creation date. Newest-first by default;
+/// [ascending] true gives oldest-first. Does not mutate the input.
+List<DiaryEntry> sortByDate(List<DiaryEntry> entries, {bool ascending = false}) {
+  final sorted = [...entries];
+  sorted.sort((a, b) => ascending
+      ? a.createdAt.compareTo(b.createdAt)
+      : b.createdAt.compareTo(a.createdAt));
+  return sorted;
+}
+
 /// Distinct tags across all top-level entries, most-used first.
 List<String> availableTags(List<DiaryEntry> entries) {
   final counts = <String, int>{};
@@ -73,12 +83,24 @@ final timelineFilterProvider =
   TimelineFilterNotifier.new,
 );
 
-/// Top-level entries after applying the active filter, newest-first.
+/// Timeline sort order. false (default) = newest-first, true = oldest-first.
+class TimelineSortNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
+}
+
+final timelineSortProvider =
+    NotifierProvider<TimelineSortNotifier, bool>(TimelineSortNotifier.new);
+
+/// Top-level entries after applying the active filter, sorted by the
+/// current order (newest-first by default).
 final filteredTimelineProvider = Provider<List<DiaryEntry>>((ref) {
   final all = ref.watch(entriesProvider).asData?.value ?? const <DiaryEntry>[];
   final filter = ref.watch(timelineFilterProvider);
-  return filterEntries(all, filter)
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  final ascending = ref.watch(timelineSortProvider);
+  return sortByDate(filterEntries(all, filter), ascending: ascending);
 });
 
 final availableTagsProvider = Provider<List<String>>((ref) {

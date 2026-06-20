@@ -8,6 +8,7 @@ DiaryEntry _e({
   Mood? mood,
   List<String> tags = const [],
   String? replyTo,
+  DateTime? created,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -17,8 +18,8 @@ DiaryEntry _e({
       mood: mood,
       tags: tags,
       content: 'x',
-      createdAt: DateTime(2026, 1, 1),
-      updatedAt: DateTime(2026, 1, 1),
+      createdAt: created ?? DateTime(2026, 1, 1),
+      updatedAt: created ?? DateTime(2026, 1, 1),
     );
 
 void main() {
@@ -69,6 +70,29 @@ void main() {
         _e(id: 'b', tags: ['secret'], replyTo: 'a'),
       ];
       expect(availableTags(only), ['x']);
+    });
+  });
+
+  group('sortByDate', () {
+    final dated = [
+      _e(id: 'mid', created: DateTime(2026, 6, 10)),
+      _e(id: 'old', created: DateTime(2026, 6, 1)),
+      _e(id: 'new', created: DateTime(2026, 6, 20)),
+    ];
+
+    test('defaults to newest-first', () {
+      expect(sortByDate(dated).map((e) => e.entryId), ['new', 'mid', 'old']);
+    });
+
+    test('ascending gives oldest-first', () {
+      expect(sortByDate(dated, ascending: true).map((e) => e.entryId),
+          ['old', 'mid', 'new']);
+    });
+
+    test('does not mutate the input list', () {
+      final before = dated.map((e) => e.entryId).toList();
+      sortByDate(dated, ascending: true);
+      expect(dated.map((e) => e.entryId).toList(), before);
     });
   });
 
