@@ -272,7 +272,10 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                       color: AppColors.primaryDark,
                       fontWeight: FontWeight.w600)),
             ],
-            Text('$date · ${entry.location ?? ''}',
+            Text(
+                (entry.location ?? '').trim().isEmpty
+                    ? date
+                    : '$date · ${entry.location!.trim()}',
                 style: const TextStyle(color: AppColors.textHint, fontSize: 13)),
           ],
         ),

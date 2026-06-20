@@ -55,6 +55,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   final _contentCtrl = TextEditingController();
   final _picker = ImagePicker();
   Mood? _mood;
+  String? _location;
   final List<String> _photoPaths = [];
   final List<String> _tags = [];
   DiaryEntry? _editing;
@@ -89,6 +90,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         _titleCtrl.text = entry.title ?? '';
         _contentCtrl.text = entry.content;
         _mood = entry.mood;
+        _location = entry.location;
         _photoPaths
           ..clear()
           ..addAll(entry.mediaUrls);
@@ -159,6 +161,34 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     if (picked != null) setState(() => _date = picked);
   }
 
+  /// Manually attach/edit a place name for the entry (no GPS needed).
+  Future<void> _editLocation() async {
+    final ctrl = TextEditingController(text: _location ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('위치'),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: '예: 제주 바닷가, 동네 카페'),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, ''),
+              child: const Text('지우기')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, ctrl.text),
+              child: const Text('확인')),
+        ],
+      ),
+    );
+    if (result == null) return; // dismissed
+    final trimmed = result.trim();
+    setState(() => _location = trimmed.isEmpty ? null : trimmed);
+  }
+
   Future<void> _save({required EntryVisibility visibility}) async {
     if (_contentCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -176,6 +206,9 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           content: _contentCtrl.text.trim(),
           mood: _mood,
           visibility: visibility,
+          // Pass '' (not null) so clearing the place persists — copyWith keeps
+          // the old value when given null.
+          location: _location ?? '',
           mediaUrls: List.of(_photoPaths),
           tags: List.of(_tags),
           createdAt: composeEntryDate(_date, _editing!.createdAt),
@@ -192,6 +225,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           content: _contentCtrl.text.trim(),
           mood: _mood,
           visibility: visibility,
+          location: _location,
           aiStatus: AiStatus.pending, // summary generated async (see TECH_DESIGN.md)
           mediaUrls: List.of(_photoPaths),
           tags: List.of(_tags),
@@ -336,6 +370,17 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                   ref.read(writingPromptIndexProvider.notifier).next(),
             ),
           ],
+          if ((_location ?? '').trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Chip(
+                avatar: const Icon(Icons.place, size: 18),
+                label: Text(_location!.trim()),
+                onDeleted: () => setState(() => _location = null),
+              ),
+            ),
+          ],
           if (_photoPaths.isNotEmpty) ...[
             const SizedBox(height: 16),
             SizedBox(
@@ -385,7 +430,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             children: [
               _AttachButton(Icons.photo_outlined, '사진', _pickPhotos),
               const _AttachButton(Icons.mic_none, '음성', null),
-              const _AttachButton(Icons.place_outlined, '위치', null),
+              _AttachButton(Icons.place_outlined, '위치', _editLocation),
               _AttachButton(Icons.tag, '태그', _addTag),
             ],
           ),
