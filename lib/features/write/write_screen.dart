@@ -13,6 +13,8 @@ import '../../shared/widgets/photo.dart';
 import '../../shared/models/journal.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journal_repository.dart';
+import '../timeline/timeline_filter.dart';
+import 'tag_input_sheet.dart';
 import '../journals/journals_provider.dart';
 import '../journals/turn_provider.dart';
 
@@ -124,37 +126,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   }
 
   Future<void> _addTag() async {
-    final ctrl = TextEditingController();
-    final tag = await showModalBottomSheet<String>(
+    final tag = await showTagInputSheet(
       context: context,
-      isScrollControlled: true,
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 20,
-          right: 20,
-          top: 20,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('태그 추가', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: ctrl,
-              autofocus: true,
-              decoration: const InputDecoration(hintText: '예: 여행, 가족'),
-              onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
-              child: const Text('추가'),
-            ),
-          ],
-        ),
-      ),
+      allTags: ref.read(availableTagsProvider),
+      exclude: _tags,
     );
     if (tag != null && tag.isNotEmpty && !_tags.contains(tag)) {
       setState(() => _tags.add(tag));
