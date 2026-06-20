@@ -84,7 +84,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                _header(entry, date, authorName),
+                _header(context, entry, date, authorName),
                 const SizedBox(height: 20),
                 if (entry.mediaUrls.isNotEmpty) ...[
                   _gallery(entry),
@@ -234,7 +234,9 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     );
   }
 
-  Widget _header(DiaryEntry entry, String date, String? authorName) {
+  Widget _header(
+      BuildContext context, DiaryEntry entry, String date, String? authorName) {
+    final location = (entry.location ?? '').trim();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -272,11 +274,30 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                       color: AppColors.primaryDark,
                       fontWeight: FontWeight.w600)),
             ],
-            Text(
-                (entry.location ?? '').trim().isEmpty
-                    ? date
-                    : '$date · ${entry.location!.trim()}',
+            Text(date,
                 style: const TextStyle(color: AppColors.textHint, fontSize: 13)),
+            if (location.isNotEmpty) ...[
+              const Text(' · ',
+                  style: TextStyle(color: AppColors.textHint, fontSize: 13)),
+              InkWell(
+                onTap: () => context.push(
+                    Uri(path: '/place', queryParameters: {'l': location})
+                        .toString()),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.place,
+                        size: 14, color: AppColors.primaryDark),
+                    const SizedBox(width: 2),
+                    Text(location,
+                        style: const TextStyle(
+                            color: AppColors.primaryDark,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ],
