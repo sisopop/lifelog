@@ -17,6 +17,7 @@ import '../../features/search/search_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/share/share_screen.dart';
 import '../../features/tags/tag_entries_screen.dart';
+import '../../features/tags/tag_manage_screen.dart';
 import '../../features/timeline/timeline_screen.dart';
 import '../../features/write/write_screen.dart';
 import '../../shared/widgets/scaffold_with_nav.dart';
@@ -95,6 +96,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootKey,
         builder: (_, state) =>
             TagEntriesScreen(tag: state.uri.queryParameters['t'] ?? ''),
+      ),
+      GoRoute(
+        path: '/tags/manage',
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const TagManageScreen(),
       ),
       GoRoute(
         path: '/entry/:id',

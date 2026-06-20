@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/db/app_database.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../tags/tag_manage.dart';
 import 'diary_repository.dart';
 import 'gemini_service.dart';
 
@@ -91,6 +92,28 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
   /// 즐겨찾기 토글. Flips the star on [entry] and persists it.
   Future<void> toggleFavorite(DiaryEntry entry) async {
     await _repo.save(entry.copyWith(isFavorite: !entry.isFavorite));
+    state = AsyncData(await _repo.getAll());
+  }
+
+  /// Renames a tag across every entry that uses it. No-op when nothing changes.
+  Future<void> renameTag(String from, String to) async {
+    final current = state.asData?.value ?? const [];
+    final changed = renameTagInEntries(current, from, to);
+    if (changed.isEmpty) return;
+    for (final e in changed) {
+      await _repo.save(e.copyWith(updatedAt: DateTime.now()));
+    }
+    state = AsyncData(await _repo.getAll());
+  }
+
+  /// Removes a tag from every entry that uses it. No-op when nothing changes.
+  Future<void> deleteTag(String tag) async {
+    final current = state.asData?.value ?? const [];
+    final changed = removeTagFromEntries(current, tag);
+    if (changed.isEmpty) return;
+    for (final e in changed) {
+      await _repo.save(e.copyWith(updatedAt: DateTime.now()));
+    }
     state = AsyncData(await _repo.getAll());
   }
 
