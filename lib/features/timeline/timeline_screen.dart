@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
@@ -93,6 +95,8 @@ class TimelineScreen extends ConsumerWidget {
                                         journalMap[e.journalId]?.displayIcon,
                                     onTap: () =>
                                         context.push('/entry/${e.entryId}'),
+                                    onLongPress: () =>
+                                        _toggleFavorite(context, ref, e),
                                   ),
                                 ),
                             ],
@@ -106,6 +110,21 @@ class TimelineScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Quick-toggles an entry's favorite flag from the list with haptic feedback
+/// and a confirming snackbar.
+Future<void> _toggleFavorite(
+    BuildContext context, WidgetRef ref, DiaryEntry entry) async {
+  HapticFeedback.lightImpact();
+  final messenger = ScaffoldMessenger.of(context);
+  await ref.read(entriesProvider.notifier).toggleFavorite(entry);
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(entry.isFavorite ? '즐겨찾기에서 뺐어요' : '즐겨찾기에 추가했어요'),
+      duration: const Duration(seconds: 1),
+    ),
+  );
 }
 
 class _FilterBar extends ConsumerWidget {

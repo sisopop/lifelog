@@ -11,6 +11,7 @@ class EntryCard extends StatelessWidget {
     this.entry, {
     super.key,
     this.onTap,
+    this.onLongPress,
     this.authorName,
     this.journalName,
     this.journalIcon,
@@ -19,6 +20,9 @@ class EntryCard extends StatelessWidget {
 
   final DiaryEntry entry;
   final VoidCallback? onTap;
+
+  /// Optional long-press action (e.g. quick-toggle favorite from a list).
+  final VoidCallback? onLongPress;
 
   /// When non-empty, occurrences of this query are highlighted in the
   /// card's title and summary (used by the search results list).
@@ -40,6 +44,7 @@ class EntryCard extends StatelessWidget {
     return Card(
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(16),
