@@ -217,6 +217,27 @@ final recordedDaysProvider = Provider<Set<int>>((ref) {
   return recordedDaysOfMonth(entries, m.year, m.month);
 });
 
+/// Top-level record counts per weekday for the given month.
+/// Index 0 = 일요일 … 6 = 토요일 (matches the calendar's column order).
+List<int> weekdayCounts(List<DiaryEntry> entries, int year, int month) {
+  final counts = List<int>.filled(7, 0);
+  for (final e in entries) {
+    if (e.replyToEntryId == null &&
+        e.createdAt.year == year &&
+        e.createdAt.month == month) {
+      counts[e.createdAt.weekday % 7]++; // DateTime: Sun=7 → 0, Mon=1 … Sat=6
+    }
+  }
+  return counts;
+}
+
+/// Per-weekday counts for the month currently shown on the 회고 screen.
+final weekdayCountsProvider = Provider<List<int>>((ref) {
+  final entries = ref.watch(reviewEntriesProvider);
+  final m = ref.watch(reviewMonthProvider);
+  return weekdayCounts(entries, m.year, m.month);
+});
+
 /// Used by the review AI report card.
 String monthlyNarrative(MonthlyStats s, List<DiaryEntry> _) {
   if (s.isEmpty) return '${s.month}월에는 남긴 기록이 없어요.';

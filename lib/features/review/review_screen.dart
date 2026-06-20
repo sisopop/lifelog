@@ -66,6 +66,10 @@ class ReviewScreen extends ConsumerWidget {
             recordedDays: ref.watch(recordedDaysProvider),
           ),
           const SizedBox(height: 20),
+          const Text('요일별 기록', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          _WeekdayChart(ref.watch(weekdayCountsProvider)),
+          const SizedBox(height: 20),
           const Text('감정 분포', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           for (final m in Mood.values) _MoodBar(m, stats.moodRatio[m] ?? 0),
@@ -327,6 +331,60 @@ class _DayCell extends StatelessWidget {
             color: recorded ? Colors.white : AppColors.textSecondary,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Vertical bar chart of top-level record counts per weekday (일~토).
+class _WeekdayChart extends StatelessWidget {
+  const _WeekdayChart(this.counts);
+  final List<int> counts;
+
+  static const _labels = ['일', '월', '화', '수', '목', '금', '토'];
+
+  @override
+  Widget build(BuildContext context) {
+    final max = counts.fold<int>(0, (m, c) => c > m ? c : m);
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 16, 14, 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          for (var i = 0; i < 7; i++)
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(counts[i] > 0 ? '${counts[i]}' : '',
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryDark)),
+                  const SizedBox(height: 4),
+                  Container(
+                    height: 80 * (max == 0 ? 0 : counts[i] / max),
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                      color: counts[i] > 0
+                          ? AppColors.primary
+                          : AppColors.divider,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: const BoxConstraints(minHeight: 4),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(_labels[i],
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textHint)),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

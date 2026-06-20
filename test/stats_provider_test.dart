@@ -117,4 +117,26 @@ void main() {
       expect(filterEntriesByJournal(entries, 'ghost'), isEmpty);
     });
   });
+
+  group('weekdayCounts', () {
+    test('buckets top-level entries by weekday (일=0..토=6)', () {
+      final entries = [
+        // 2026-06-14 is a Sunday → index 0
+        _e(id: '1', at: DateTime(2026, 6, 14)),
+        _e(id: '2', at: DateTime(2026, 6, 14)),
+        // 2026-06-15 Monday → index 1
+        _e(id: '3', at: DateTime(2026, 6, 15)),
+        // reply excluded
+        _e(id: '4', at: DateTime(2026, 6, 15), replyTo: '3'),
+        // other month excluded
+        _e(id: '5', at: DateTime(2026, 5, 15)),
+      ];
+      final r = weekdayCounts(entries, 2026, 6);
+      expect(r, [2, 1, 0, 0, 0, 0, 0]);
+    });
+
+    test('all zeros when no entries', () {
+      expect(weekdayCounts(const [], 2026, 6), [0, 0, 0, 0, 0, 0, 0]);
+    });
+  });
 }
