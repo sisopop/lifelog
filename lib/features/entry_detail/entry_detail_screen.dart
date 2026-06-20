@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/diary_entry.dart';
 import 'entry_clipboard.dart';
+import 'entry_edited.dart';
 import '../../shared/models/journal_member.dart';
 import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
@@ -276,6 +277,9 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
             ],
             Text(date,
                 style: const TextStyle(color: AppColors.textHint, fontSize: 13)),
+            if (wasEdited(entry))
+              const Text(' · 수정됨',
+                  style: TextStyle(color: AppColors.textHint, fontSize: 13)),
             if (location.isNotEmpty) ...[
               const Text(' · ',
                   style: TextStyle(color: AppColors.textHint, fontSize: 13)),
