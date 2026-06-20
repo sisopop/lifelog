@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/diary_entry.dart';
+import '../entries/entries_provider.dart';
 import 'stats_provider.dart';
 
 /// Distinct calendar dates (time stripped) that have a top-level record.
@@ -70,4 +71,11 @@ final streakProvider = Provider<StreakInfo>((ref) {
     current: currentStreak(days, DateTime.now()),
     longest: longestStreak(days),
   );
+});
+
+/// Current streak across every journal (used by the home screen badge),
+/// so the home nudge reflects the whole habit, not one journal's scope.
+final homeStreakProvider = Provider<int>((ref) {
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  return currentStreak(recordedDates(entries), DateTime.now());
 });

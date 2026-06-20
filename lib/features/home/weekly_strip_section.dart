@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../stats/stats_provider.dart';
+import '../stats/streak.dart';
 
 /// Home strip showing the last 7 days and whether each was journaled, with
 /// today highlighted. A gentle at-a-glance nudge to keep the habit going.
@@ -14,6 +15,7 @@ class WeeklyStripSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dots = ref.watch(weeklyProgressProvider);
     final recorded = dots.where((d) => d.done).length;
+    final streak = ref.watch(homeStreakProvider);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -32,6 +34,22 @@ class WeeklyStripSection extends ConsumerWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary)),
+              if (streak > 0) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySoft,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text('🔥 $streak일 연속',
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryDark)),
+                ),
+              ],
               const Spacer(),
               Text('$recorded / 7일',
                   style: const TextStyle(
