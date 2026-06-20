@@ -80,4 +80,35 @@ void main() {
     final md = exportMarkdown(journals, const [], DateTime(2026, 6, 19));
     expect(md, isNot(contains('## 📓 나의 일기장')));
   });
+
+  group('exportJournalMarkdown', () {
+    test('only includes the given journal, newest first', () {
+      final entries = [
+        _e(id: '1', journalId: 'j1', at: DateTime(2026, 6, 10), title: '오래된'),
+        _e(id: '2', journalId: 'j1', at: DateTime(2026, 6, 15), title: '최근'),
+        _e(id: '3', journalId: 'j2', at: DateTime(2026, 6, 16), title: '딴거'),
+      ];
+      final md = exportJournalMarkdown(journals[0], entries, DateTime(2026, 6, 19));
+      expect(md, contains('# 📓 나의 일기장'));
+      expect(md, contains('개인 · 기록 2개 · 내보낸 날짜 2026-06-19'));
+      expect(md, isNot(contains('딴거'))); // other journal excluded
+      expect(md.indexOf('최근') < md.indexOf('오래된'), true);
+    });
+
+    test('marks replies and tags', () {
+      final entries = [
+        _e(id: '2', journalId: 'j1', at: DateTime(2026, 6, 15), title: '글', tags: ['여행']),
+        _e(id: '3', journalId: 'j1', at: DateTime(2026, 6, 16), title: '답글', replyTo: '2'),
+      ];
+      final md = exportJournalMarkdown(journals[0], entries, DateTime(2026, 6, 19));
+      expect(md, contains('## ↳ 2026-06-16 · 답글'));
+      expect(md, contains('태그: #여행'));
+    });
+
+    test('header-only when the journal has no records', () {
+      final md = exportJournalMarkdown(journals[0], const [], DateTime(2026, 6, 19));
+      expect(md, contains('기록 0개'));
+      expect(md, contains('# 📓 나의 일기장'));
+    });
+  });
 }

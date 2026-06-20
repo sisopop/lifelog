@@ -59,3 +59,36 @@ String exportMarkdown(
 
   return buf.toString().trimRight();
 }
+
+/// Serializes a single [journal] and its [entries] (entries from other
+/// journals are ignored) into Markdown. Records are newest first; replies are
+/// marked with "↳". Returns a header-only doc when the journal has no records.
+String exportJournalMarkdown(
+  Journal journal,
+  List<DiaryEntry> entries,
+  DateTime now,
+) {
+  final mine = [
+    for (final e in entries)
+      if (e.journalId == journal.journalId) e,
+  ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+  final buf = StringBuffer()
+    ..writeln('# ${journal.displayIcon} ${journal.title}')
+    ..writeln()
+    ..writeln('${journal.type.label} · 기록 ${mine.length}개 · 내보낸 날짜 ${_ymd(now)}')
+    ..writeln();
+
+  for (final e in mine) {
+    final reply = e.replyToEntryId != null ? '↳ ' : '';
+    final mood = e.mood != null ? ' ${e.mood!.emoji}' : '';
+    buf.writeln('## $reply${_ymd(e.createdAt)} · ${e.title ?? '제목 없음'}$mood');
+    buf.writeln(e.content);
+    if (e.tags.isNotEmpty) {
+      buf.writeln('태그: ${e.tags.map((t) => '#$t').join(' ')}');
+    }
+    buf.writeln();
+  }
+
+  return buf.toString().trimRight();
+}

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +10,7 @@ import '../../shared/models/journal.dart';
 import '../../shared/models/journal_member.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
+import '../export/export_markdown.dart';
 import '../stats/lifetime_stats.dart';
 import 'journal_members_panel.dart';
 import 'journal_repository.dart';
@@ -327,6 +329,23 @@ class _JournalMenu extends ConsumerWidget {
       onSelected: (v) async {
         final notifier = ref.read(journalsProvider.notifier);
         switch (v) {
+          case 'export':
+            final messenger = ScaffoldMessenger.of(context);
+            final entries =
+                ref.read(entriesProvider).asData?.value ?? const [];
+            final md = exportJournalMarkdown(journal, entries, DateTime.now());
+            await Clipboard.setData(ClipboardData(text: md));
+            final n = entries
+                .where((e) => e.journalId == journal.journalId)
+                .length;
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(n == 0
+                    ? '내보낼 기록이 없어요'
+                    : '$n개 기록을 클립보드에 복사했어요'),
+                duration: const Duration(seconds: 1),
+              ),
+            );
           case 'rename':
             final name = await _promptName(context, journal.title);
             if (name != null && name.isNotEmpty) {
@@ -348,6 +367,7 @@ class _JournalMenu extends ConsumerWidget {
         }
       },
       itemBuilder: (_) => [
+        const PopupMenuItem(value: 'export', child: Text('내보내기')),
         const PopupMenuItem(value: 'rename', child: Text('이름 변경')),
         const PopupMenuItem(value: 'color', child: Text('표지색 변경')),
         if (journal.isArchived)
