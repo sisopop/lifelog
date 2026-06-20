@@ -72,7 +72,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
             : (author.isMe ? '나' : author.displayName));
 
     return Scaffold(
-      appBar: AppBar(actions: [_menu(context, entry)]),
+      appBar: AppBar(actions: [_favoriteButton(entry), _menu(context, entry)]),
       body: Column(
         children: [
           Expanded(
@@ -130,6 +130,16 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
           _composer(entry),
         ],
       ),
+    );
+  }
+
+  Widget _favoriteButton(DiaryEntry entry) {
+    return IconButton(
+      icon: Icon(entry.isFavorite ? Icons.star : Icons.star_border,
+          color: entry.isFavorite ? Colors.amber : null),
+      tooltip: entry.isFavorite ? '즐겨찾기 해제' : '즐겨찾기',
+      onPressed: () =>
+          ref.read(entriesProvider.notifier).toggleFavorite(entry),
     );
   }
 

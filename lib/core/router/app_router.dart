@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/session.dart';
 import '../../features/entry_detail/entry_detail_screen.dart';
+import '../../features/favorites/favorites_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/journals/journal_detail_screen.dart';
 import '../../features/journals/new_journal_screen.dart';
@@ -70,6 +71,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/search',
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: '/favorites',
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const FavoritesScreen(),
       ),
       GoRoute(
         path: '/day/:date', // date = yyyy-MM-dd

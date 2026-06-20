@@ -149,6 +149,21 @@ class $DiaryEntriesTable extends DiaryEntries
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<List<String>>($DiaryEntriesTable.$convertermediaUrls);
+  static const VerificationMeta _isFavoriteMeta = const VerificationMeta(
+    'isFavorite',
+  );
+  @override
+  late final GeneratedColumn<bool> isFavorite = GeneratedColumn<bool>(
+    'is_favorite',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_favorite" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -196,6 +211,7 @@ class $DiaryEntriesTable extends DiaryEntries
     location,
     tags,
     mediaUrls,
+    isFavorite,
     createdAt,
     updatedAt,
     syncStatus,
@@ -273,6 +289,12 @@ class $DiaryEntriesTable extends DiaryEntries
       context.handle(
         _locationMeta,
         location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    }
+    if (data.containsKey('is_favorite')) {
+      context.handle(
+        _isFavoriteMeta,
+        isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -366,6 +388,10 @@ class $DiaryEntriesTable extends DiaryEntries
           data['${effectivePrefix}media_urls'],
         )!,
       ),
+      isFavorite: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_favorite'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -421,6 +447,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
   final String? location;
   final List<String> tags;
   final List<String> mediaUrls;
+  final bool isFavorite;
   final DateTime createdAt;
   final DateTime updatedAt;
   final SyncStatus syncStatus;
@@ -439,6 +466,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     this.location,
     required this.tags,
     required this.mediaUrls,
+    required this.isFavorite,
     required this.createdAt,
     required this.updatedAt,
     required this.syncStatus,
@@ -488,6 +516,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
         $DiaryEntriesTable.$convertermediaUrls.toSql(mediaUrls),
       );
     }
+    map['is_favorite'] = Variable<bool>(isFavorite);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     {
@@ -522,6 +551,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           : Value(location),
       tags: Value(tags),
       mediaUrls: Value(mediaUrls),
+      isFavorite: Value(isFavorite),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       syncStatus: Value(syncStatus),
@@ -554,6 +584,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       location: serializer.fromJson<String?>(json['location']),
       tags: serializer.fromJson<List<String>>(json['tags']),
       mediaUrls: serializer.fromJson<List<String>>(json['mediaUrls']),
+      isFavorite: serializer.fromJson<bool>(json['isFavorite']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       syncStatus: $DiaryEntriesTable.$convertersyncStatus.fromJson(
@@ -585,6 +616,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       'location': serializer.toJson<String?>(location),
       'tags': serializer.toJson<List<String>>(tags),
       'mediaUrls': serializer.toJson<List<String>>(mediaUrls),
+      'isFavorite': serializer.toJson<bool>(isFavorite),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'syncStatus': serializer.toJson<String>(
@@ -608,6 +640,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     Value<String?> location = const Value.absent(),
     List<String>? tags,
     List<String>? mediaUrls,
+    bool? isFavorite,
     DateTime? createdAt,
     DateTime? updatedAt,
     SyncStatus? syncStatus,
@@ -628,6 +661,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     location: location.present ? location.value : this.location,
     tags: tags ?? this.tags,
     mediaUrls: mediaUrls ?? this.mediaUrls,
+    isFavorite: isFavorite ?? this.isFavorite,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     syncStatus: syncStatus ?? this.syncStatus,
@@ -652,6 +686,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       location: data.location.present ? data.location.value : this.location,
       tags: data.tags.present ? data.tags.value : this.tags,
       mediaUrls: data.mediaUrls.present ? data.mediaUrls.value : this.mediaUrls,
+      isFavorite: data.isFavorite.present
+          ? data.isFavorite.value
+          : this.isFavorite,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       syncStatus: data.syncStatus.present
@@ -677,6 +714,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           ..write('location: $location, ')
           ..write('tags: $tags, ')
           ..write('mediaUrls: $mediaUrls, ')
+          ..write('isFavorite: $isFavorite, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncStatus: $syncStatus')
@@ -700,6 +738,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     location,
     tags,
     mediaUrls,
+    isFavorite,
     createdAt,
     updatedAt,
     syncStatus,
@@ -722,6 +761,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           other.location == this.location &&
           other.tags == this.tags &&
           other.mediaUrls == this.mediaUrls &&
+          other.isFavorite == this.isFavorite &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.syncStatus == this.syncStatus);
@@ -742,6 +782,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
   final Value<String?> location;
   final Value<List<String>> tags;
   final Value<List<String>> mediaUrls;
+  final Value<bool> isFavorite;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<SyncStatus> syncStatus;
@@ -761,6 +802,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.location = const Value.absent(),
     this.tags = const Value.absent(),
     this.mediaUrls = const Value.absent(),
+    this.isFavorite = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.syncStatus = const Value.absent(),
@@ -781,6 +823,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.location = const Value.absent(),
     required List<String> tags,
     required List<String> mediaUrls,
+    this.isFavorite = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     required SyncStatus syncStatus,
@@ -810,6 +853,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Expression<String>? location,
     Expression<String>? tags,
     Expression<String>? mediaUrls,
+    Expression<bool>? isFavorite,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? syncStatus,
@@ -830,6 +874,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       if (location != null) 'location': location,
       if (tags != null) 'tags': tags,
       if (mediaUrls != null) 'media_urls': mediaUrls,
+      if (isFavorite != null) 'is_favorite': isFavorite,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (syncStatus != null) 'sync_status': syncStatus,
@@ -852,6 +897,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Value<String?>? location,
     Value<List<String>>? tags,
     Value<List<String>>? mediaUrls,
+    Value<bool>? isFavorite,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<SyncStatus>? syncStatus,
@@ -872,6 +918,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       location: location ?? this.location,
       tags: tags ?? this.tags,
       mediaUrls: mediaUrls ?? this.mediaUrls,
+      isFavorite: isFavorite ?? this.isFavorite,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       syncStatus: syncStatus ?? this.syncStatus,
@@ -934,6 +981,9 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
         $DiaryEntriesTable.$convertermediaUrls.toSql(mediaUrls.value),
       );
     }
+    if (isFavorite.present) {
+      map['is_favorite'] = Variable<bool>(isFavorite.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -968,6 +1018,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
           ..write('location: $location, ')
           ..write('tags: $tags, ')
           ..write('mediaUrls: $mediaUrls, ')
+          ..write('isFavorite: $isFavorite, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncStatus: $syncStatus, ')
@@ -2055,6 +2106,7 @@ typedef $$DiaryEntriesTableCreateCompanionBuilder =
       Value<String?> location,
       required List<String> tags,
       required List<String> mediaUrls,
+      Value<bool> isFavorite,
       required DateTime createdAt,
       required DateTime updatedAt,
       required SyncStatus syncStatus,
@@ -2076,6 +2128,7 @@ typedef $$DiaryEntriesTableUpdateCompanionBuilder =
       Value<String?> location,
       Value<List<String>> tags,
       Value<List<String>> mediaUrls,
+      Value<bool> isFavorite,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<SyncStatus> syncStatus,
@@ -2164,6 +2217,11 @@ class $$DiaryEntriesTableFilterComposer
   get mediaUrls => $composableBuilder(
     column: $table.mediaUrls,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
@@ -2262,6 +2320,11 @@ class $$DiaryEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2334,6 +2397,11 @@ class $$DiaryEntriesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<List<String>, String> get mediaUrls =>
       $composableBuilder(column: $table.mediaUrls, builder: (column) => column);
 
+  GeneratedColumn<bool> get isFavorite => $composableBuilder(
+    column: $table.isFavorite,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -2392,6 +2460,7 @@ class $$DiaryEntriesTableTableManager
                 Value<String?> location = const Value.absent(),
                 Value<List<String>> tags = const Value.absent(),
                 Value<List<String>> mediaUrls = const Value.absent(),
+                Value<bool> isFavorite = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<SyncStatus> syncStatus = const Value.absent(),
@@ -2411,6 +2480,7 @@ class $$DiaryEntriesTableTableManager
                 location: location,
                 tags: tags,
                 mediaUrls: mediaUrls,
+                isFavorite: isFavorite,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 syncStatus: syncStatus,
@@ -2432,6 +2502,7 @@ class $$DiaryEntriesTableTableManager
                 Value<String?> location = const Value.absent(),
                 required List<String> tags,
                 required List<String> mediaUrls,
+                Value<bool> isFavorite = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 required SyncStatus syncStatus,
@@ -2451,6 +2522,7 @@ class $$DiaryEntriesTableTableManager
                 location: location,
                 tags: tags,
                 mediaUrls: mediaUrls,
+                isFavorite: isFavorite,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 syncStatus: syncStatus,

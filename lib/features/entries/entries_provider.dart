@@ -88,6 +88,12 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
     state = AsyncData(await _repo.getAll());
   }
 
+  /// 즐겨찾기 토글. Flips the star on [entry] and persists it.
+  Future<void> toggleFavorite(DiaryEntry entry) async {
+    await _repo.save(entry.copyWith(isFavorite: !entry.isFavorite));
+    state = AsyncData(await _repo.getAll());
+  }
+
   /// Generates the AI summary via Gemini (or the local mock fallback) and
   /// persists it (pending -> done).
   Future<void> _generateSummary(DiaryEntry entry) async {

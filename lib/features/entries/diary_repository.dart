@@ -57,6 +57,7 @@ class DiaryRepository {
         updatedAt: r.updatedAt,
         mediaUrls: r.mediaUrls,
         tags: r.tags,
+        isFavorite: r.isFavorite,
         syncStatus: r.syncStatus,
       );
 
@@ -75,6 +76,7 @@ class DiaryRepository {
         location: Value(e.location),
         tags: Value(e.tags),
         mediaUrls: Value(e.mediaUrls),
+        isFavorite: Value(e.isFavorite),
         createdAt: Value(e.createdAt),
         updatedAt: Value(e.updatedAt),
         syncStatus: Value(e.syncStatus),

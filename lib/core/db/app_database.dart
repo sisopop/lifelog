@@ -75,6 +75,8 @@ class DiaryEntries extends Table {
   TextColumn get location => text().nullable()();
   TextColumn get tags => text().map(const StringListConverter())();
   TextColumn get mediaUrls => text().map(const StringListConverter())();
+  // 즐겨찾기. Default lets the v3→v4 migration backfill existing rows.
+  BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get syncStatus => textEnum<SyncStatus>()();
@@ -97,7 +99,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -115,6 +117,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             // Shared-journal participants (커플/교환 멤버).
             await m.createTable(journalMembers);
+          }
+          if (from < 4) {
+            // 즐겨찾기 flag — existing rows default to false via the column default.
+            await m.addColumn(diaryEntries, diaryEntries.isFavorite);
           }
         },
       );

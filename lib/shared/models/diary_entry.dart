@@ -20,6 +20,7 @@ class DiaryEntry {
     required this.updatedAt,
     this.mediaUrls = const [],
     this.tags = const [],
+    this.isFavorite = false,
     this.syncStatus = SyncStatus.synced,
   });
 
@@ -46,6 +47,9 @@ class DiaryEntry {
   final DateTime updatedAt;
   final List<String> mediaUrls;
   final List<String> tags;
+
+  /// User-starred record (즐겨찾기). Independent of journal/sync.
+  final bool isFavorite;
   final SyncStatus syncStatus;
 
   DiaryEntry copyWith({
@@ -62,6 +66,7 @@ class DiaryEntry {
     DateTime? updatedAt,
     List<String>? mediaUrls,
     List<String>? tags,
+    bool? isFavorite,
     SyncStatus? syncStatus,
   }) {
     return DiaryEntry(
@@ -81,6 +86,7 @@ class DiaryEntry {
       updatedAt: updatedAt ?? this.updatedAt,
       mediaUrls: mediaUrls ?? this.mediaUrls,
       tags: tags ?? this.tags,
+      isFavorite: isFavorite ?? this.isFavorite,
       syncStatus: syncStatus ?? this.syncStatus,
     );
   }
