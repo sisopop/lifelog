@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/models/enums.dart';
+import '../../shared/widgets/month_calendar.dart' show moodColor;
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import 'lifetime_stats.dart';
@@ -18,6 +20,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
         .where((j) => !j.isArchived)
         .length;
     final s = computeLifetimeStats(entries);
+    final moods = moodBreakdown(entries);
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Scaffold(
@@ -82,8 +85,75 @@ class LifetimeStatsScreen extends ConsumerWidget {
                                     .format(s.firstDate!))),
                   ],
                 ),
+                if (moods.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _MoodDistribution(counts: moods),
+                ],
               ],
             ),
+    );
+  }
+}
+
+/// A proportional bar + legend showing how the recorded moods split.
+class _MoodDistribution extends StatelessWidget {
+  const _MoodDistribution({required this.counts});
+  final Map<Mood, int> counts;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = counts.values.fold<int>(0, (a, b) => a + b);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('감정 분포',
+              style: TextStyle(fontSize: 13, color: AppColors.textHint)),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                for (final e in counts.entries)
+                  Expanded(
+                    flex: e.value,
+                    child: Container(height: 14, color: moodColor(e.key)),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              for (final e in counts.entries)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                          color: moodColor(e.key), shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${e.key.label} ${e.value}개 (${(e.value * 100 / total).round()}%)',
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

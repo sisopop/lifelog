@@ -1,4 +1,5 @@
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/enums.dart';
 import 'stats_provider.dart';
 import 'streak.dart';
 
@@ -19,6 +20,23 @@ class LifetimeStats {
   final DateTime? firstDate; // earliest top-level record, null when none
 
   bool get isEmpty => totalEntries == 0;
+}
+
+/// Pure: count top-level entries by mood. Only moods that actually occur are
+/// present in the map; entries without a mood are ignored. Ordered by
+/// [Mood.values] for stable rendering.
+Map<Mood, int> moodBreakdown(List<DiaryEntry> entries) {
+  final counts = <Mood, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final m = e.mood;
+    if (m == null) continue;
+    counts[m] = (counts[m] ?? 0) + 1;
+  }
+  return {
+    for (final m in Mood.values)
+      if (counts[m] != null) m: counts[m]!,
+  };
 }
 
 /// Pure: aggregate every [entries] into lifetime totals. 답장(reply) records
