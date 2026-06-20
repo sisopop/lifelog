@@ -24,6 +24,9 @@ void main() {
     // 2026-06-11 (목) … 2026-06-17 (수)
     expect(dots.map((d) => d.label), ['목', '금', '토', '일', '월', '화', '수']);
     expect(dots.every((d) => !d.done), isTrue);
+    // Each dot carries its calendar date, oldest first, today last.
+    expect(dots.first.date, DateTime(2026, 6, 11));
+    expect(dots.last.date, DateTime(2026, 6, 17));
   });
 
   test('marks days that have a top-level entry', () {

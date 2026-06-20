@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../stats/stats_provider.dart';
@@ -42,7 +43,13 @@ class WeeklyStripSection extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               for (var i = 0; i < dots.length; i++)
-                _DayDotView(dot: dots[i], isToday: i == dots.length - 1),
+                _DayDotView(
+                  dot: dots[i],
+                  isToday: i == dots.length - 1,
+                  onTap: dots[i].done
+                      ? () => context.push('/day/${_iso(dots[i].date)}')
+                      : null,
+                ),
             ],
           ),
         ],
@@ -51,36 +58,47 @@ class WeeklyStripSection extends ConsumerWidget {
   }
 }
 
+String _iso(DateTime d) =>
+    '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
 class _DayDotView extends StatelessWidget {
-  const _DayDotView({required this.dot, required this.isToday});
+  const _DayDotView({required this.dot, required this.isToday, this.onTap});
   final DayDot dot;
   final bool isToday;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 30,
-          height: 30,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: dot.done ? AppColors.primary : AppColors.primarySoft,
-            border: isToday
-                ? Border.all(color: AppColors.primaryDark, width: 2)
-                : null,
-          ),
-          child: dot.done
-              ? const Icon(Icons.check, size: 16, color: Colors.white)
-              : null,
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+        child: Column(
+          children: [
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: dot.done ? AppColors.primary : AppColors.primarySoft,
+                border: isToday
+                    ? Border.all(color: AppColors.primaryDark, width: 2)
+                    : null,
+              ),
+              child: dot.done
+                  ? const Icon(Icons.check, size: 16, color: Colors.white)
+                  : null,
+            ),
+            const SizedBox(height: 6),
+            Text(dot.label,
+                style: TextStyle(
+                    fontSize: 11,
+                    color: isToday ? AppColors.primaryDark : AppColors.textHint,
+                    fontWeight: isToday ? FontWeight.w700 : FontWeight.w400)),
+          ],
         ),
-        const SizedBox(height: 6),
-        Text(dot.label,
-            style: TextStyle(
-                fontSize: 11,
-                color: isToday ? AppColors.primaryDark : AppColors.textHint,
-                fontWeight: isToday ? FontWeight.w700 : FontWeight.w400)),
-      ],
+      ),
     );
   }
 }

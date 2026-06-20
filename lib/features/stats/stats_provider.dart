@@ -32,7 +32,8 @@ final monthlyReportProvider = FutureProvider<String>((ref) async {
 
 /// One day in the weekly strip.
 class DayDot {
-  const DayDot(this.label, this.done);
+  const DayDot(this.date, this.label, this.done);
+  final DateTime date;
   final String label;
   final bool done;
 }
@@ -51,7 +52,7 @@ List<DayDot> weekDots(List<DiaryEntry> entries, DateTime now) {
 
   return List.generate(7, (i) {
     final d = today.subtract(Duration(days: 6 - i));
-    return DayDot(labels[d.weekday % 7], hasEntryOn(d));
+    return DayDot(d, labels[d.weekday % 7], hasEntryOn(d));
   });
 }
 
