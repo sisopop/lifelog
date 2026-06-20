@@ -77,7 +77,12 @@ class ReviewScreen extends ConsumerWidget {
               spacing: 8,
               runSpacing: 4,
               children: stats.topTags
-                  .map((t) => Chip(label: Text('#${t.key} ${t.value}')))
+                  .map((t) => ActionChip(
+                        label: Text('#${t.key} ${t.value}'),
+                        onPressed: () => context.push(
+                            Uri(path: '/tag', queryParameters: {'t': t.key})
+                                .toString()),
+                      ))
                   .toList(),
             ),
           ],

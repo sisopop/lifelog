@@ -92,8 +92,14 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                 const SizedBox(height: 16),
                 Wrap(
                   spacing: 8,
-                  children:
-                      entry.tags.map((t) => Chip(label: Text('#$t'))).toList(),
+                  children: entry.tags
+                      .map((t) => ActionChip(
+                            label: Text('#$t'),
+                            onPressed: () => context.push(
+                                Uri(path: '/tag', queryParameters: {'t': t})
+                                    .toString()),
+                          ))
+                      .toList(),
                 ),
                 const SizedBox(height: 20),
                 OutlinedButton.icon(

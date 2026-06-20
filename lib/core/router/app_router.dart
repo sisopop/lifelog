@@ -14,6 +14,7 @@ import '../../features/review/review_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/share/share_screen.dart';
+import '../../features/tags/tag_entries_screen.dart';
 import '../../features/timeline/timeline_screen.dart';
 import '../../features/write/write_screen.dart';
 import '../../shared/widgets/scaffold_with_nav.dart';
@@ -76,6 +77,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, state) => DayEntriesScreen(
           day: DateTime.parse(state.pathParameters['date']!),
         ),
+      ),
+      GoRoute(
+        path: '/tag',
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) =>
+            TagEntriesScreen(tag: state.uri.queryParameters['t'] ?? ''),
       ),
       GoRoute(
         path: '/entry/:id',
