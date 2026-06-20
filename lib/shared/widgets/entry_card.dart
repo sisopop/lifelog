@@ -138,6 +138,19 @@ class EntryCard extends StatelessWidget {
                             fontWeight: FontWeight.w600)),
                   ],
                   Text(date, style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
+                  if ((entry.location ?? '').trim().isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    const Icon(Icons.place,
+                        size: 12, color: AppColors.textHint),
+                    const SizedBox(width: 1),
+                    Flexible(
+                      child: Text(entry.location!.trim(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textHint)),
+                    ),
+                  ],
                   const Spacer(),
                   ...entry.tags.take(2).map(
                         (t) => Padding(
