@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/diary_entry.dart';
-import '../entries/entries_provider.dart';
+import 'stats_provider.dart';
 
 /// Distinct calendar dates (time stripped) that have a top-level record.
 Set<DateTime> recordedDates(List<DiaryEntry> entries) => {
@@ -61,9 +61,10 @@ class StreakInfo {
   final int longest;
 }
 
-/// Streak across the entire history (independent of the reviewed month).
+/// Streak across the entire history of the selected review journal
+/// (independent of the reviewed month).
 final streakProvider = Provider<StreakInfo>((ref) {
-  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final entries = ref.watch(reviewEntriesProvider);
   final days = recordedDates(entries);
   return StreakInfo(
     current: currentStreak(days, DateTime.now()),

@@ -7,7 +7,7 @@ import '../entries/entries_provider.dart';
 /// Async monthly AI report: Gemini if a key is set, else the local narrative.
 final monthlyReportProvider = FutureProvider<String>((ref) async {
   final stats = ref.watch(monthlyStatsProvider);
-  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final entries = ref.watch(reviewEntriesProvider);
   final local = monthlyNarrative(stats, entries);
 
   final gemini = ref.read(geminiServiceProvider);
@@ -126,6 +126,29 @@ class ReviewMonthNotifier extends Notifier<ReviewMonth> {
 final reviewMonthProvider =
     NotifierProvider<ReviewMonthNotifier, ReviewMonth>(ReviewMonthNotifier.new);
 
+/// Pure: keep only entries of [journalId], or all when null (전체).
+List<DiaryEntry> filterEntriesByJournal(
+    List<DiaryEntry> entries, String? journalId) {
+  if (journalId == null) return entries;
+  return entries.where((e) => e.journalId == journalId).toList();
+}
+
+/// The journal the 회고 screen is scoped to (null = 전체).
+class ReviewJournalNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void select(String? journalId) => state = journalId;
+}
+
+final reviewJournalProvider =
+    NotifierProvider<ReviewJournalNotifier, String?>(ReviewJournalNotifier.new);
+
+/// Entries scoped to the selected review journal (drives all 회고 stats).
+final reviewEntriesProvider = Provider<List<DiaryEntry>>((ref) {
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  return filterEntriesByJournal(entries, ref.watch(reviewJournalProvider));
+});
+
 /// Pure aggregation: entries → review stats for the given year/month.
 /// Excludes 답장(reply) records so counts/ratios reflect real diary entries.
 MonthlyStats computeMonthlyStats(
@@ -170,7 +193,7 @@ MonthlyStats computeMonthlyStats(
 
 /// Aggregates the selected month's entries into review stats.
 final monthlyStatsProvider = Provider<MonthlyStats>((ref) {
-  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final entries = ref.watch(reviewEntriesProvider);
   final m = ref.watch(reviewMonthProvider);
   return computeMonthlyStats(entries, m.year, m.month);
 });
@@ -189,7 +212,7 @@ Set<int> recordedDaysOfMonth(
 
 /// Recorded-day set for the month currently shown on the 회고 screen.
 final recordedDaysProvider = Provider<Set<int>>((ref) {
-  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final entries = ref.watch(reviewEntriesProvider);
   final m = ref.watch(reviewMonthProvider);
   return recordedDaysOfMonth(entries, m.year, m.month);
 });

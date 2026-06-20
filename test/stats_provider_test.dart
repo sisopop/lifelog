@@ -9,11 +9,12 @@ DiaryEntry _e({
   Mood? mood,
   List<String> tags = const [],
   String? replyTo,
+  String journalId = 'j1',
 }) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
-      journalId: 'j1',
+      journalId: journalId,
       replyToEntryId: replyTo,
       mood: mood,
       tags: tags,
@@ -93,6 +94,27 @@ void main() {
       expect(const ReviewMonth(2026, 7).isAtOrAfter(now), true);
       expect(const ReviewMonth(2026, 5).isAtOrAfter(now), false);
       expect(const ReviewMonth(2025, 12).isAtOrAfter(now), false);
+    });
+  });
+
+  group('filterEntriesByJournal', () {
+    final entries = [
+      _e(id: '1', at: DateTime(2026, 6, 1), journalId: 'j1'),
+      _e(id: '2', at: DateTime(2026, 6, 2), journalId: 'j2'),
+      _e(id: '3', at: DateTime(2026, 6, 3), journalId: 'j1'),
+    ];
+
+    test('null returns all entries unchanged', () {
+      expect(filterEntriesByJournal(entries, null), entries);
+    });
+
+    test('keeps only the selected journal', () {
+      final r = filterEntriesByJournal(entries, 'j1');
+      expect(r.map((e) => e.entryId), ['1', '3']);
+    });
+
+    test('unknown journal yields empty list', () {
+      expect(filterEntriesByJournal(entries, 'ghost'), isEmpty);
     });
   });
 }

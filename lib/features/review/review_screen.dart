@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
 import '../entries/entries_provider.dart';
+import '../journals/journals_provider.dart';
 import '../stats/stats_provider.dart';
 import '../stats/streak.dart';
 
@@ -23,6 +24,8 @@ class ReviewScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          const _JournalFilterRow(),
+          const SizedBox(height: 12),
           Row(
             children: [
               IconButton(
@@ -108,6 +111,71 @@ class ReviewScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Horizontal chip row scoping all 회고 stats to 전체 or one journal.
+class _JournalFilterRow extends ConsumerWidget {
+  const _JournalFilterRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final journals = (ref.watch(journalsProvider).asData?.value ?? const [])
+        .where((j) => !j.isArchived)
+        .toList();
+    if (journals.isEmpty) return const SizedBox.shrink();
+    final selected = ref.watch(reviewJournalProvider);
+    final ctrl = ref.read(reviewJournalProvider.notifier);
+
+    return SizedBox(
+      height: 38,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _FilterChip(
+            label: '전체',
+            selected: selected == null,
+            onTap: () => ctrl.select(null),
+          ),
+          for (final j in journals)
+            _FilterChip(
+              label: '${j.displayIcon} ${j.title}',
+              selected: selected == j.journalId,
+              onTap: () => ctrl.select(j.journalId),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: ChoiceChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onTap(),
+        showCheckmark: false,
+        selectedColor: AppColors.primarySoft,
+        labelStyle: TextStyle(
+          fontSize: 13,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          color: selected ? AppColors.primaryDark : AppColors.textSecondary,
+        ),
       ),
     );
   }
