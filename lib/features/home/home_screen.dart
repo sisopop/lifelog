@@ -8,6 +8,7 @@ import '../../shared/models/journal.dart';
 import '../journals/journals_provider.dart';
 import '../memories/on_this_day_section.dart';
 import '../memories/random_memory_section.dart';
+import 'home_greeting.dart';
 import 'today_prompt_section.dart';
 import 'weekly_strip_section.dart';
 
@@ -19,7 +20,9 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = Localizations.localeOf(context).toLanguageTag();
-    final todayLabel = DateFormat.yMMMMEEEEd(locale).format(DateTime.now());
+    final now = DateTime.now();
+    final todayLabel = DateFormat.yMMMMEEEEd(locale).format(now);
+    final greeting = greetingForHour(now.hour);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final counts =
         ref.watch(journalEntryCountsProvider).asData?.value ?? const {};
@@ -40,8 +43,8 @@ class HomeScreen extends ConsumerWidget {
                           style: const TextStyle(
                               fontSize: 13, color: AppColors.textHint)),
                       const SizedBox(height: 4),
-                      const Text('내 일기장',
-                          style: TextStyle(
+                      Text(greeting,
+                          style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: AppColors.textPrimary)),
