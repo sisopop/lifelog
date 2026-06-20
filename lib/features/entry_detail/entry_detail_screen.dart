@@ -10,6 +10,7 @@ import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
 import '../journals/members_provider.dart';
 import '../journals/members_repository.dart';
+import 'entry_neighbors.dart';
 
 class EntryDetailScreen extends ConsumerStatefulWidget {
   const EntryDetailScreen({super.key, required this.entryId});
@@ -107,6 +108,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   icon: const Icon(Icons.share),
                   label: const Text('공유하기'),
                 ),
+                const SizedBox(height: 12),
+                _neighborNav(entries),
                 const Divider(height: 40),
                 Text('답장 ${replies.length}',
                     style: const TextStyle(
@@ -140,6 +143,46 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       tooltip: entry.isFavorite ? '즐겨찾기 해제' : '즐겨찾기',
       onPressed: () =>
           ref.read(entriesProvider.notifier).toggleFavorite(entry),
+    );
+  }
+
+  /// "← 이전 기록 / 다음 기록 →" jump within the same journal. Uses
+  /// pushReplacement so the back button still returns to the list.
+  Widget _neighborNav(List<DiaryEntry> entries) {
+    final nav = adjacentEntries(entries, widget.entryId);
+    if (nav.previous == null && nav.next == null) return const SizedBox.shrink();
+
+    Widget button(DiaryEntry? target, {required bool isPrev}) {
+      final onPressed = target == null
+          ? null
+          : () => context.pushReplacement('/entry/${target.entryId}');
+      final style = TextButton.styleFrom(
+        foregroundColor: AppColors.primaryDark,
+        disabledForegroundColor: AppColors.textHint.withValues(alpha: 0.4),
+      );
+      const arrowSize = 20.0;
+      // Arrow leads on "이전 기록", trails on "다음 기록".
+      return isPrev
+          ? TextButton.icon(
+              onPressed: onPressed,
+              style: style,
+              icon: const Icon(Icons.chevron_left, size: arrowSize),
+              label: const Text('이전 기록'),
+            )
+          : TextButton.icon(
+              onPressed: onPressed,
+              style: style,
+              icon: const Text('다음 기록'),
+              label: const Icon(Icons.chevron_right, size: arrowSize),
+            );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        button(nav.previous, isPrev: true),
+        button(nav.next, isPrev: false),
+      ],
     );
   }
 
