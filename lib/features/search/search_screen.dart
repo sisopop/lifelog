@@ -83,6 +83,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           e,
           journalName: j?.title,
           journalIcon: j?.displayIcon,
+          highlight: query,
           onTap: () => context.push('/entry/${e.entryId}'),
         );
       },

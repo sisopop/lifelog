@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../models/diary_entry.dart';
+import 'highlighted_text.dart';
 import 'photo.dart';
 
 class EntryCard extends StatelessWidget {
@@ -13,10 +14,15 @@ class EntryCard extends StatelessWidget {
     this.authorName,
     this.journalName,
     this.journalIcon,
+    this.highlight,
   });
 
   final DiaryEntry entry;
   final VoidCallback? onTap;
+
+  /// When non-empty, occurrences of this query are highlighted in the
+  /// card's title and summary (used by the search results list).
+  final String? highlight;
 
   /// Author label for shared journals (커플/교환). Null → not shown.
   final String? authorName;
@@ -70,15 +76,14 @@ class EntryCard extends StatelessWidget {
                     const SizedBox(width: 8),
                   ],
                   Expanded(
-                    child: Text(
+                    child: _maybeHighlight(
                       entry.title ?? '제목 없음',
-                      style: const TextStyle(
+                      const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
                       maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (entry.isFavorite) ...[
@@ -93,12 +98,11 @@ class EntryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(
+                    child: _maybeHighlight(
                       entry.aiSummary ?? entry.content,
-                      style: const TextStyle(
+                      const TextStyle(
                           fontSize: 14, color: AppColors.textSecondary, height: 1.4),
                       maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (entry.mediaUrls.isNotEmpty) ...[
@@ -152,5 +156,19 @@ class EntryCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Plain [Text], or a [HighlightedText] when a search [highlight] is active.
+  Widget _maybeHighlight(String text, TextStyle style, {required int maxLines}) {
+    final q = highlight?.trim() ?? '';
+    if (q.isEmpty) {
+      return Text(text,
+          style: style, maxLines: maxLines, overflow: TextOverflow.ellipsis);
+    }
+    return HighlightedText(text,
+        query: q,
+        style: style,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis);
   }
 }
