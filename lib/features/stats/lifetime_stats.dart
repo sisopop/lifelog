@@ -22,6 +22,45 @@ class LifetimeStats {
   bool get isEmpty => totalEntries == 0;
 }
 
+/// Rough time-of-day buckets used for the "주로 기록하는 시간대" insight.
+enum DayPart {
+  dawn('새벽', '🌙'), // 00:00–05:59
+  morning('아침', '🌅'), // 06:00–11:59
+  afternoon('오후', '☀️'), // 12:00–17:59
+  evening('저녁', '🌆'); // 18:00–23:59
+
+  const DayPart(this.label, this.emoji);
+  final String label;
+  final String emoji;
+}
+
+DayPart _partOfHour(int hour) {
+  if (hour < 6) return DayPart.dawn;
+  if (hour < 12) return DayPart.morning;
+  if (hour < 18) return DayPart.afternoon;
+  return DayPart.evening;
+}
+
+/// Pure: the day-part the user records in most often, with its count. Returns
+/// null when there are no top-level entries. Ties resolve to the earlier part.
+MapEntry<DayPart, int>? busiestDayPart(List<DiaryEntry> entries) {
+  final counts = <DayPart, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final p = _partOfHour(e.createdAt.hour);
+    counts[p] = (counts[p] ?? 0) + 1;
+  }
+  if (counts.isEmpty) return null;
+  MapEntry<DayPart, int>? best;
+  for (final p in DayPart.values) {
+    final c = counts[p];
+    if (c != null && (best == null || c > best.value)) {
+      best = MapEntry(p, c);
+    }
+  }
+  return best;
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.

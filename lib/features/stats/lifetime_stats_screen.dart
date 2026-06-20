@@ -21,6 +21,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
         .length;
     final s = computeLifetimeStats(entries);
     final moods = moodBreakdown(entries);
+    final busiest = busiestDayPart(entries);
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Scaffold(
@@ -89,8 +90,40 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
                   _MoodDistribution(counts: moods),
                 ],
+                if (busiest != null) ...[
+                  const SizedBox(height: 12),
+                  _InsightLine(
+                    text: '${busiest.key.emoji} 주로 '
+                        '${busiest.key.label}에 기록해요 (${busiest.value}개)',
+                  ),
+                ],
               ],
             ),
+    );
+  }
+}
+
+/// A single soft highlight line for a one-off insight.
+class _InsightLine extends StatelessWidget {
+  const _InsightLine({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.primarySoft,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryDark),
+      ),
     );
   }
 }
