@@ -40,6 +40,11 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           _DefaultJournalTile(),
           _SectionTile(
+            icon: Icons.insights,
+            label: '내 기록 요약',
+            onTap: () => context.push('/stats'),
+          ),
+          _SectionTile(
             icon: Icons.tag,
             label: '태그 관리',
             onTap: () => context.push('/tags/manage'),

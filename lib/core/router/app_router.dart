@@ -12,6 +12,7 @@ import '../../features/journals/journal_detail_screen.dart';
 import '../../features/journals/new_journal_screen.dart';
 import '../../features/people/people_screen.dart';
 import '../../features/places/place_entries_screen.dart';
+import '../../features/stats/lifetime_stats_screen.dart';
 import '../../features/review/day_entries_screen.dart';
 import '../../features/review/review_screen.dart';
 import '../../features/search/search_screen.dart';
@@ -103,6 +104,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootKey,
         builder: (_, state) =>
             PlaceEntriesScreen(location: state.uri.queryParameters['l'] ?? ''),
+      ),
+      GoRoute(
+        path: '/stats',
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const LifetimeStatsScreen(),
       ),
       GoRoute(
         path: '/tags/manage',
