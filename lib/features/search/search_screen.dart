@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../journals/journals_provider.dart';
 import 'entry_search.dart';
+import 'recent_searches.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -21,6 +22,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void dispose() {
     _ctrl.dispose();
     super.dispose();
+  }
+
+  void _submit(String value) {
+    if (value.trim().isEmpty) return;
+    ref.read(recentSearchesProvider.notifier).add(value);
+  }
+
+  void _runRecent(String term) {
+    _ctrl.text = term;
+    _ctrl.selection =
+        TextSelection.collapsed(offset: term.length);
+    ref.read(searchQueryProvider.notifier).set(term);
+    ref.read(recentSearchesProvider.notifier).add(term);
   }
 
   @override
@@ -41,6 +55,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           style: const TextStyle(fontSize: 16),
           onChanged: (v) =>
               ref.read(searchQueryProvider.notifier).set(v),
+          onSubmitted: _submit,
         ),
         actions: [
           if (query.isNotEmpty)
@@ -59,9 +74,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Widget _buildBody(BuildContext context, String query, List results) {
     if (query.trim().isEmpty) {
-      return const _Hint(
-        icon: Icons.search,
-        text: '기록을 검색해보세요',
+      final recent = ref.watch(recentSearchesProvider);
+      if (recent.isEmpty) {
+        return const _Hint(
+          icon: Icons.search,
+          text: '기록을 검색해보세요',
+        );
+      }
+      return _RecentList(
+        terms: recent,
+        onTap: _runRecent,
+        onRemove: (t) =>
+            ref.read(recentSearchesProvider.notifier).remove(t),
+        onClear: () =>
+            ref.read(recentSearchesProvider.notifier).clear(),
       );
     }
     if (results.isEmpty) {
@@ -87,6 +113,70 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           onTap: () => context.push('/entry/${e.entryId}'),
         );
       },
+    );
+  }
+}
+
+class _RecentList extends StatelessWidget {
+  const _RecentList({
+    required this.terms,
+    required this.onTap,
+    required this.onRemove,
+    required this.onClear,
+  });
+
+  final List<String> terms;
+  final void Function(String term) onTap;
+  final void Function(String term) onRemove;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 12, 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('최근 검색어',
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textSecondary)),
+              TextButton(
+                onPressed: onClear,
+                child: const Text('전체 삭제',
+                    style: TextStyle(
+                        fontSize: 13, color: AppColors.textHint)),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 20),
+            itemCount: terms.length,
+            itemBuilder: (_, i) {
+              final term = terms[i];
+              return ListTile(
+                leading: const Icon(Icons.history,
+                    size: 20, color: AppColors.textHint),
+                title: Text(term,
+                    style: const TextStyle(
+                        fontSize: 15, color: AppColors.textPrimary)),
+                trailing: IconButton(
+                  icon: const Icon(Icons.close,
+                      size: 18, color: AppColors.textHint),
+                  onPressed: () => onRemove(term),
+                ),
+                onTap: () => onTap(term),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
