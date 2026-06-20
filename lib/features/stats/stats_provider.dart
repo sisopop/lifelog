@@ -37,17 +37,14 @@ class DayDot {
   final bool done;
 }
 
-/// Last 7 days (oldest -> today) with whether an entry exists that day.
-final weeklyProgressProvider = Provider<List<DayDot>>((ref) {
-  // Top-level records only — 답장(reply) records shouldn't count as a day's entry.
-  final entries = (ref.watch(entriesProvider).asData?.value ?? const [])
-      .where((e) => e.replyToEntryId == null)
-      .toList();
+/// Pure: last 7 days (oldest → [now]) with whether a top-level entry exists
+/// that day. 답장(reply) records don't count as a day's entry.
+List<DayDot> weekDots(List<DiaryEntry> entries, DateTime now) {
   const labels = ['일', '월', '화', '수', '목', '금', '토'];
-  final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
 
   bool hasEntryOn(DateTime d) => entries.any((e) =>
+      e.replyToEntryId == null &&
       e.createdAt.year == d.year &&
       e.createdAt.month == d.month &&
       e.createdAt.day == d.day);
@@ -56,6 +53,12 @@ final weeklyProgressProvider = Provider<List<DayDot>>((ref) {
     final d = today.subtract(Duration(days: 6 - i));
     return DayDot(labels[d.weekday % 7], hasEntryOn(d));
   });
+}
+
+/// Last 7 days (oldest -> today) with whether an entry exists that day.
+final weeklyProgressProvider = Provider<List<DayDot>>((ref) {
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  return weekDots(entries, DateTime.now());
 });
 
 class MonthlyStats {
