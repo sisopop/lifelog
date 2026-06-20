@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
+import '../../shared/models/journal.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../../shared/widgets/mood_chip.dart';
 import '../journals/journals_provider.dart';
@@ -67,6 +68,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 _ctrl.clear();
                 ref.read(searchQueryProvider.notifier).set('');
                 ref.read(searchMoodProvider.notifier).clear();
+                ref.read(searchJournalProvider.notifier).clear();
               },
             ),
         ],
@@ -94,8 +96,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       );
     }
     final mood = ref.watch(searchMoodProvider);
+    final journalId = ref.watch(searchJournalProvider);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
+    final activeJournals = journals.where((j) => !j.isArchived).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -103,6 +107,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           selected: mood,
           onTap: (m) => ref.read(searchMoodProvider.notifier).toggle(m),
         ),
+        if (activeJournals.length > 1)
+          _JournalFilterRow(
+            journals: activeJournals,
+            selectedId: journalId,
+            onTap: (id) =>
+                ref.read(searchJournalProvider.notifier).toggle(id),
+          ),
         Expanded(
           child: results.isEmpty
               ? _Hint(
@@ -153,6 +164,49 @@ class _MoodFilterRow extends StatelessWidget {
                     m,
                     selected: selected == m,
                     onTap: () => onTap(m),
+                  ),
+                ))
+            .toList(),
+      ),
+    );
+  }
+}
+
+/// Horizontal journal chips that scope the search results to one journal.
+class _JournalFilterRow extends StatelessWidget {
+  const _JournalFilterRow({
+    required this.journals,
+    required this.selectedId,
+    required this.onTap,
+  });
+
+  final List<Journal> journals;
+  final String? selectedId;
+  final void Function(String journalId) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Row(
+        children: journals
+            .map((j) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text('${j.displayIcon} ${j.title}'),
+                    selected: selectedId == j.journalId,
+                    onSelected: (_) => onTap(j.journalId),
+                    selectedColor: AppColors.primarySoft,
+                    labelStyle: TextStyle(
+                      fontSize: 13,
+                      color: selectedId == j.journalId
+                          ? AppColors.primaryDark
+                          : AppColors.textSecondary,
+                      fontWeight: selectedId == j.journalId
+                          ? FontWeight.w700
+                          : FontWeight.w500,
+                    ),
                   ),
                 ))
             .toList(),

@@ -32,6 +32,13 @@ List<DiaryEntry> filterByMood(List<DiaryEntry> entries, Mood? mood) {
   return entries.where((e) => e.mood == mood).toList();
 }
 
+/// Pure: keep only entries from [journalId]. A null [journalId] means
+/// "all journals" and returns the list unchanged.
+List<DiaryEntry> filterByJournal(List<DiaryEntry> entries, String? journalId) {
+  if (journalId == null) return entries;
+  return entries.where((e) => e.journalId == journalId).toList();
+}
+
 /// Current search query (updated as the user types).
 class SearchQueryNotifier extends Notifier<String> {
   @override
@@ -57,11 +64,28 @@ class SearchMoodNotifier extends Notifier<Mood?> {
 final searchMoodProvider =
     NotifierProvider<SearchMoodNotifier, Mood?>(SearchMoodNotifier.new);
 
+/// Optional journal filter applied on top of the text results (null = 전체).
+class SearchJournalNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  /// Selects [journalId], or clears the filter when the same one is tapped.
+  void toggle(String journalId) =>
+      state = state == journalId ? null : journalId;
+
+  void clear() => state = null;
+}
+
+final searchJournalProvider =
+    NotifierProvider<SearchJournalNotifier, String?>(SearchJournalNotifier.new);
+
 /// Search results derived from [entriesProvider], the current query and the
-/// optional mood filter.
+/// optional mood and journal filters.
 final searchResultsProvider = Provider<List<DiaryEntry>>((ref) {
   final all = ref.watch(entriesProvider).asData?.value ?? const <DiaryEntry>[];
   final query = ref.watch(searchQueryProvider);
   final mood = ref.watch(searchMoodProvider);
-  return filterByMood(searchEntries(all, query), mood);
+  final journalId = ref.watch(searchJournalProvider);
+  return filterByJournal(
+      filterByMood(searchEntries(all, query), mood), journalId);
 });
