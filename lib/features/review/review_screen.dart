@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
+import '../../shared/widgets/month_calendar.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../stats/stats_provider.dart';
@@ -62,12 +63,22 @@ class ReviewScreen extends ConsumerWidget {
           const SizedBox(height: 20),
           const Text('기록 달력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          _MonthCalendar(
-            year: stats.year,
-            month: stats.month,
-            recordedDays: ref.watch(recordedDaysProvider),
-            dayMoods: ref.watch(dayMoodsProvider),
-          ),
+          Builder(builder: (context) {
+            final recordedDays = ref.watch(recordedDaysProvider);
+            return MonthCalendar(
+              year: stats.year,
+              month: stats.month,
+              recordedDays: recordedDays,
+              dayMoods: ref.watch(dayMoodsProvider),
+              onDayTap: (day) {
+                if (!recordedDays.contains(day)) return;
+                final d = DateTime(stats.year, stats.month, day);
+                final iso =
+                    '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+                context.push('/day/$iso');
+              },
+            );
+          }),
           const SizedBox(height: 10),
           const _MoodLegend(),
           const SizedBox(height: 20),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/login_screen.dart';
 import '../../features/auth/session.dart';
+import '../../features/calendar/calendar_screen.dart';
 import '../../features/entry_detail/entry_detail_screen.dart';
 import '../../features/favorites/favorites_screen.dart';
 import '../../features/home/home_screen.dart';
@@ -76,6 +77,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/favorites',
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const FavoritesScreen(),
+      ),
+      GoRoute(
+        path: '/calendar',
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const CalendarScreen(),
       ),
       GoRoute(
         path: '/day/:date', // date = yyyy-MM-dd

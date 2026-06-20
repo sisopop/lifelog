@@ -20,6 +20,11 @@ class TimelineScreen extends ConsumerWidget {
         title: const Text('기록', style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
           IconButton(
+            icon: const Icon(Icons.calendar_today_outlined),
+            tooltip: '캘린더',
+            onPressed: () => context.push('/calendar'),
+          ),
+          IconButton(
             icon: const Icon(Icons.star_border),
             tooltip: '즐겨찾기',
             onPressed: () => context.push('/favorites'),
