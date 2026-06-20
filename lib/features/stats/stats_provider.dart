@@ -1,3 +1,4 @@
+import 'package:characters/characters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/diary_entry.dart';
@@ -68,6 +69,7 @@ class MonthlyStats {
     required this.month,
     required this.daysRecorded,
     required this.total,
+    required this.charsWritten,
     required this.moodRatio,
     required this.topTags,
   });
@@ -76,6 +78,7 @@ class MonthlyStats {
   final int month;
   final int daysRecorded;
   final int total;
+  final int charsWritten; // grapheme-aware sum of all top-level bodies
   final Map<Mood, double> moodRatio; // 0..1 of total
   final List<MapEntry<String, int>> topTags;
 
@@ -153,6 +156,16 @@ final reviewEntriesProvider = Provider<List<DiaryEntry>>((ref) {
   return filterEntriesByJournal(entries, ref.watch(reviewJournalProvider));
 });
 
+/// Pure: grapheme-aware sum of the trimmed body length across [entries]
+/// (Korean syllables and emoji count as one). Used for the "쓴 글자" stat.
+int totalChars(List<DiaryEntry> entries) {
+  var sum = 0;
+  for (final e in entries) {
+    sum += e.content.trim().characters.length;
+  }
+  return sum;
+}
+
 /// Pure aggregation: entries → review stats for the given year/month.
 /// Excludes 답장(reply) records so counts/ratios reflect real diary entries.
 MonthlyStats computeMonthlyStats(
@@ -166,6 +179,7 @@ MonthlyStats computeMonthlyStats(
 
   final days = monthEntries.map((e) => e.createdAt.day).toSet().length;
   final total = monthEntries.length;
+  final charsWritten = totalChars(monthEntries);
 
   final moodCount = <Mood, int>{};
   for (final e in monthEntries) {
@@ -190,6 +204,7 @@ MonthlyStats computeMonthlyStats(
     month: month,
     daysRecorded: days,
     total: total,
+    charsWritten: charsWritten,
     moodRatio: moodRatio,
     topTags: topTags.take(5).toList(),
   );

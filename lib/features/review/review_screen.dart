@@ -58,6 +58,10 @@ class ReviewScreen extends ConsumerWidget {
               Expanded(child: _StatBox(label: '기록한 날', value: '${stats.daysRecorded}일')),
               const SizedBox(width: 12),
               Expanded(child: _StatBox(label: '총 기록', value: '${stats.total}개')),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: _StatBox(
+                      label: '쓴 글자', value: '${stats.charsWritten}자')),
             ],
           ),
           const SizedBox(height: 20),
