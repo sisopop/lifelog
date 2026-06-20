@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,6 +7,8 @@ import '../../core/i18n/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../auth/session.dart';
+import '../entries/entries_provider.dart';
+import '../export/export_markdown.dart';
 import '../journals/default_journal_provider.dart';
 import '../journals/journals_provider.dart';
 
@@ -36,8 +39,25 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 16),
           _DefaultJournalTile(),
           _LanguageTile(),
-          _SectionTile(icon: Icons.notifications_none, label: l.settingsNotifications),
-          _SectionTile(icon: Icons.help_outline, label: l.settingsTerms),
+          _ExportTile(),
+          _SectionTile(
+            icon: Icons.notifications_none,
+            label: l.settingsNotifications,
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('알림 기능은 준비 중이에요')),
+            ),
+          ),
+          _SectionTile(
+            icon: Icons.help_outline,
+            label: l.settingsTerms,
+            onTap: () => showAboutDialog(
+              context: context,
+              applicationName: 'lifelog',
+              applicationVersion: '1.0.0',
+              applicationLegalese: '프라이버시 우선 · 선택적 공유 일기장\n'
+                  '모든 기록은 기기에 저장됩니다.',
+            ),
+          ),
           const SizedBox(height: 24),
           OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
@@ -179,10 +199,44 @@ class _DefaultJournalTile extends ConsumerWidget {
   }
 }
 
+/// Exports every journal + entry as Markdown and copies it to the clipboard
+/// (a no-dependency backup the user can paste into Notes, email, etc.).
+class _ExportTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: const Icon(Icons.ios_share, color: AppColors.textSecondary),
+        title: const Text('기록 내보내기'),
+        subtitle: const Text('모든 기록을 텍스트로 클립보드에 복사'),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        onTap: () async {
+          final journals = ref.read(journalsProvider).asData?.value ?? const [];
+          final entries = ref.read(entriesProvider).asData?.value ?? const [];
+          final messenger = ScaffoldMessenger.of(context);
+          if (entries.isEmpty) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('내보낼 기록이 없어요')),
+            );
+            return;
+          }
+          final text = exportMarkdown(journals, entries, DateTime.now());
+          await Clipboard.setData(ClipboardData(text: text));
+          messenger.showSnackBar(
+            SnackBar(content: Text('${entries.length}개 기록을 클립보드에 복사했어요')),
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _SectionTile extends StatelessWidget {
-  const _SectionTile({required this.icon, required this.label});
+  const _SectionTile({required this.icon, required this.label, this.onTap});
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +246,7 @@ class _SectionTile extends StatelessWidget {
         leading: Icon(icon, color: AppColors.textSecondary),
         title: Text(label),
         trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }
