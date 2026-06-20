@@ -15,6 +15,7 @@ import '../entries/entries_provider.dart';
 import '../journals/journal_repository.dart';
 import '../timeline/timeline_filter.dart';
 import 'tag_input_sheet.dart';
+import 'text_stats.dart';
 import '../journals/journals_provider.dart';
 import '../journals/turn_provider.dart';
 
@@ -279,11 +280,23 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           TextField(
             controller: _contentCtrl,
             maxLines: 8,
+            onChanged: (_) => setState(() {}),
             decoration: const InputDecoration(
               hintText: '오늘 어떤 하루였나요?',
               border: OutlineInputBorder(borderSide: BorderSide(color: AppColors.divider)),
             ),
           ),
+          const SizedBox(height: 6),
+          Builder(builder: (context) {
+            final s = textStats(_contentCtrl.text);
+            return Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '글자 ${s.chars} · 단어 ${s.words}',
+                style: const TextStyle(fontSize: 12, color: AppColors.textHint),
+              ),
+            );
+          }),
           if (_photoPaths.isNotEmpty) ...[
             const SizedBox(height: 16),
             SizedBox(
