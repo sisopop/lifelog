@@ -14,6 +14,8 @@ import '../../shared/models/journal.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journal_repository.dart';
 import '../timeline/timeline_filter.dart';
+import 'date_field.dart';
+import 'entry_date.dart';
 import 'tag_input_sheet.dart';
 import 'text_stats.dart';
 import '../journals/journals_provider.dart';
@@ -54,6 +56,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   DiaryEntry? _editing;
   bool _prefilled = false;
 
+  /// Selected calendar day for the entry (lets you back-date past diaries).
+  /// Only the date part matters; the time-of-day is preserved on save.
+  DateTime _date = DateTime.now();
+
   /// Target journal for a new entry. Defaults to the route param / default
   /// journal, but can be changed via the journal selector at the top.
   String? _journalId;
@@ -75,6 +81,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       final entry = entries.where((e) => e.entryId == widget.editId).firstOrNull;
       if (entry != null) {
         _editing = entry;
+        _date = entry.createdAt;
         _titleCtrl.text = entry.title ?? '';
         _contentCtrl.text = entry.content;
         _mood = entry.mood;
@@ -137,6 +144,17 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     }
   }
 
+  /// Back-date the entry. Future dates are disallowed (it's a diary).
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) setState(() => _date = picked);
+  }
+
   Future<void> _save({required EntryVisibility visibility}) async {
     if (_contentCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,6 +174,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           visibility: visibility,
           mediaUrls: List.of(_photoPaths),
           tags: List.of(_tags),
+          createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
     } else {
@@ -172,7 +191,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           aiStatus: AiStatus.pending, // summary generated async (see TECH_DESIGN.md)
           mediaUrls: List.of(_photoPaths),
           tags: List.of(_tags),
-          createdAt: now,
+          createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
       );
@@ -260,6 +279,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const Divider(),
+          DateField(date: _date, onTap: _pickDate),
           const SizedBox(height: 8),
           const Text('오늘의 감정', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 10),
