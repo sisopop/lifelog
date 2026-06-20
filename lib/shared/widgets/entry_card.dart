@@ -81,6 +81,10 @@ class EntryCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (entry.isFavorite) ...[
+                    const Icon(Icons.star, size: 15, color: Colors.amber),
+                    const SizedBox(width: 4),
+                  ],
                   Text(entry.visibility.icon, style: const TextStyle(fontSize: 14)),
                 ],
               ),
