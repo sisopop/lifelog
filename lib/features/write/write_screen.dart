@@ -18,6 +18,8 @@ import 'date_field.dart';
 import 'entry_date.dart';
 import 'tag_input_sheet.dart';
 import 'text_stats.dart';
+import 'writing_prompt_card.dart';
+import 'writing_prompts.dart';
 import '../journals/journals_provider.dart';
 import '../journals/turn_provider.dart';
 
@@ -317,6 +319,21 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
               ),
             );
           }),
+          if (_contentCtrl.text.trim().isEmpty) ...[
+            const SizedBox(height: 12),
+            WritingPromptCard(
+              prompt: ref.watch(writingPromptProvider),
+              onUse: () {
+                final p = ref.read(writingPromptProvider);
+                _contentCtrl.text = '$p\n';
+                _contentCtrl.selection = TextSelection.collapsed(
+                    offset: _contentCtrl.text.length);
+                setState(() {});
+              },
+              onRefresh: () =>
+                  ref.read(writingPromptIndexProvider.notifier).next(),
+            ),
+          ],
           if (_photoPaths.isNotEmpty) ...[
             const SizedBox(height: 16),
             SizedBox(
