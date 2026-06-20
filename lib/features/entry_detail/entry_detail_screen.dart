@@ -10,6 +10,7 @@ import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
 import '../journals/members_provider.dart';
 import '../journals/members_repository.dart';
+import '../settings/reading_text_scale.dart';
 import 'entry_neighbors.dart';
 
 class EntryDetailScreen extends ConsumerStatefulWidget {
@@ -60,6 +61,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
 
     final locale = Localizations.localeOf(context).toLanguageTag();
     final date = DateFormat.yMMMMEEEEd(locale).format(entry.createdAt);
+    final scale = ref.watch(readingTextScaleProvider);
 
     // Author label for shared journals (멤버가 2명 이상일 때만 표시).
     final members =
@@ -87,7 +89,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   const SizedBox(height: 20),
                 ],
                 Text(entry.content,
-                    style: const TextStyle(fontSize: 16, height: 1.6)),
+                    style: TextStyle(fontSize: 16 * scale, height: 1.6)),
                 const SizedBox(height: 24),
                 _aiSummary(entry),
                 const SizedBox(height: 16),

@@ -11,6 +11,7 @@ import '../entries/entries_provider.dart';
 import '../export/export_markdown.dart';
 import '../journals/default_journal_provider.dart';
 import '../journals/journals_provider.dart';
+import 'reading_text_scale.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -44,6 +45,7 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => context.push('/tags/manage'),
           ),
           _LanguageTile(),
+          _ReadingTextSizeTile(),
           _ExportTile(),
           _SectionTile(
             icon: Icons.notifications_none,
@@ -231,6 +233,58 @@ class _ExportTile extends ConsumerWidget {
           messenger.showSnackBar(
             SnackBar(content: Text('${entries.length}개 기록을 클립보드에 복사했어요')),
           );
+        },
+      ),
+    );
+  }
+}
+
+/// Reading text size for the entry detail body. Persisted, with a live
+/// preview line inside the picker so the choice is obvious.
+class _ReadingTextSizeTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scale = ref.watch(readingTextScaleProvider);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: const Icon(Icons.format_size, color: AppColors.textSecondary),
+        title: const Text('읽기 글자 크기'),
+        subtitle: Text('기록을 볼 때 본문 크기 · ${readingScaleLabel(scale)}'),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        onTap: () async {
+          final picked = await showModalBottomSheet<double>(
+            context: context,
+            builder: (ctx) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('읽기 글자 크기',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                  for (final s in readingTextScales)
+                    ListTile(
+                      title: Text('오늘 하루도 수고했어요',
+                          style: TextStyle(fontSize: 16 * s)),
+                      subtitle: Text(readingScaleLabel(s)),
+                      trailing: s == scale
+                          ? const Icon(Icons.check, color: AppColors.primary)
+                          : null,
+                      onTap: () => Navigator.pop(ctx, s),
+                    ),
+                ],
+              ),
+            ),
+          );
+          if (picked != null) {
+            await ref.read(readingTextScaleProvider.notifier).set(picked);
+          }
         },
       ),
     );
