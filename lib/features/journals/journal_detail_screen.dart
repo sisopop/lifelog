@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
@@ -8,6 +9,7 @@ import '../../shared/models/journal.dart';
 import '../../shared/models/journal_member.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
+import '../stats/lifetime_stats.dart';
 import 'journal_members_panel.dart';
 import 'journal_repository.dart';
 import 'journals_provider.dart';
@@ -103,6 +105,8 @@ class JournalDetailScreen extends ConsumerWidget {
             // Shared journals (couple/exchange) show participants + invite.
             if (journal != null && journal.type != JournalType.personal)
               JournalMembersPanel(journal: journal),
+            if (entries.isNotEmpty)
+              _StatsStrip(stats: computeLifetimeStats(entries)),
             if (entries.isEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 48),
@@ -199,6 +203,45 @@ class JournalDetailScreen extends ConsumerWidget {
       onPressed: () => context.push('/write?journalId=$journalId$extra'),
       icon: const Icon(Icons.edit, color: Colors.white),
       label: Text(label, style: const TextStyle(color: Colors.white)),
+    );
+  }
+}
+
+/// A compact one-line stats strip for this journal: record count, characters
+/// written and the date of the first record.
+class _StatsStrip extends StatelessWidget {
+  const _StatsStrip({required this.stats});
+  final LifetimeStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final parts = <String>[
+      '기록 ${stats.totalEntries}개',
+      '${stats.totalChars}자',
+      if (stats.firstDate != null)
+        '첫 기록 ${DateFormat('yyyy.M.d', locale).format(stats.firstDate!)}',
+    ];
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.insights, size: 16, color: AppColors.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              parts.join('  ·  '),
+              style: const TextStyle(
+                  fontSize: 13, color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
