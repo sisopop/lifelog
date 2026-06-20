@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
@@ -52,24 +53,49 @@ class TimelineScreen extends ConsumerWidget {
           final tags = ref.watch(availableTagsProvider);
           final journals = ref.watch(journalsProvider).asData?.value ?? const [];
           final journalMap = {for (final j in journals) j.journalId: j};
+          final groups = groupByMonth(entries);
+          final locale = Localizations.localeOf(context).toLanguageTag();
           return Column(
             children: [
               _FilterBar(filter: filter, tags: tags),
               Expanded(
                 child: entries.isEmpty
                     ? _Empty(filtered: filter.isActive)
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(20),
-                        itemCount: entries.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (_, i) {
-                          final e = entries[i];
-                          final j = journalMap[e.journalId];
-                          return EntryCard(
-                            e,
-                            journalName: j?.title,
-                            journalIcon: j?.displayIcon,
-                            onTap: () => context.push('/entry/${e.entryId}'),
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+                        itemCount: groups.length,
+                        itemBuilder: (_, gi) {
+                          final g = groups[gi];
+                          final label = DateFormat.yMMMM(locale)
+                              .format(DateTime(g.year, g.month));
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    top: gi == 0 ? 4 : 20, bottom: 10),
+                                child: Text(
+                                  '$label · ${g.entries.length}개',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ),
+                              for (final e in g.entries)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: EntryCard(
+                                    e,
+                                    journalName: journalMap[e.journalId]?.title,
+                                    journalIcon:
+                                        journalMap[e.journalId]?.displayIcon,
+                                    onTap: () =>
+                                        context.push('/entry/${e.entryId}'),
+                                  ),
+                                ),
+                            ],
                           );
                         },
                       ),

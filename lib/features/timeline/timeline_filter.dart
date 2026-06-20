@@ -42,6 +42,36 @@ List<DiaryEntry> sortByDate(List<DiaryEntry> entries, {bool ascending = false}) 
   return sorted;
 }
 
+/// A run of consecutive entries that fall in the same calendar month.
+class TimelineMonthGroup {
+  const TimelineMonthGroup({
+    required this.year,
+    required this.month,
+    required this.entries,
+  });
+
+  final int year;
+  final int month;
+  final List<DiaryEntry> entries;
+}
+
+/// Groups already-ordered [entries] into consecutive same-month runs,
+/// preserving the input order (so it works for both newest- and oldest-first).
+List<TimelineMonthGroup> groupByMonth(List<DiaryEntry> entries) {
+  final groups = <TimelineMonthGroup>[];
+  for (final e in entries) {
+    final y = e.createdAt.year;
+    final m = e.createdAt.month;
+    final last = groups.isEmpty ? null : groups.last;
+    if (last != null && last.year == y && last.month == m) {
+      last.entries.add(e);
+    } else {
+      groups.add(TimelineMonthGroup(year: y, month: m, entries: [e]));
+    }
+  }
+  return groups;
+}
+
 /// Distinct tags across all top-level entries, most-used first.
 List<String> availableTags(List<DiaryEntry> entries) {
   final counts = <String, int>{};
