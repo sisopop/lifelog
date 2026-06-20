@@ -78,6 +78,27 @@ Map<Mood, int> moodBreakdown(List<DiaryEntry> entries) {
   };
 }
 
+/// Pure: most-used tags across top-level entries, most-frequent first.
+/// Ties resolve alphabetically. Capped at [limit] (no cap when limit <= 0).
+List<MapEntry<String, int>> topTags(List<DiaryEntry> entries, {int limit = 12}) {
+  final counts = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    for (final t in e.tags) {
+      counts[t] = (counts[t] ?? 0) + 1;
+    }
+  }
+  final sorted = counts.entries.toList()
+    ..sort((a, b) {
+      final byCount = b.value.compareTo(a.value);
+      return byCount != 0 ? byCount : a.key.compareTo(b.key);
+    });
+  if (limit > 0 && sorted.length > limit) {
+    return sorted.sublist(0, limit);
+  }
+  return sorted;
+}
+
 /// Pure: aggregate every [entries] into lifetime totals. 답장(reply) records
 /// are excluded so the figures match the timeline.
 LifetimeStats computeLifetimeStats(List<DiaryEntry> entries) {

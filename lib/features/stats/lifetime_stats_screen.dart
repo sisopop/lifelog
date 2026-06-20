@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -22,6 +23,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final s = computeLifetimeStats(entries);
     final moods = moodBreakdown(entries);
     final busiest = busiestDayPart(entries);
+    final tags = topTags(entries);
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Scaffold(
@@ -96,6 +98,10 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     text: '${busiest.key.emoji} 주로 '
                         '${busiest.key.label}에 기록해요 (${busiest.value}개)',
                   ),
+                ],
+                if (tags.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _TagCloud(tags: tags),
                 ],
               ],
             ),
@@ -186,6 +192,74 @@ class _MoodDistribution extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Most-used tags as size-graded chips; tapping opens that tag's records.
+class _TagCloud extends StatelessWidget {
+  const _TagCloud({required this.tags});
+  final List<MapEntry<String, int>> tags;
+
+  @override
+  Widget build(BuildContext context) {
+    final max = tags.first.value; // tags is sorted desc, so first is largest
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('자주 쓴 태그',
+              style: TextStyle(fontSize: 13, color: AppColors.textHint)),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final t in tags)
+                _TagChip(tag: t.key, count: t.value, weight: t.value / max),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TagChip extends StatelessWidget {
+  const _TagChip(
+      {required this.tag, required this.count, required this.weight});
+  final String tag;
+  final int count;
+  final double weight; // 0..1 relative to the most-used tag
+
+  @override
+  Widget build(BuildContext context) {
+    final fontSize = 13.0 + weight * 5; // 13–18
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () => context.push(
+        Uri(path: '/tag', queryParameters: {'t': tag}).toString(),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          '#$tag $count',
+          style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryDark),
+        ),
       ),
     );
   }

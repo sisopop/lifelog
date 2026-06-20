@@ -7,13 +7,14 @@ DiaryEntry _entry({
   String content = 'c',
   required DateTime at,
   String? replyTo,
+  List<String> tags = const [],
 }) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
       journalId: 'jr_default',
       content: content,
-      tags: const [],
+      tags: tags,
       replyToEntryId: replyTo,
       createdAt: at,
       updatedAt: at,
@@ -54,5 +55,39 @@ void main() {
       _entry(id: '5', at: DateTime(2026, 6, 5)),
     ]);
     expect(s.longestStreak, 3);
+  });
+
+  group('topTags', () {
+    test('empty when no tags', () {
+      expect(topTags(const []), isEmpty);
+      expect(topTags([_entry(id: 'a', at: DateTime(2026, 6, 1))]), isEmpty);
+    });
+
+    test('sorts by frequency desc, ties alphabetically', () {
+      final tags = topTags([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행', '가족']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행', '일상']),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), tags: ['여행']),
+      ]);
+      expect(tags.map((e) => e.key).toList(), ['여행', '가족', '일상']);
+      expect(tags.first.value, 3);
+      // 가족 vs 일상 both count 1 → alphabetical (가 < 일)
+      expect(tags[1].key, '가족');
+    });
+
+    test('excludes replies', () {
+      final tags = topTags([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행']),
+        _entry(id: 'r', at: DateTime(2026, 6, 2), tags: ['여행'], replyTo: 'a'),
+      ]);
+      expect(tags.single.value, 1);
+    });
+
+    test('respects the limit', () {
+      final tags = topTags([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['a', 'b', 'c', 'd']),
+      ], limit: 2);
+      expect(tags.length, 2);
+    });
   });
 }
