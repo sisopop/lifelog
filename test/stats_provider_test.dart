@@ -139,4 +139,34 @@ void main() {
       expect(weekdayCounts(const [], 2026, 6), [0, 0, 0, 0, 0, 0, 0]);
     });
   });
+
+  group('dominantMoodByDay', () {
+    test('picks the most frequent mood per day', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 5), mood: Mood.good),
+        _e(id: '2', at: DateTime(2026, 6, 5), mood: Mood.good),
+        _e(id: '3', at: DateTime(2026, 6, 5), mood: Mood.hard),
+        _e(id: '4', at: DateTime(2026, 6, 6), mood: Mood.hard),
+      ];
+      final r = dominantMoodByDay(entries, 2026, 6);
+      expect(r[5], Mood.good);
+      expect(r[6], Mood.hard);
+    });
+
+    test('ties resolve to the earlier mood in enum order', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 7), mood: Mood.neutral),
+        _e(id: '2', at: DateTime(2026, 6, 7), mood: Mood.good),
+      ];
+      expect(dominantMoodByDay(entries, 2026, 6)[7], Mood.good);
+    });
+
+    test('days without a mood and replies are excluded', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 8)), // no mood
+        _e(id: '2', at: DateTime(2026, 6, 9), mood: Mood.good, replyTo: '1'),
+      ];
+      expect(dominantMoodByDay(entries, 2026, 6), isEmpty);
+    });
+  });
 }

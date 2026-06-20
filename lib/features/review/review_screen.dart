@@ -64,7 +64,10 @@ class ReviewScreen extends ConsumerWidget {
             year: stats.year,
             month: stats.month,
             recordedDays: ref.watch(recordedDaysProvider),
+            dayMoods: ref.watch(dayMoodsProvider),
           ),
+          const SizedBox(height: 10),
+          const _MoodLegend(),
           const SizedBox(height: 20),
           const Text('요일별 기록', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
@@ -252,16 +255,26 @@ class _StreakBanner extends StatelessWidget {
   }
 }
 
-/// A compact month grid (일~토) highlighting days that have a record.
+/// Maps a mood to its calendar/legend color.
+Color moodColor(Mood m) => switch (m) {
+      Mood.good => AppColors.moodGood,
+      Mood.neutral => AppColors.moodNeutral,
+      Mood.hard => AppColors.moodHard,
+    };
+
+/// A compact month grid (일~토) highlighting days that have a record,
+/// colored by that day's dominant mood (falls back to primary when no mood).
 class _MonthCalendar extends StatelessWidget {
   const _MonthCalendar({
     required this.year,
     required this.month,
     required this.recordedDays,
+    required this.dayMoods,
   });
   final int year;
   final int month;
   final Set<int> recordedDays;
+  final Map<int, Mood> dayMoods;
 
   static const _weekdayLabels = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -281,6 +294,7 @@ class _MonthCalendar extends StatelessWidget {
         _DayCell(
           d,
           recordedDays.contains(d),
+          mood: dayMoods[d],
           onTap: recordedDays.contains(d)
               ? () => context.push(
                   '/day/$year-${month.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}')
@@ -307,31 +321,67 @@ class _MonthCalendar extends StatelessWidget {
 }
 
 class _DayCell extends StatelessWidget {
-  const _DayCell(this.day, this.recorded, {this.onTap});
+  const _DayCell(this.day, this.recorded, {this.mood, this.onTap});
   final int day;
   final bool recorded;
+  final Mood? mood;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    // Mood color when known (pastel → dark text), else primary, else plain.
+    final Color bg = !recorded
+        ? AppColors.background
+        : (mood != null ? moodColor(mood!) : AppColors.primary);
+    final Color fg = !recorded
+        ? AppColors.textSecondary
+        : (mood != null ? AppColors.textPrimary : Colors.white);
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        decoration: BoxDecoration(
-          color: recorded ? AppColors.primary : AppColors.background,
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
         alignment: Alignment.center,
         child: Text(
           '$day',
           style: TextStyle(
             fontSize: 12,
             fontWeight: recorded ? FontWeight.w700 : FontWeight.w500,
-            color: recorded ? Colors.white : AppColors.textSecondary,
+            color: fg,
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Small legend explaining the calendar's mood colors.
+class _MoodLegend extends StatelessWidget {
+  const _MoodLegend();
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 14,
+      runSpacing: 4,
+      children: [
+        for (final m in Mood.values)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                    color: moodColor(m), shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 5),
+              Text(m.label,
+                  style: const TextStyle(
+                      fontSize: 11, color: AppColors.textHint)),
+            ],
+          ),
+      ],
     );
   }
 }

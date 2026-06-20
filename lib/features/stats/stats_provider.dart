@@ -217,6 +217,46 @@ final recordedDaysProvider = Provider<Set<int>>((ref) {
   return recordedDaysOfMonth(entries, m.year, m.month);
 });
 
+/// Dominant mood per recorded day of the month (ties → earlier Mood in enum
+/// order). Days whose records carry no mood are absent from the map.
+Map<int, Mood> dominantMoodByDay(
+    List<DiaryEntry> entries, int year, int month) {
+  final perDay = <int, Map<Mood, int>>{};
+  for (final e in entries) {
+    if (e.replyToEntryId == null &&
+        e.mood != null &&
+        e.createdAt.year == year &&
+        e.createdAt.month == month) {
+      (perDay[e.createdAt.day] ??= {}).update(
+        e.mood!,
+        (c) => c + 1,
+        ifAbsent: () => 1,
+      );
+    }
+  }
+  final result = <int, Mood>{};
+  perDay.forEach((day, counts) {
+    Mood? best;
+    var bestCount = 0;
+    for (final m in Mood.values) {
+      final c = counts[m] ?? 0;
+      if (c > bestCount) {
+        bestCount = c;
+        best = m;
+      }
+    }
+    if (best != null) result[day] = best;
+  });
+  return result;
+}
+
+/// Dominant-mood-per-day for the month currently shown on the 회고 screen.
+final dayMoodsProvider = Provider<Map<int, Mood>>((ref) {
+  final entries = ref.watch(reviewEntriesProvider);
+  final m = ref.watch(reviewMonthProvider);
+  return dominantMoodByDay(entries, m.year, m.month);
+});
+
 /// Top-level record counts per weekday for the given month.
 /// Index 0 = 일요일 … 6 = 토요일 (matches the calendar's column order).
 List<int> weekdayCounts(List<DiaryEntry> entries, int year, int month) {
