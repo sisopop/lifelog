@@ -3,8 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'package:lifelog/features/entries/entries_provider.dart';
 import 'package:lifelog/features/home/home_screen.dart';
 import 'package:lifelog/features/journals/journals_provider.dart';
+import 'package:lifelog/shared/models/diary_entry.dart';
 import 'package:lifelog/shared/models/enums.dart';
 import 'package:lifelog/shared/models/journal.dart';
 
@@ -22,6 +24,12 @@ class _FakeJournalsNotifier extends JournalsNotifier {
       ];
 }
 
+/// Empty entries so OnThisDaySection renders nothing without hitting Drift.
+class _FakeEntriesNotifier extends EntriesNotifier {
+  @override
+  Future<List<DiaryEntry>> build() async => const [];
+}
+
 void main() {
   setUpAll(() => initializeDateFormatting());
 
@@ -31,6 +39,7 @@ void main() {
         overrides: [
           journalsProvider.overrideWith(_FakeJournalsNotifier.new),
           journalEntryCountsProvider.overrideWith((ref) async => {'jr_default': 3}),
+          entriesProvider.overrideWith(_FakeEntriesNotifier.new),
         ],
         child: const MaterialApp(home: HomeScreen()),
       ),
