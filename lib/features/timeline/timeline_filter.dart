@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../auth/session.dart';
 import '../entries/entries_provider.dart';
 
 /// Active timeline filter. Null mood / null tag means "no filter on that axis".
@@ -113,12 +115,20 @@ final timelineFilterProvider =
   TimelineFilterNotifier.new,
 );
 
-/// Timeline sort order. false (default) = newest-first, true = oldest-first.
-class TimelineSortNotifier extends Notifier<bool> {
-  @override
-  bool build() => false;
+const _kTimelineSortAscKey = 'timeline_sort_ascending';
 
-  void toggle() => state = !state;
+/// Timeline sort order, persisted across launches.
+/// false (default) = newest-first, true = oldest-first.
+class TimelineSortNotifier extends Notifier<bool> {
+  SharedPreferences get _p => ref.read(sharedPrefsProvider);
+
+  @override
+  bool build() => _p.getBool(_kTimelineSortAscKey) ?? false;
+
+  Future<void> toggle() async {
+    state = !state;
+    await _p.setBool(_kTimelineSortAscKey, state);
+  }
 }
 
 final timelineSortProvider =
