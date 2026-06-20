@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/models/enums.dart';
 import '../../shared/widgets/entry_card.dart';
+import '../../shared/widgets/mood_chip.dart';
 import '../journals/journals_provider.dart';
 import 'entry_search.dart';
 import 'recent_searches.dart';
@@ -64,6 +66,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               onPressed: () {
                 _ctrl.clear();
                 ref.read(searchQueryProvider.notifier).set('');
+                ref.read(searchMoodProvider.notifier).clear();
               },
             ),
         ],
@@ -90,29 +93,70 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ref.read(recentSearchesProvider.notifier).clear(),
       );
     }
-    if (results.isEmpty) {
-      return _Hint(
-        icon: Icons.search_off,
-        text: "'$query'에 대한 결과가 없어요",
-      );
-    }
+    final mood = ref.watch(searchMoodProvider);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
-    return ListView.separated(
-      padding: const EdgeInsets.all(20),
-      itemCount: results.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
-      itemBuilder: (_, i) {
-        final e = results[i];
-        final j = journalMap[e.journalId];
-        return EntryCard(
-          e,
-          journalName: j?.title,
-          journalIcon: j?.displayIcon,
-          highlight: query,
-          onTap: () => context.push('/entry/${e.entryId}'),
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _MoodFilterRow(
+          selected: mood,
+          onTap: (m) => ref.read(searchMoodProvider.notifier).toggle(m),
+        ),
+        Expanded(
+          child: results.isEmpty
+              ? _Hint(
+                  icon: Icons.search_off,
+                  text: mood != null
+                      ? "'$query' · ${mood.label} 결과가 없어요"
+                      : "'$query'에 대한 결과가 없어요",
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                  itemCount: results.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (_, i) {
+                    final e = results[i];
+                    final j = journalMap[e.journalId];
+                    return EntryCard(
+                      e,
+                      journalName: j?.title,
+                      journalIcon: j?.displayIcon,
+                      highlight: query,
+                      onTap: () => context.push('/entry/${e.entryId}'),
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Horizontal mood chips that scope the search results to one emotion.
+class _MoodFilterRow extends StatelessWidget {
+  const _MoodFilterRow({required this.selected, required this.onTap});
+
+  final Mood? selected;
+  final void Function(Mood mood) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+      child: Row(
+        children: Mood.values
+            .map((m) => Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: MoodChip(
+                    m,
+                    selected: selected == m,
+                    onTap: () => onTap(m),
+                  ),
+                ))
+            .toList(),
+      ),
     );
   }
 }

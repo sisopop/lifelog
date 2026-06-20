@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/enums.dart';
 import '../entries/entries_provider.dart';
 
 /// Pure, case-insensitive search over top-level entries.
@@ -24,6 +25,13 @@ List<DiaryEntry> searchEntries(List<DiaryEntry> entries, String query) {
   return matches;
 }
 
+/// Pure: keep only entries whose mood equals [mood]. A null [mood] means
+/// "all moods" and returns the list unchanged.
+List<DiaryEntry> filterByMood(List<DiaryEntry> entries, Mood? mood) {
+  if (mood == null) return entries;
+  return entries.where((e) => e.mood == mood).toList();
+}
+
 /// Current search query (updated as the user types).
 class SearchQueryNotifier extends Notifier<String> {
   @override
@@ -35,9 +43,25 @@ class SearchQueryNotifier extends Notifier<String> {
 final searchQueryProvider =
     NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
 
-/// Search results derived from [entriesProvider] and the current query.
+/// Optional mood filter applied on top of the text results (null = 전체).
+class SearchMoodNotifier extends Notifier<Mood?> {
+  @override
+  Mood? build() => null;
+
+  /// Selects [mood], or clears the filter when the same mood is tapped again.
+  void toggle(Mood mood) => state = state == mood ? null : mood;
+
+  void clear() => state = null;
+}
+
+final searchMoodProvider =
+    NotifierProvider<SearchMoodNotifier, Mood?>(SearchMoodNotifier.new);
+
+/// Search results derived from [entriesProvider], the current query and the
+/// optional mood filter.
 final searchResultsProvider = Provider<List<DiaryEntry>>((ref) {
   final all = ref.watch(entriesProvider).asData?.value ?? const <DiaryEntry>[];
   final query = ref.watch(searchQueryProvider);
-  return searchEntries(all, query);
+  final mood = ref.watch(searchMoodProvider);
+  return filterByMood(searchEntries(all, query), mood);
 });
