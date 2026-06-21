@@ -150,6 +150,15 @@ class ReviewScreen extends ConsumerWidget {
                 ),
               );
             }),
+            if (stats.avgChars > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '✍️ 한 번에 평균 ${stats.avgChars}자씩 썼어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              ),
           ],
           const SizedBox(height: 20),
           const Text('기록 달력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),

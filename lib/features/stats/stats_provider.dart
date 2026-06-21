@@ -101,6 +101,9 @@ class MonthlyStats {
   final List<MapEntry<String, int>> topTags;
 
   bool get isEmpty => total == 0;
+
+  /// Rounded average body length per top-level record this month (0 if none).
+  int get avgChars => total == 0 ? 0 : (charsWritten / total).round();
 }
 
 /// The (year, month) currently shown on the 회고 screen.

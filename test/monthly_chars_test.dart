@@ -57,4 +57,27 @@ void main() {
       expect(stats.charsWritten, 0);
     });
   });
+
+  group('MonthlyStats.avgChars', () {
+    test('rounds the average body length per record', () {
+      final stats = computeMonthlyStats([
+        _entry(content: '12345'), // 5
+        _entry(content: '12', day: 11), // 2  → (5+2)/2 = 3.5 → 4
+      ], 2026, 6);
+      expect(stats.total, 2);
+      expect(stats.avgChars, 4);
+    });
+
+    test('0 when the month has no records', () {
+      expect(computeMonthlyStats(const [], 2026, 6).avgChars, 0);
+    });
+
+    test('replies do not affect the average', () {
+      final stats = computeMonthlyStats([
+        _entry(content: '1234'), // 4
+        _entry(content: 'ignored reply', replyTo: 'x'),
+      ], 2026, 6);
+      expect(stats.avgChars, 4);
+    });
+  });
 }
