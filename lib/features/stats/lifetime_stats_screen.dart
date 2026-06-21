@@ -23,6 +23,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final s = computeLifetimeStats(entries);
     final moods = moodBreakdown(entries);
     final busiest = busiestDayPart(entries);
+    final busyDay = busiestWeekday(entries);
     final tags = topTags(entries);
     final trend = recentMonthlyCounts(entries, DateTime.now());
     final locale = Localizations.localeOf(context).toLanguageTag();
@@ -98,6 +99,12 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   _InsightLine(
                     text: '${busiest.key.emoji} 주로 '
                         '${busiest.key.label}에 기록해요 (${busiest.value}개)',
+                  ),
+                ],
+                if (busyDay != null) ...[
+                  const SizedBox(height: 12),
+                  _InsightLine(
+                    text: '📅 주로 ${busyDay.key}에 기록해요 (${busyDay.value}개)',
                   ),
                 ],
                 if (s.avgCharsPerEntry > 0) ...[

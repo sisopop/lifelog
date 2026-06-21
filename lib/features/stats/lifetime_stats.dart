@@ -66,6 +66,32 @@ MapEntry<DayPart, int>? busiestDayPart(List<DiaryEntry> entries) {
   return best;
 }
 
+/// Korean weekday names indexed by [DateTime.weekday] (1=Mon … 7=Sun).
+const _weekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
+
+/// Pure: the weekday the user records on most often, as `(name, count)`.
+/// Returns null when there are no top-level entries. Ties resolve to the
+/// earlier weekday (Mon before Sun).
+MapEntry<String, int>? busiestWeekday(List<DiaryEntry> entries) {
+  final counts = <int, int>{}; // weekday(1..7) -> count
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final w = e.createdAt.weekday;
+    counts[w] = (counts[w] ?? 0) + 1;
+  }
+  if (counts.isEmpty) return null;
+  int? bestDay;
+  var bestCount = 0;
+  for (var w = 1; w <= 7; w++) {
+    final c = counts[w];
+    if (c != null && c > bestCount) {
+      bestDay = w;
+      bestCount = c;
+    }
+  }
+  return MapEntry('${_weekdayNames[bestDay!]}요일', bestCount);
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.

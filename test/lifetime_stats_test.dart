@@ -107,6 +107,40 @@ void main() {
     });
   });
 
+  group('busiestWeekday', () {
+    test('null when there are no top-level entries', () {
+      expect(busiestWeekday(const []), isNull);
+      expect(
+        busiestWeekday(
+            [_entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a')]),
+        isNull,
+      );
+    });
+
+    test('picks the most-recorded weekday and labels it in Korean', () {
+      // 2026-06-13 & 20 are Saturdays; 2026-06-15 is a Monday.
+      final w = busiestWeekday([
+        _entry(id: 'a', at: DateTime(2026, 6, 13)),
+        _entry(id: 'b', at: DateTime(2026, 6, 20)),
+        _entry(id: 'c', at: DateTime(2026, 6, 15)),
+      ]);
+      expect(w!.key, '토요일');
+      expect(w.value, 2);
+    });
+
+    test('excludes replies from the count', () {
+      // Two Mondays, but one is a reply → Monday counts once.
+      final w = busiestWeekday([
+        _entry(id: 'a', at: DateTime(2026, 6, 15)), // Mon
+        _entry(id: 'r', at: DateTime(2026, 6, 15), replyTo: 'a'),
+        _entry(id: 'b', at: DateTime(2026, 6, 16)), // Tue
+      ]);
+      // Mon=1, Tue=1 → tie resolves to earlier weekday (Mon).
+      expect(w!.key, '월요일');
+      expect(w.value, 1);
+    });
+  });
+
   group('recentMonthlyCounts', () {
     test('returns the trailing N months oldest-first ending in now', () {
       final t = recentMonthlyCounts(const [], DateTime(2026, 6, 15), months: 3);
