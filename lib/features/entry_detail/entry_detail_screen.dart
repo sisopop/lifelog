@@ -96,12 +96,22 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                 ],
                 Text(entry.content,
                     style: TextStyle(fontSize: 16 * scale, height: 1.6)),
-                if (readingMetaLabel(entry.content).isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Text(readingMetaLabel(entry.content),
-                      style: const TextStyle(
-                          fontSize: 12, color: AppColors.textHint)),
-                ],
+                Builder(builder: (_) {
+                  final meta = readingMetaLabel(entry.content);
+                  final ord = entryOrdinal(entries, widget.entryId);
+                  final ordLabel = ord == null
+                      ? ''
+                      : '이 일기장의 ${ord.position}번째 기록';
+                  final parts =
+                      [meta, ordLabel].where((s) => s.isNotEmpty).join(' · ');
+                  if (parts.isEmpty) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(parts,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textHint)),
+                  );
+                }),
                 if (entry.mood == null) ...[
                   const SizedBox(height: 20),
                   MoodPickerCard(entry: entry),

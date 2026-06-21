@@ -66,4 +66,50 @@ void main() {
       expect(n.next?.entryId, 'b');
     });
   });
+
+  group('entryOrdinal', () {
+    final entries = [
+      _e('a', 10),
+      _e('b', 12),
+      _e('c', 15),
+    ];
+
+    test('oldest is 1st, newest is last', () {
+      expect(entryOrdinal(entries, 'a')!.position, 1);
+      expect(entryOrdinal(entries, 'c')!.position, 3);
+      expect(entryOrdinal(entries, 'a')!.total, 3);
+    });
+
+    test('middle entry has the right position', () {
+      final o = entryOrdinal(entries, 'b')!;
+      expect(o.position, 2);
+      expect(o.total, 3);
+    });
+
+    test('scopes to the same journal and total', () {
+      final mixed = [
+        _e('a', 10, journalId: 'j1'),
+        _e('x', 11, journalId: 'j2'),
+        _e('b', 12, journalId: 'j1'),
+      ];
+      final o = entryOrdinal(mixed, 'b')!;
+      expect(o.position, 2); // a then b within j1
+      expect(o.total, 2); // j2 entry excluded
+    });
+
+    test('ignores replies in position and total', () {
+      final withReply = [
+        _e('a', 10),
+        _e('r', 11, replyTo: 'a'),
+        _e('b', 12),
+      ];
+      final o = entryOrdinal(withReply, 'b')!;
+      expect(o.position, 2);
+      expect(o.total, 2);
+    });
+
+    test('null when the entry is missing', () {
+      expect(entryOrdinal(entries, 'ghost'), isNull);
+    });
+  });
 }

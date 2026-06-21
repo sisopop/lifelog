@@ -11,6 +11,32 @@ class EntryNeighbors {
   final DiaryEntry? next;
 }
 
+/// An entry's 1-based chronological position within its journal, with the
+/// journal's top-level total. e.g. position 3 of total 10.
+class EntryOrdinal {
+  const EntryOrdinal(this.position, this.total);
+  final int position;
+  final int total;
+}
+
+/// The chronological (oldest-first) 1-based position of [currentId] among the
+/// top-level entries of its journal, plus that journal's total count. Replies
+/// are ignored. Returns null when the entry isn't found.
+EntryOrdinal? entryOrdinal(List<DiaryEntry> entries, String currentId) {
+  final current = entries.where((e) => e.entryId == currentId).firstOrNull;
+  if (current == null) return null;
+
+  final siblings = entries
+      .where((e) =>
+          e.replyToEntryId == null && e.journalId == current.journalId)
+      .toList()
+    ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  final idx = siblings.indexWhere((e) => e.entryId == currentId);
+  if (idx < 0) return null;
+  return EntryOrdinal(idx + 1, siblings.length);
+}
+
 /// Previous (older) and next (newer) top-level entries in the *same journal*
 /// as the entry identified by [currentId], ordered by creation time. Replies
 /// are ignored. Returns nulls when the entry isn't found or sits at an edge.

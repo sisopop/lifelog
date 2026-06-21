@@ -45,7 +45,10 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.text('새 일기장 만들기'), findsOneWidget);
+    // With journals present, the big CTA card is replaced by a compact
+    // header action (tooltip), and the journal list is shown.
+    expect(find.text('새 일기장 만들기'), findsNothing);
+    expect(find.byTooltip('새 일기장'), findsOneWidget);
     expect(find.text('나의 일기장'), findsOneWidget);
   });
 }
