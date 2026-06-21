@@ -53,7 +53,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           autofocus: true,
           textInputAction: TextInputAction.search,
           decoration: const InputDecoration(
-            hintText: '제목, 내용, 태그 검색',
+            hintText: '제목, 내용, 태그, 장소 검색',
             border: InputBorder.none,
           ),
           style: const TextStyle(fontSize: 16),

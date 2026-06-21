@@ -11,6 +11,7 @@ DiaryEntry _entry({
   String? replyTo,
   DateTime? createdAt,
   bool favorite = false,
+  String? location,
 }) {
   final now = createdAt ?? DateTime(2026, 1, 1);
   return DiaryEntry(
@@ -22,6 +23,7 @@ DiaryEntry _entry({
     content: content,
     aiSummary: summary,
     tags: tags,
+    location: location,
     isFavorite: favorite,
     createdAt: now,
     updatedAt: now,
@@ -72,6 +74,14 @@ void main() {
     test('matches AI summary', () {
       final r = searchEntries(entries, '마감');
       expect(r.map((e) => e.entryId), ['3']);
+    });
+
+    test('matches location', () {
+      final located = [
+        _entry(id: 'p', content: '맛있었다', location: '성산일출봉'),
+        _entry(id: 'q', content: '평범한 하루'),
+      ];
+      expect(searchEntries(located, '성산').map((e) => e.entryId), ['p']);
     });
 
     test('is case-insensitive', () {

@@ -6,7 +6,8 @@ import '../entries/entries_provider.dart';
 
 /// Pure, case-insensitive search over top-level entries.
 ///
-/// Matches the [query] against the title, content, AI summary and tags.
+/// Matches the [query] against the title, content, AI summary, tags and
+/// location.
 /// Replies (entries with a [DiaryEntry.replyToEntryId]) are excluded so the
 /// results mirror the timeline. Results are sorted newest-first.
 /// An empty/blank query returns an empty list.
@@ -19,6 +20,7 @@ List<DiaryEntry> searchEntries(List<DiaryEntry> entries, String query) {
     if (e.content.toLowerCase().contains(q)) return true;
     if ((e.aiSummary ?? '').toLowerCase().contains(q)) return true;
     if (e.tags.any((t) => t.toLowerCase().contains(q))) return true;
+    if ((e.location ?? '').toLowerCase().contains(q)) return true;
     return false;
   }).toList()
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
