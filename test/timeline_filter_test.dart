@@ -154,6 +154,11 @@ void main() {
       expect(filterByPeriod(dated, DatePreset.all, now).length, 5);
     });
 
+    test('today keeps only entries dated today', () {
+      expect(filterByPeriod(dated, DatePreset.today, now).map((e) => e.entryId),
+          ['today']);
+    });
+
     test('week keeps Monday-onward entries', () {
       expect(filterByPeriod(dated, DatePreset.week, now).map((e) => e.entryId),
           ['thisWeek', 'today']);

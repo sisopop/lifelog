@@ -144,6 +144,7 @@ class _FilterBar extends ConsumerWidget {
       child: Row(
         children: [
           for (final p in const [
+            DatePreset.today,
             DatePreset.week,
             DatePreset.month,
             DatePreset.year

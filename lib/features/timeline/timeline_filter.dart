@@ -9,6 +9,7 @@ import '../entries/entries_provider.dart';
 /// A quick date-range preset for the timeline. [all] applies no date filter.
 enum DatePreset {
   all('전체'),
+  today('오늘'),
   week('이번 주'),
   month('이번 달'),
   year('올해');
@@ -74,6 +75,8 @@ List<DiaryEntry> filterByPeriod(
   final today = DateTime(now.year, now.month, now.day);
   final DateTime start;
   switch (preset) {
+    case DatePreset.today:
+      start = today;
     case DatePreset.week:
       start = today.subtract(Duration(days: today.weekday - 1));
     case DatePreset.month:
