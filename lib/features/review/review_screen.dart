@@ -8,6 +8,7 @@ import '../../shared/models/enums.dart';
 import '../../shared/widgets/month_calendar.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
+import '../export/export_markdown.dart';
 import '../stats/stats_provider.dart';
 import '../stats/streak.dart';
 import 'review_share.dart';
@@ -28,7 +29,7 @@ class ReviewScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('회고', style: TextStyle(fontWeight: FontWeight.w800)),
         actions: [
-          if (!stats.isEmpty)
+          if (!stats.isEmpty) ...[
             IconButton(
               icon: const Icon(Icons.ios_share),
               tooltip: '이번 달 회고 공유',
@@ -41,6 +42,31 @@ class ReviewScreen extends ConsumerWidget {
                 );
               },
             ),
+            IconButton(
+              icon: const Icon(Icons.file_download_outlined),
+              tooltip: '이번 달 기록 전체 내보내기',
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final journals =
+                    ref.read(journalsProvider).asData?.value ?? const [];
+                final monthEntries = ref.read(reviewEntriesProvider);
+                final count = monthEntries
+                    .where((e) =>
+                        e.createdAt.year == stats.year &&
+                        e.createdAt.month == stats.month)
+                    .length;
+                final text = exportMonthMarkdown(
+                    journals, monthEntries, stats.year, stats.month,
+                    DateTime.now());
+                await Clipboard.setData(ClipboardData(text: text));
+                messenger.showSnackBar(
+                  SnackBar(
+                      content: Text(
+                          '${stats.month}월 기록 $count개를 클립보드에 복사했어요')),
+                );
+              },
+            ),
+          ],
         ],
       ),
       body: ListView(

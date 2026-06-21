@@ -111,4 +111,40 @@ void main() {
       expect(md, contains('# 📓 나의 일기장'));
     });
   });
+
+  group('exportMonthMarkdown', () {
+    test('includes only the given month, grouped by journal', () {
+      final entries = [
+        _e(id: '1', journalId: 'j1', at: DateTime(2026, 6, 10), title: '유월글'),
+        _e(id: '2', journalId: 'j2', at: DateTime(2026, 6, 12), title: '교환글'),
+        _e(id: '3', journalId: 'j1', at: DateTime(2026, 5, 30), title: '오월글'),
+      ];
+      final md = exportMonthMarkdown(journals, entries, 2026, 6, DateTime(2026, 6, 19));
+      expect(md, contains('# lifelog 2026년 6월'));
+      expect(md, contains('기록 2개 · 내보낸 날짜 2026-06-19'));
+      expect(md, contains('유월글'));
+      expect(md, contains('교환글'));
+      expect(md, isNot(contains('오월글'))); // other month excluded
+    });
+
+    test('newest first within a journal and marks replies + tags', () {
+      final entries = [
+        _e(id: '1', journalId: 'j1', at: DateTime(2026, 6, 10), title: '먼저', tags: ['여행']),
+        _e(id: '2', journalId: 'j1', at: DateTime(2026, 6, 15), title: '나중'),
+        _e(id: '3', journalId: 'j1', at: DateTime(2026, 6, 16), title: '답글', replyTo: '2'),
+      ];
+      final md = exportMonthMarkdown(journals, entries, 2026, 6, DateTime(2026, 6, 19));
+      expect(md.indexOf('답글') < md.indexOf('나중'), true);
+      expect(md.indexOf('나중') < md.indexOf('먼저'), true);
+      expect(md, contains('### ↳ 2026-06-16 · 답글'));
+      expect(md, contains('태그: #여행'));
+    });
+
+    test('header-only when the month has no records', () {
+      final md = exportMonthMarkdown(journals, const [], 2026, 6, DateTime(2026, 6, 19));
+      expect(md, contains('# lifelog 2026년 6월'));
+      expect(md, contains('기록 0개'));
+      expect(md, isNot(contains('## ')));
+    });
+  });
 }

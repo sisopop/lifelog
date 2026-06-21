@@ -60,6 +60,67 @@ String exportMarkdown(
   return buf.toString().trimRight();
 }
 
+/// Serializes just the records of [year]/[month] into Markdown, grouped by
+/// journal (in [journals] order) and sorted newest first; replies are marked
+/// with "↳". Journals with no record that month are skipped. Returns a
+/// header-only doc when the month has no records.
+String exportMonthMarkdown(
+  List<Journal> journals,
+  List<DiaryEntry> entries,
+  int year,
+  int month,
+  DateTime now,
+) {
+  final inMonth = [
+    for (final e in entries)
+      if (e.createdAt.year == year && e.createdAt.month == month) e,
+  ];
+  final byJournal = <String, List<DiaryEntry>>{};
+  for (final e in inMonth) {
+    byJournal.putIfAbsent(e.journalId, () => []).add(e);
+  }
+
+  final buf = StringBuffer()
+    ..writeln('# lifelog $year년 $month월')
+    ..writeln()
+    ..writeln('기록 ${inMonth.length}개 · 내보낸 날짜 ${_ymd(now)}')
+    ..writeln();
+
+  void writeSection(String heading, List<DiaryEntry> list) {
+    if (list.isEmpty) return;
+    final sorted = [...list]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    buf
+      ..writeln('## $heading')
+      ..writeln();
+    for (final e in sorted) {
+      final reply = e.replyToEntryId != null ? '↳ ' : '';
+      final mood = e.mood != null ? ' ${e.mood!.emoji}' : '';
+      buf.writeln('### $reply${_ymd(e.createdAt)} · ${e.title ?? '제목 없음'}$mood');
+      buf.writeln(e.content);
+      if (e.tags.isNotEmpty) {
+        buf.writeln('태그: ${e.tags.map((t) => '#$t').join(' ')}');
+      }
+      buf.writeln();
+    }
+  }
+
+  final known = <String>{};
+  for (final j in journals) {
+    known.add(j.journalId);
+    writeSection(
+      '${j.displayIcon} ${j.title} (${j.type.label})',
+      byJournal[j.journalId] ?? const [],
+    );
+  }
+  final orphans = [
+    for (final e in inMonth)
+      if (!known.contains(e.journalId)) e,
+  ];
+  writeSection('기타', orphans);
+
+  return buf.toString().trimRight();
+}
+
 /// Serializes a single [journal] and its [entries] (entries from other
 /// journals are ignored) into Markdown. Records are newest first; replies are
 /// marked with "↳". Returns a header-only doc when the journal has no records.
