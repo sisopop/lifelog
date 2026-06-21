@@ -1,11 +1,28 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../shared/models/diary_entry.dart';
 
-/// Returns starred (즐겨찾기) top-level records, newest first.
+/// Returns starred (즐겨찾기) top-level records sorted by creation time.
+/// Defaults to newest-first; pass [ascending] true for oldest-first.
 /// Replies are excluded so the list mirrors the timeline.
-List<DiaryEntry> favoriteEntries(List<DiaryEntry> entries) {
+List<DiaryEntry> favoriteEntries(List<DiaryEntry> entries,
+    {bool ascending = false}) {
   final result = entries
       .where((e) => e.replyToEntryId == null && e.isFavorite)
       .toList()
-    ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    ..sort((a, b) => ascending
+        ? a.createdAt.compareTo(b.createdAt)
+        : b.createdAt.compareTo(a.createdAt));
   return result;
 }
+
+/// Toggles the favorites list between newest-first (false) and oldest-first.
+class FavoriteSortNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void toggle() => state = !state;
+  void clear() => state = false;
+}
+
+final favoriteSortProvider =
+    NotifierProvider<FavoriteSortNotifier, bool>(FavoriteSortNotifier.new);

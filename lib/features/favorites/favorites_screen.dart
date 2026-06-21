@@ -17,7 +17,8 @@ class FavoritesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final all = ref.watch(entriesProvider).asData?.value ?? const [];
-    final entries = favoriteEntries(all);
+    final ascending = ref.watch(favoriteSortProvider);
+    final entries = favoriteEntries(all, ascending: ascending);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
     final replyCounts = replyCountsByParent(all);
@@ -50,11 +51,43 @@ class FavoritesScreen extends ConsumerWidget {
                 if (i == 0) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text('즐겨찾기 ${entries.length}개',
-                        style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary)),
+                    child: Row(
+                      children: [
+                        Text('즐겨찾기 ${entries.length}개',
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary)),
+                        const Spacer(),
+                        if (entries.length > 1)
+                          InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => ref
+                                .read(favoriteSortProvider.notifier)
+                                .toggle(),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 4),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                      ascending
+                                          ? Icons.arrow_upward
+                                          : Icons.arrow_downward,
+                                      size: 14,
+                                      color: AppColors.primaryDark),
+                                  const SizedBox(width: 2),
+                                  Text(ascending ? '오래된순' : '최신순',
+                                      style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.primaryDark)),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   );
                 }
                 final e = entries[i - 1];
