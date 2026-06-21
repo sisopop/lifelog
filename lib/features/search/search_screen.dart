@@ -8,6 +8,7 @@ import '../../shared/models/journal.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../../shared/widgets/mood_chip.dart';
 import '../journals/journals_provider.dart';
+import '../timeline/timeline_filter.dart' show availableTagsProvider;
 import 'entry_search.dart';
 import 'recent_searches.dart';
 
@@ -82,19 +83,30 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget _buildBody(BuildContext context, String query, List results) {
     if (query.trim().isEmpty) {
       final recent = ref.watch(recentSearchesProvider);
-      if (recent.isEmpty) {
+      final tags = ref.watch(availableTagsProvider).take(12).toList();
+      if (recent.isEmpty && tags.isEmpty) {
         return const _Hint(
           icon: Icons.search,
           text: '기록을 검색해보세요',
         );
       }
-      return _RecentList(
-        terms: recent,
-        onTap: _runRecent,
-        onRemove: (t) =>
-            ref.read(recentSearchesProvider.notifier).remove(t),
-        onClear: () =>
-            ref.read(recentSearchesProvider.notifier).clear(),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (tags.isNotEmpty) _SuggestedTags(tags: tags, onTap: _runRecent),
+          Expanded(
+            child: recent.isEmpty
+                ? const SizedBox.shrink()
+                : _RecentList(
+                    terms: recent,
+                    onTap: _runRecent,
+                    onRemove: (t) =>
+                        ref.read(recentSearchesProvider.notifier).remove(t),
+                    onClear: () =>
+                        ref.read(recentSearchesProvider.notifier).clear(),
+                  ),
+          ),
+        ],
       );
     }
     final mood = ref.watch(searchMoodProvider);
@@ -349,6 +361,51 @@ class _RecentList extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Tappable "popular tags" chips shown on the empty-query start screen so the
+/// user can jump straight into a tag search. Reuses the timeline's usage-ranked
+/// tag list.
+class _SuggestedTags extends StatelessWidget {
+  const _SuggestedTags({required this.tags, required this.onTap});
+
+  final List<String> tags;
+  final void Function(String term) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('자주 쓰는 태그',
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final t in tags)
+                ActionChip(
+                  label: Text('#$t'),
+                  onPressed: () => onTap(t),
+                  backgroundColor: AppColors.primarySoft,
+                  side: BorderSide.none,
+                  labelStyle: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.primaryDark,
+                      fontWeight: FontWeight.w600),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
