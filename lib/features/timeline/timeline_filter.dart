@@ -6,21 +6,41 @@ import '../../shared/models/enums.dart';
 import '../auth/session.dart';
 import '../entries/entries_provider.dart';
 
+/// A quick date-range preset for the timeline. [all] applies no date filter.
+enum DatePreset {
+  all('전체'),
+  week('이번 주'),
+  month('이번 달'),
+  year('올해');
+
+  const DatePreset(this.label);
+  final String label;
+}
+
 /// Active timeline filter. Null mood / null tag means "no filter on that axis";
-/// [favorite] true scopes the list to starred entries.
+/// [favorite] true scopes the list to starred entries; [period] limits to a
+/// recent date range ([DatePreset.all] = no date filter).
 class TimelineFilter {
-  const TimelineFilter({this.mood, this.tag, this.favorite = false});
+  const TimelineFilter({
+    this.mood,
+    this.tag,
+    this.favorite = false,
+    this.period = DatePreset.all,
+  });
 
   final Mood? mood;
   final String? tag;
   final bool favorite;
+  final DatePreset period;
 
-  bool get isActive => mood != null || tag != null || favorite;
+  bool get isActive =>
+      mood != null || tag != null || favorite || period != DatePreset.all;
 
   TimelineFilter copyWith({
     Mood? mood,
     String? tag,
     bool? favorite,
+    DatePreset? period,
     bool clearMood = false,
     bool clearTag = false,
   }) {
@@ -28,6 +48,7 @@ class TimelineFilter {
       mood: clearMood ? null : (mood ?? this.mood),
       tag: clearTag ? null : (tag ?? this.tag),
       favorite: favorite ?? this.favorite,
+      period: period ?? this.period,
     );
   }
 }
@@ -42,6 +63,27 @@ List<DiaryEntry> filterEntries(List<DiaryEntry> entries, TimelineFilter filter) 
     if (filter.favorite && !e.isFavorite) return false;
     return true;
   }).toList();
+}
+
+/// Keeps only entries on/after the start of [preset] relative to [now].
+/// [DatePreset.all] returns the list unchanged. Week starts Monday; month and
+/// year start on the 1st. Does not mutate the input.
+List<DiaryEntry> filterByPeriod(
+    List<DiaryEntry> entries, DatePreset preset, DateTime now) {
+  if (preset == DatePreset.all) return entries;
+  final today = DateTime(now.year, now.month, now.day);
+  final DateTime start;
+  switch (preset) {
+    case DatePreset.week:
+      start = today.subtract(Duration(days: today.weekday - 1));
+    case DatePreset.month:
+      start = DateTime(now.year, now.month, 1);
+    case DatePreset.year:
+      start = DateTime(now.year, 1, 1);
+    case DatePreset.all:
+      return entries;
+  }
+  return entries.where((e) => !e.createdAt.isBefore(start)).toList();
 }
 
 /// Counts how many replies each parent entry has, keyed by the parent's
@@ -131,6 +173,13 @@ class TimelineFilterNotifier extends Notifier<TimelineFilter> {
 
   void toggleFavorite() => state = state.copyWith(favorite: !state.favorite);
 
+  /// Sets the date preset, or returns to [DatePreset.all] when the currently
+  /// active preset is tapped again.
+  void togglePeriod(DatePreset preset) {
+    state = state.copyWith(
+        period: state.period == preset ? DatePreset.all : preset);
+  }
+
   void clear() => state = const TimelineFilter();
 }
 
@@ -164,7 +213,9 @@ final filteredTimelineProvider = Provider<List<DiaryEntry>>((ref) {
   final all = ref.watch(entriesProvider).asData?.value ?? const <DiaryEntry>[];
   final filter = ref.watch(timelineFilterProvider);
   final ascending = ref.watch(timelineSortProvider);
-  return sortByDate(filterEntries(all, filter), ascending: ascending);
+  final byAxes = filterEntries(all, filter);
+  final byDate = filterByPeriod(byAxes, filter.period, DateTime.now());
+  return sortByDate(byDate, ascending: ascending);
 });
 
 final availableTagsProvider = Provider<List<String>>((ref) {

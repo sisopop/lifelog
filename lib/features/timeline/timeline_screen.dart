@@ -143,6 +143,18 @@ class _FilterBar extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
       child: Row(
         children: [
+          for (final p in const [
+            DatePreset.week,
+            DatePreset.month,
+            DatePreset.year
+          ]) ...[
+            _Chip(
+              label: p.label,
+              selected: filter.period == p,
+              onTap: () => notifier.togglePeriod(p),
+            ),
+            const SizedBox(width: 8),
+          ],
           _Chip(
             label: '즐겨찾기',
             selected: filter.favorite,

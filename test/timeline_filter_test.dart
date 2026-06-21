@@ -132,5 +132,47 @@ void main() {
       expect(f.isActive, isTrue);
       expect(const TimelineFilter().isActive, isFalse);
     });
+
+    test('a non-all period counts as active', () {
+      expect(const TimelineFilter(period: DatePreset.month).isActive, isTrue);
+      expect(const TimelineFilter(period: DatePreset.all).isActive, isFalse);
+    });
+  });
+
+  group('filterByPeriod', () {
+    // now = Wed 2026-06-17. Week (Mon-start) begins 2026-06-15.
+    final now = DateTime(2026, 6, 17, 12);
+    final dated = [
+      _e(id: 'lastYear', created: DateTime(2025, 12, 31)),
+      _e(id: 'lastMonth', created: DateTime(2026, 5, 20)),
+      _e(id: 'thisMonthOld', created: DateTime(2026, 6, 2)),
+      _e(id: 'thisWeek', created: DateTime(2026, 6, 16)),
+      _e(id: 'today', created: DateTime(2026, 6, 17, 9)),
+    ];
+
+    test('all returns everything unchanged', () {
+      expect(filterByPeriod(dated, DatePreset.all, now).length, 5);
+    });
+
+    test('week keeps Monday-onward entries', () {
+      expect(filterByPeriod(dated, DatePreset.week, now).map((e) => e.entryId),
+          ['thisWeek', 'today']);
+    });
+
+    test('month keeps the current calendar month', () {
+      expect(filterByPeriod(dated, DatePreset.month, now).map((e) => e.entryId),
+          ['thisMonthOld', 'thisWeek', 'today']);
+    });
+
+    test('year keeps the current calendar year', () {
+      expect(filterByPeriod(dated, DatePreset.year, now).map((e) => e.entryId),
+          ['lastMonth', 'thisMonthOld', 'thisWeek', 'today']);
+    });
+
+    test('does not mutate the input list', () {
+      final before = dated.length;
+      filterByPeriod(dated, DatePreset.week, now);
+      expect(dated.length, before);
+    });
   });
 }
