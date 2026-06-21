@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../entries/entries_provider.dart';
+import '../timeline/timeline_filter.dart' show DatePreset, filterByPeriod;
 
 /// Pure, case-insensitive search over top-level entries.
 ///
@@ -126,6 +127,23 @@ class SearchSortNotifier extends Notifier<bool> {
 final searchSortProvider =
     NotifierProvider<SearchSortNotifier, bool>(SearchSortNotifier.new);
 
+/// Optional date-range preset applied on top of the text results
+/// (DatePreset.all = no date filter, the default).
+class SearchPeriodNotifier extends Notifier<DatePreset> {
+  @override
+  DatePreset build() => DatePreset.all;
+
+  /// Selects [preset], or clears back to "전체" when the same one is tapped.
+  void toggle(DatePreset preset) =>
+      state = state == preset ? DatePreset.all : preset;
+
+  void clear() => state = DatePreset.all;
+}
+
+final searchPeriodProvider =
+    NotifierProvider<SearchPeriodNotifier, DatePreset>(
+        SearchPeriodNotifier.new);
+
 /// Search results derived from [entriesProvider], the current query and the
 /// optional mood, journal and favorite filters, in the chosen sort order.
 final searchResultsProvider = Provider<List<DiaryEntry>>((ref) {
@@ -134,10 +152,15 @@ final searchResultsProvider = Provider<List<DiaryEntry>>((ref) {
   final mood = ref.watch(searchMoodProvider);
   final journalId = ref.watch(searchJournalProvider);
   final onlyFavorites = ref.watch(searchFavoriteProvider);
+  final period = ref.watch(searchPeriodProvider);
   final ascending = ref.watch(searchSortProvider);
-  final filtered = filterByFavorite(
-    filterByJournal(filterByMood(searchEntries(all, query), mood), journalId),
-    onlyFavorites,
+  final filtered = filterByPeriod(
+    filterByFavorite(
+      filterByJournal(filterByMood(searchEntries(all, query), mood), journalId),
+      onlyFavorites,
+    ),
+    period,
+    DateTime.now(),
   );
   return sortSearchResults(filtered, ascending: ascending);
 });

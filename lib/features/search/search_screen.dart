@@ -8,9 +8,11 @@ import '../../shared/models/journal.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../../shared/widgets/mood_chip.dart';
 import '../journals/journals_provider.dart';
-import '../timeline/timeline_filter.dart' show availableTagsProvider;
+import '../timeline/timeline_filter.dart' show availableTagsProvider, DatePreset;
 import 'entry_search.dart';
 import 'recent_searches.dart';
+
+part 'search_widgets.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -72,6 +74,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ref.read(searchJournalProvider.notifier).clear();
                 ref.read(searchFavoriteProvider.notifier).clear();
                 ref.read(searchSortProvider.notifier).clear();
+                ref.read(searchPeriodProvider.notifier).clear();
               },
             ),
         ],
@@ -112,6 +115,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final mood = ref.watch(searchMoodProvider);
     final journalId = ref.watch(searchJournalProvider);
     final onlyFavorites = ref.watch(searchFavoriteProvider);
+    final period = ref.watch(searchPeriodProvider);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
     final activeJournals = journals.where((j) => !j.isArchived).toList();
@@ -124,6 +128,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           favorite: onlyFavorites,
           onFavoriteTap: () =>
               ref.read(searchFavoriteProvider.notifier).toggle(),
+        ),
+        _PeriodFilterRow(
+          selected: period,
+          onTap: (p) => ref.read(searchPeriodProvider.notifier).toggle(p),
         ),
         if (activeJournals.length > 1)
           _JournalFilterRow(
@@ -301,175 +309,39 @@ class _JournalFilterRow extends StatelessWidget {
   }
 }
 
-class _RecentList extends StatelessWidget {
-  const _RecentList({
-    required this.terms,
-    required this.onTap,
-    required this.onRemove,
-    required this.onClear,
-  });
+/// Horizontal date-range chips (전체 / 오늘 / 이번 주 / 이번 달 / 올해) that
+/// scope the search results by creation date.
+class _PeriodFilterRow extends StatelessWidget {
+  const _PeriodFilterRow({required this.selected, required this.onTap});
 
-  final List<String> terms;
-  final void Function(String term) onTap;
-  final void Function(String term) onRemove;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 12, 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('최근 검색어',
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textSecondary)),
-              TextButton(
-                onPressed: onClear,
-                child: const Text('전체 삭제',
-                    style: TextStyle(
-                        fontSize: 13, color: AppColors.textHint)),
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 20),
-            itemCount: terms.length,
-            itemBuilder: (_, i) {
-              final term = terms[i];
-              return ListTile(
-                leading: const Icon(Icons.history,
-                    size: 20, color: AppColors.textHint),
-                title: Text(term,
-                    style: const TextStyle(
-                        fontSize: 15, color: AppColors.textPrimary)),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close,
-                      size: 18, color: AppColors.textHint),
-                  onPressed: () => onRemove(term),
-                ),
-                onTap: () => onTap(term),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Tappable "popular tags" chips shown on the empty-query start screen so the
-/// user can jump straight into a tag search. Reuses the timeline's usage-ranked
-/// tag list.
-class _SuggestedTags extends StatelessWidget {
-  const _SuggestedTags({
-    required this.tags,
-    required this.onTap,
-    this.title = '자주 쓰는 태그',
-  });
-
-  final List<String> tags;
-  final void Function(String term) onTap;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textSecondary)),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final t in tags)
-                ActionChip(
-                  label: Text('#$t'),
-                  onPressed: () => onTap(t),
-                  backgroundColor: AppColors.primarySoft,
-                  side: BorderSide.none,
-                  labelStyle: const TextStyle(
-                      fontSize: 13,
-                      color: AppColors.primaryDark,
-                      fontWeight: FontWeight.w600),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Empty-results view: the "no matches" hint plus a few tag chips the user can
-/// tap to pivot into a tag search.
-class _NoResults extends StatelessWidget {
-  const _NoResults({
-    required this.query,
-    required this.mood,
-    required this.tags,
-    required this.onTagTap,
-  });
-
-  final String query;
-  final Mood? mood;
-  final List<String> tags;
-  final void Function(String term) onTagTap;
+  final DatePreset selected;
+  final void Function(DatePreset preset) onTap;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.only(top: 48, bottom: 20),
-      child: Column(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Row(
         children: [
-          const Icon(Icons.search_off, size: 56, color: AppColors.textHint),
-          const SizedBox(height: 12),
-          Text(
-            mood != null
-                ? "'$query' · ${mood!.label} 결과가 없어요"
-                : "'$query'에 대한 결과가 없어요",
-            style: const TextStyle(color: AppColors.textSecondary),
-          ),
-          if (tags.isNotEmpty)
-            _SuggestedTags(
-              tags: tags,
-              onTap: onTagTap,
-              title: '이런 태그는 어때요?',
+          for (final p in DatePreset.values)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(p.label),
+                selected: selected == p,
+                onSelected: (_) => onTap(p),
+                selectedColor: AppColors.primarySoft,
+                labelStyle: TextStyle(
+                  fontSize: 13,
+                  color: selected == p
+                      ? AppColors.primaryDark
+                      : AppColors.textSecondary,
+                  fontWeight:
+                      selected == p ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Hint extends StatelessWidget {
-  const _Hint({required this.icon, required this.text});
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 56, color: AppColors.textHint),
-          const SizedBox(height: 12),
-          Text(text, style: const TextStyle(color: AppColors.textSecondary)),
         ],
       ),
     );
