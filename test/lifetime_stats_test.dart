@@ -57,6 +57,29 @@ void main() {
     expect(s.longestStreak, 3);
   });
 
+  group('daysSinceFirstEntry', () {
+    test('null when there is no first date', () {
+      expect(daysSinceFirstEntry(null, DateTime(2026, 6, 21)), isNull);
+    });
+
+    test('the first day counts as day 1', () {
+      expect(
+          daysSinceFirstEntry(DateTime(2026, 6, 21), DateTime(2026, 6, 21, 23)),
+          1);
+    });
+
+    test('counts inclusive calendar days, ignoring time', () {
+      // 6/1 → 6/21 spans 20 days, inclusive of the first → 21
+      expect(daysSinceFirstEntry(DateTime(2026, 6, 1, 23), DateTime(2026, 6, 21)),
+          21);
+    });
+
+    test('null when the first date is in the future', () {
+      expect(daysSinceFirstEntry(DateTime(2026, 6, 25), DateTime(2026, 6, 21)),
+          isNull);
+    });
+  });
+
   group('avgCharsPerEntry', () {
     test('zero when there are no records', () {
       expect(computeLifetimeStats(const []).avgCharsPerEntry, 0);

@@ -31,6 +31,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final trend = recentMonthlyCounts(entries, DateTime.now());
     final longest = longestEntry(entries);
     final avgGap = averageEntryGapDays(entries);
+    final sinceFirst = daysSinceFirstEntry(s.firstDate, DateTime.now());
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Scaffold(
@@ -140,6 +141,12 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     text: avgGap == 0
                         ? '🗓️ 거의 매일 기록해요'
                         : '🗓️ 평균 $avgGap일마다 기록해요',
+                  ),
+                ],
+                if (sinceFirst != null) ...[
+                  const SizedBox(height: 12),
+                  _InsightLine(
+                    text: '🌱 기록을 시작한 지 $sinceFirst일째예요',
                   ),
                 ],
                 if (longest != null) ...[

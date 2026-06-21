@@ -29,6 +29,18 @@ class LifetimeStats {
       totalEntries == 0 ? 0 : (totalChars / totalEntries).round();
 }
 
+/// Pure: how many days the journaling habit spans, counting the first day as
+/// day 1 (so the day of [firstDate] returns 1). Returns null when [firstDate]
+/// is null or lies in the future relative to [now]. Time is ignored.
+int? daysSinceFirstEntry(DateTime? firstDate, DateTime now) {
+  if (firstDate == null) return null;
+  final first = DateTime(firstDate.year, firstDate.month, firstDate.day);
+  final today = DateTime(now.year, now.month, now.day);
+  final diff = today.difference(first).inDays;
+  if (diff < 0) return null;
+  return diff + 1;
+}
+
 /// Rough time-of-day buckets used for the "주로 기록하는 시간대" insight.
 enum DayPart {
   dawn('새벽', '🌙'), // 00:00–05:59
