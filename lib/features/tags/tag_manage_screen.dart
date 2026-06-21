@@ -40,10 +40,20 @@ class TagManageScreen extends ConsumerWidget {
             )
           : ListView.separated(
               padding: const EdgeInsets.all(20),
-              itemCount: tags.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemCount: tags.length + 1,
+              separatorBuilder: (_, i) =>
+                  i == 0 ? const SizedBox.shrink() : const Divider(height: 1),
               itemBuilder: (_, i) {
-                final t = tags[i];
+                if (i == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text('태그 ${tags.length}개',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary)),
+                  );
+                }
+                final t = tags[i - 1];
                 return ListTile(
                   leading: const Icon(Icons.tag, color: AppColors.primaryDark),
                   title: Text('#${t.key}',
