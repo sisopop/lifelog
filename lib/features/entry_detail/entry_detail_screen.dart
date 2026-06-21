@@ -6,10 +6,12 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/enums.dart';
 import 'entry_clipboard.dart';
 import 'entry_edited.dart';
 import 'reading_time.dart';
 import '../../shared/models/journal_member.dart';
+import '../../shared/widgets/mood_chip.dart';
 import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
 import '../journals/members_provider.dart';
@@ -99,6 +101,10 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   Text(readingMetaLabel(entry.content),
                       style: const TextStyle(
                           fontSize: 12, color: AppColors.textHint)),
+                ],
+                if (entry.mood == null) ...[
+                  const SizedBox(height: 20),
+                  _moodPicker(entry),
                 ],
                 const SizedBox(height: 24),
                 _aiSummary(entry),
@@ -239,6 +245,52 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
         PopupMenuItem(value: 'copy', child: Text('복사')),
         PopupMenuItem(value: 'delete', child: Text('삭제')),
       ],
+    );
+  }
+
+  /// Lets the user attach a mood to an entry that was saved without one.
+  Widget _moodPicker(DiaryEntry entry) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('이 날의 기분은 어땠나요?',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final m in Mood.values)
+                MoodChip(
+                  m,
+                  onTap: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    await ref
+                        .read(entriesProvider.notifier)
+                        .setMood(entry, m);
+                    messenger.showSnackBar(
+                      SnackBar(
+                        content: Text('${m.emoji} ${m.label} 기분을 남겼어요'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

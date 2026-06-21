@@ -95,6 +95,13 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
     state = AsyncData(await _repo.getAll());
   }
 
+  /// Attach a mood to an entry that was saved without one. Doesn't touch
+  /// updatedAt (so it won't be flagged as "수정됨") nor the AI summary.
+  Future<void> setMood(DiaryEntry entry, Mood mood) async {
+    await _repo.save(entry.copyWith(mood: mood));
+    state = AsyncData(await _repo.getAll());
+  }
+
   /// Renames a tag across every entry that uses it. No-op when nothing changes.
   Future<void> renameTag(String from, String to) async {
     final current = state.asData?.value ?? const [];
