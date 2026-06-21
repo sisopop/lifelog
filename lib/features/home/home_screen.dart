@@ -51,6 +51,19 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                if (journals.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: CircleAvatar(
+                      backgroundColor: AppColors.primarySoft,
+                      child: IconButton(
+                        icon: const Icon(Icons.library_add_outlined,
+                            color: AppColors.primary),
+                        tooltip: '새 일기장',
+                        onPressed: () => context.push('/journal/new'),
+                      ),
+                    ),
+                  ),
                 CircleAvatar(
                   backgroundColor: AppColors.primarySoft,
                   child: IconButton(
@@ -61,8 +74,10 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 20),
-            _NewJournalCard(onTap: () => context.push('/journal/new')),
-            const SizedBox(height: 16),
+            if (journals.isEmpty) ...[
+              _NewJournalCard(onTap: () => context.push('/journal/new')),
+              const SizedBox(height: 16),
+            ],
             const TodayPromptSection(),
             const WeeklyStripSection(),
             const SizedBox(height: 16),
