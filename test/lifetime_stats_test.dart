@@ -90,4 +90,39 @@ void main() {
       expect(tags.length, 2);
     });
   });
+
+  group('recentMonthlyCounts', () {
+    test('returns the trailing N months oldest-first ending in now', () {
+      final t = recentMonthlyCounts(const [], DateTime(2026, 6, 15), months: 3);
+      expect(t.map((m) => '${m.year}-${m.month}').toList(),
+          ['2026-4', '2026-5', '2026-6']);
+      expect(t.every((m) => m.count == 0), true);
+    });
+
+    test('crosses the year boundary correctly', () {
+      final t = recentMonthlyCounts(const [], DateTime(2026, 2, 1), months: 4);
+      expect(t.map((m) => '${m.year}-${m.month}').toList(),
+          ['2025-11', '2025-12', '2026-1', '2026-2']);
+    });
+
+    test('counts top-level entries per month, excludes replies & old months',
+        () {
+      final t = recentMonthlyCounts([
+        _entry(id: 'a', at: DateTime(2026, 6, 3)),
+        _entry(id: 'b', at: DateTime(2026, 6, 20)),
+        _entry(id: 'r', at: DateTime(2026, 6, 21), replyTo: 'a'),
+        _entry(id: 'c', at: DateTime(2026, 5, 9)),
+        _entry(id: 'old', at: DateTime(2025, 1, 1)), // outside window
+      ], DateTime(2026, 6, 30), months: 6);
+      final june = t.firstWhere((m) => m.month == 6);
+      final may = t.firstWhere((m) => m.month == 5);
+      expect(june.count, 2);
+      expect(may.count, 1);
+    });
+
+    test('months <= 0 gives empty', () {
+      expect(recentMonthlyCounts(const [], DateTime(2026, 6, 1), months: 0),
+          isEmpty);
+    });
+  });
 }

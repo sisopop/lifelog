@@ -99,6 +99,37 @@ List<MapEntry<String, int>> topTags(List<DiaryEntry> entries, {int limit = 12}) 
   return sorted;
 }
 
+/// One month's record count, used by the recent-months trend chart.
+class MonthCount {
+  const MonthCount(this.year, this.month, this.count);
+  final int year;
+  final int month;
+  final int count;
+}
+
+/// Pure: top-level record counts for the last [months] calendar months ending
+/// with [now]'s month, oldest first. Months with no records show a zero count
+/// so the trend chart keeps an even spacing.
+List<MonthCount> recentMonthlyCounts(
+  List<DiaryEntry> entries,
+  DateTime now, {
+  int months = 6,
+}) {
+  if (months <= 0) return const [];
+  final counts = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    counts['${e.createdAt.year}-${e.createdAt.month}'] =
+        (counts['${e.createdAt.year}-${e.createdAt.month}'] ?? 0) + 1;
+  }
+  final result = <MonthCount>[];
+  for (var i = months - 1; i >= 0; i--) {
+    final m = DateTime(now.year, now.month - i, 1);
+    result.add(MonthCount(m.year, m.month, counts['${m.year}-${m.month}'] ?? 0));
+  }
+  return result;
+}
+
 /// Pure: aggregate every [entries] into lifetime totals. 답장(reply) records
 /// are excluded so the figures match the timeline.
 LifetimeStats computeLifetimeStats(List<DiaryEntry> entries) {

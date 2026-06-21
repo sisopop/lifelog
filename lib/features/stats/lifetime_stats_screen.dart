@@ -24,6 +24,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final moods = moodBreakdown(entries);
     final busiest = busiestDayPart(entries);
     final tags = topTags(entries);
+    final trend = recentMonthlyCounts(entries, DateTime.now());
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Scaffold(
@@ -98,6 +99,10 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     text: '${busiest.key.emoji} 주로 '
                         '${busiest.key.label}에 기록해요 (${busiest.value}개)',
                   ),
+                ],
+                if (trend.any((m) => m.count > 0)) ...[
+                  const SizedBox(height: 24),
+                  _MonthlyTrend(months: trend),
                 ],
                 if (tags.isNotEmpty) ...[
                   const SizedBox(height: 24),
@@ -190,6 +195,70 @@ class _MoodDistribution extends StatelessWidget {
                   ],
                 ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// A small vertical-bar chart of the last few months' record counts.
+class _MonthlyTrend extends StatelessWidget {
+  const _MonthlyTrend({required this.months});
+  final List<MonthCount> months;
+
+  @override
+  Widget build(BuildContext context) {
+    final max = months.fold<int>(0, (a, m) => m.count > a ? m.count : a);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('최근 6개월 추이',
+              style: TextStyle(fontSize: 13, color: AppColors.textHint)),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 128,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (final m in months)
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(m.count > 0 ? '${m.count}' : '',
+                            style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryDark)),
+                        const SizedBox(height: 4),
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          height: max == 0 ? 2 : 6 + (72 * m.count / max),
+                          decoration: BoxDecoration(
+                            color: m.count > 0
+                                ? AppColors.primary
+                                : AppColors.divider,
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(6)),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text('${m.month}월',
+                            style: const TextStyle(
+                                fontSize: 11, color: AppColors.textHint)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ],
       ),
