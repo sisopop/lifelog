@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifelog/features/home/journal_activity.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
+import 'package:lifelog/shared/models/enums.dart';
+import 'package:lifelog/shared/models/journal.dart';
 
 DiaryEntry _e({
   required String id,
@@ -16,6 +18,14 @@ DiaryEntry _e({
       content: 'x',
       createdAt: at,
       updatedAt: at,
+    );
+
+Journal _j(String id) => Journal(
+      journalId: id,
+      ownerId: 'me',
+      type: JournalType.personal,
+      title: id,
+      createdAt: DateTime(2026, 1, 1),
     );
 
 void main() {
@@ -66,6 +76,45 @@ void main() {
       expect(relativeDayLabel(DateTime(2026, 6, 7), now), '2주 전'); // 14d
       expect(relativeDayLabel(DateTime(2026, 4, 21), now), '2개월 전'); // ~61d
       expect(relativeDayLabel(DateTime(2024, 6, 21), now), '2년 전');
+    });
+  });
+
+  group('sortJournalsByActivity', () {
+    final journals = [_j('a'), _j('b'), _j('c')];
+
+    test('orders by most recent entry first', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 1), journalId: 'a'),
+        _e(id: '2', at: DateTime(2026, 6, 20), journalId: 'b'),
+        _e(id: '3', at: DateTime(2026, 6, 10), journalId: 'c'),
+      ];
+      expect(sortJournalsByActivity(journals, entries).map((j) => j.journalId),
+          ['b', 'c', 'a']);
+    });
+
+    test('journals without entries fall to the end in original order', () {
+      final entries = [_e(id: '1', at: DateTime(2026, 6, 5), journalId: 'b')];
+      // b has activity; a and c have none → keep a-before-c after b.
+      expect(sortJournalsByActivity(journals, entries).map((j) => j.journalId),
+          ['b', 'a', 'c']);
+    });
+
+    test('ignores replies when ranking activity', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 1), journalId: 'a'),
+        _e(id: '2', at: DateTime(2026, 6, 2), journalId: 'b'),
+        // newer reply on a must not lift it above b
+        _e(id: '3', at: DateTime(2026, 6, 30), journalId: 'a', replyTo: '1'),
+      ];
+      final r = sortJournalsByActivity(journals, entries).map((j) => j.journalId);
+      expect(r, ['b', 'a', 'c']);
+    });
+
+    test('does not mutate the input list', () {
+      final entries = [_e(id: '1', at: DateTime(2026, 6, 5), journalId: 'c')];
+      final before = journals.map((j) => j.journalId).toList();
+      sortJournalsByActivity(journals, entries);
+      expect(journals.map((j) => j.journalId).toList(), before);
     });
   });
 }

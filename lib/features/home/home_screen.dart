@@ -25,10 +25,14 @@ class HomeScreen extends ConsumerWidget {
     final now = DateTime.now();
     final todayLabel = DateFormat.yMMMMEEEEd(locale).format(now);
     final greeting = greetingForHour(now.hour);
-    final journals = ref.watch(journalsProvider).asData?.value ?? const [];
+    final rawJournals = ref.watch(journalsProvider).asData?.value ?? const [];
     final counts =
         ref.watch(journalEntryCountsProvider).asData?.value ?? const {};
     final allEntries = ref.watch(entriesProvider).asData?.value ?? const [];
+    final byActivity = ref.watch(homeJournalSortProvider);
+    final journals = byActivity
+        ? sortJournalsByActivity(rawJournals, allEntries)
+        : rawJournals;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -54,6 +58,22 @@ class HomeScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+                if (journals.length > 1)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: CircleAvatar(
+                      backgroundColor: AppColors.primarySoft,
+                      child: IconButton(
+                        icon: Icon(
+                            byActivity ? Icons.history : Icons.sort,
+                            color: AppColors.primary),
+                        tooltip: byActivity ? '최근 활동순' : '기본 순서',
+                        onPressed: () => ref
+                            .read(homeJournalSortProvider.notifier)
+                            .toggle(),
+                      ),
+                    ),
+                  ),
                 if (journals.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
