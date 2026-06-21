@@ -59,6 +59,25 @@ void main() {
     });
   });
 
+  group('monthEntryCount', () {
+    final entries = [
+      _e(id: '1', at: DateTime(2026, 6, 1)),
+      _e(id: '2', at: DateTime(2026, 6, 20)),
+      _e(id: '3', at: DateTime(2026, 6, 20), replyTo: '2'), // reply excluded
+      _e(id: '4', at: DateTime(2026, 5, 30)), // other month
+    ];
+
+    test('counts top-level entries of the target month only', () {
+      expect(monthEntryCount(entries, 2026, 6), 2);
+      expect(monthEntryCount(entries, 2026, 5), 1);
+    });
+
+    test('zero for a month with no records', () {
+      expect(monthEntryCount(entries, 2026, 1), 0);
+      expect(monthEntryCount(const [], 2026, 6), 0);
+    });
+  });
+
   group('recordedDaysOfMonth', () {
     final entries = [
       _e(id: '1', at: DateTime(2026, 6, 1)),

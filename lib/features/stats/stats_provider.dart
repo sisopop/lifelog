@@ -63,6 +63,24 @@ final weeklyProgressProvider = Provider<List<DayDot>>((ref) {
   return weekDots(entries, DateTime.now());
 });
 
+/// Pure: number of top-level entries created in [year]/[month].
+/// 답장(reply) records are excluded so it matches the timeline.
+int monthEntryCount(List<DiaryEntry> entries, int year, int month) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.createdAt.year == year && e.createdAt.month == month) n++;
+  }
+  return n;
+}
+
+/// How many top-level entries the user has recorded in the current month.
+final thisMonthCountProvider = Provider<int>((ref) {
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final now = DateTime.now();
+  return monthEntryCount(entries, now.year, now.month);
+});
+
 class MonthlyStats {
   const MonthlyStats({
     required this.year,

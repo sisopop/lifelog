@@ -16,6 +16,7 @@ class WeeklyStripSection extends ConsumerWidget {
     final dots = ref.watch(weeklyProgressProvider);
     final recorded = dots.where((d) => d.done).length;
     final streak = ref.watch(homeStreakProvider);
+    final monthCount = ref.watch(thisMonthCountProvider);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -70,6 +71,12 @@ class WeeklyStripSection extends ConsumerWidget {
                 ),
             ],
           ),
+          if (monthCount > 0) ...[
+            const SizedBox(height: 12),
+            Text('이번 달 $monthCount개 기록했어요',
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+          ],
         ],
       ),
     );
