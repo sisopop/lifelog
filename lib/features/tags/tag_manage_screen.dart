@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../entries/entries_provider.dart';
@@ -59,6 +60,9 @@ class TagManageScreen extends ConsumerWidget {
                   title: Text('#${t.key}',
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text('${t.value}개 기록'),
+                  onTap: () => context.push(
+                    Uri(path: '/tag', queryParameters: {'t': t.key}).toString(),
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
