@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -9,6 +10,7 @@ import '../../shared/models/enums.dart';
 import '../../shared/widgets/month_calendar.dart' show moodColor;
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
+import 'lifetime_share.dart';
 import 'lifetime_stats.dart';
 
 /// "내 기록 요약" — a whole-history snapshot reached from settings.
@@ -32,8 +34,24 @@ class LifetimeStatsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-          title: const Text('내 기록 요약',
-              style: TextStyle(fontWeight: FontWeight.w800))),
+        title: const Text('내 기록 요약',
+            style: TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          if (!s.isEmpty)
+            IconButton(
+              icon: const Icon(Icons.ios_share),
+              tooltip: '요약 공유',
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                await Clipboard.setData(
+                    ClipboardData(text: lifetimeStatsShareText(s)));
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('기록 요약을 복사했어요')),
+                );
+              },
+            ),
+        ],
+      ),
       body: s.isEmpty
           ? const Center(
               child: Text('아직 기록이 없어요',
