@@ -121,6 +121,26 @@ int? averageEntryGapDays(List<DiaryEntry> entries) {
   return (span / (sorted.length - 1)).round();
 }
 
+/// Pure: the longest gap, in days, between two consecutive recorded calendar
+/// days across top-level entries. Returns null when fewer than two distinct
+/// days were recorded. A gap of 1 means recorded on back-to-back days, so the
+/// value is always >= 1 when non-null. Replies are ignored.
+int? longestGapDays(List<DiaryEntry> entries) {
+  final days = <DateTime>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    days.add(DateTime(e.createdAt.year, e.createdAt.month, e.createdAt.day));
+  }
+  if (days.length < 2) return null;
+  final sorted = days.toList()..sort();
+  var longest = 0;
+  for (var i = 1; i < sorted.length; i++) {
+    final gap = sorted[i].difference(sorted[i - 1]).inDays;
+    if (gap > longest) longest = gap;
+  }
+  return longest;
+}
+
 /// Pure: the top-level entry with the longest (grapheme-aware, trimmed) body.
 /// Returns null when no top-level entry carries any text. Ties resolve to the
 /// most recent entry.

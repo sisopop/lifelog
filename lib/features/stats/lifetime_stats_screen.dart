@@ -34,6 +34,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final trend = recentMonthlyCounts(entries, DateTime.now());
     final longest = longestEntry(entries);
     final avgGap = averageEntryGapDays(entries);
+    final longestGap = longestGapDays(entries);
     final sinceFirst = daysSinceFirstEntry(s.firstDate, DateTime.now());
     final topPlace = placeCountsSorted(entries).firstOrNull;
     final activeMonth = mostActiveMonth(entries);
@@ -146,6 +147,12 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     text: avgGap == 0
                         ? '🗓️ 거의 매일 기록해요'
                         : '🗓️ 평균 $avgGap일마다 기록해요',
+                  ),
+                ],
+                if (longestGap != null && longestGap >= 2) ...[
+                  const SizedBox(height: 12),
+                  _InsightLine(
+                    text: '💤 가장 길게 쉰 적은 $longestGap일이에요',
                   ),
                 ],
                 if (sinceFirst != null) ...[

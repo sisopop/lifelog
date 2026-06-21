@@ -275,6 +275,38 @@ void main() {
     });
   });
 
+  group('longestGapDays', () {
+    test('null with fewer than two distinct days', () {
+      expect(longestGapDays(const []), isNull);
+      expect(
+          longestGapDays([
+            _entry(id: 'a', at: DateTime(2026, 6, 1, 9)),
+            _entry(id: 'b', at: DateTime(2026, 6, 1, 20)),
+          ]),
+          isNull);
+    });
+
+    test('returns the largest gap between consecutive recorded days', () {
+      // days 6/1, 6/3, 6/10 → gaps 2 and 7 → 7
+      final r = longestGapDays([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 3)),
+        _entry(id: 'c', at: DateTime(2026, 6, 10)),
+      ]);
+      expect(r, 7);
+    });
+
+    test('ignores replies', () {
+      // top-level on 6/1 and 6/5 → gap 4; reply on 6/30 ignored
+      final r = longestGapDays([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 5)),
+        _entry(id: 'r', at: DateTime(2026, 6, 30), replyTo: 'a'),
+      ]);
+      expect(r, 4);
+    });
+  });
+
   group('mostActiveMonth', () {
     test('returns the month with the most top-level records', () {
       final m = mostActiveMonth([
