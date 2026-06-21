@@ -121,6 +121,44 @@ void main() {
     });
   });
 
+  group('monthlyAverageGapDays', () {
+    test('null with fewer than two distinct days in the month', () {
+      expect(monthlyAverageGapDays(const [], 2026, 6), isNull);
+      expect(
+          monthlyAverageGapDays(
+              [_e(id: 'a', at: DateTime(2026, 6, 3))], 2026, 6),
+          isNull);
+      // same calendar day twice still counts as one day
+      expect(
+          monthlyAverageGapDays([
+            _e(id: 'a', at: DateTime(2026, 6, 3, 9)),
+            _e(id: 'b', at: DateTime(2026, 6, 3, 20)),
+          ], 2026, 6),
+          isNull);
+    });
+
+    test('averages gaps between distinct recorded days in the month', () {
+      // days 6/2, 6/6, 6/14 → span 12 over 2 gaps → 6
+      final r = monthlyAverageGapDays([
+        _e(id: 'a', at: DateTime(2026, 6, 2)),
+        _e(id: 'b', at: DateTime(2026, 6, 6)),
+        _e(id: 'c', at: DateTime(2026, 6, 14)),
+      ], 2026, 6);
+      expect(r, 6);
+    });
+
+    test('ignores replies and other months', () {
+      // top-level on 6/1 and 6/5 → span 4 / 1 gap = 4
+      final r = monthlyAverageGapDays([
+        _e(id: 'a', at: DateTime(2026, 6, 1)),
+        _e(id: 'b', at: DateTime(2026, 6, 5)),
+        _e(id: 'r', at: DateTime(2026, 6, 20), replyTo: 'a'),
+        _e(id: 'm', at: DateTime(2026, 5, 10)),
+      ], 2026, 6);
+      expect(r, 4);
+    });
+  });
+
   group('recordedDaysOfMonth', () {
     final entries = [
       _e(id: '1', at: DateTime(2026, 6, 1)),

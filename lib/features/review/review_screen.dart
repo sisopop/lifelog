@@ -86,6 +86,18 @@ class ReviewScreen extends ConsumerWidget {
           if (!stats.isEmpty) ...[
             const SizedBox(height: 12),
             _DeltaLine(ref.watch(monthDeltaProvider)),
+            Builder(builder: (context) {
+              final gap = ref.watch(monthlyGapProvider);
+              if (gap == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  gap == 0 ? '🗓️ 이번 달은 거의 매일 기록했어요' : '🗓️ 평균 $gap일마다 기록했어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
           ],
           const SizedBox(height: 20),
           const Text('기록 달력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),

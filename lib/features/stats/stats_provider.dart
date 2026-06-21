@@ -253,6 +253,31 @@ final monthDeltaProvider = Provider<int>((ref) {
   return monthOverMonthDelta(entries, m.year, m.month);
 });
 
+/// Pure: average gap in days between distinct recorded days *within* the given
+/// month (top-level only). Returns null when the month has fewer than two
+/// distinct recorded days, since a gap needs two endpoints. 0 means every
+/// recorded day was consecutive.
+int? monthlyAverageGapDays(List<DiaryEntry> entries, int year, int month) {
+  final days = <int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.createdAt.year != year || e.createdAt.month != month) continue;
+    days.add(e.createdAt.day);
+  }
+  if (days.length < 2) return null;
+  final sorted = days.toList()..sort();
+  final span = sorted.last - sorted.first;
+  return (span / (sorted.length - 1)).round();
+}
+
+/// Average recording gap (days) for the month currently shown on the 회고
+/// screen, scoped to the selected journal.
+final monthlyGapProvider = Provider<int?>((ref) {
+  final entries = ref.watch(reviewEntriesProvider);
+  final m = ref.watch(reviewMonthProvider);
+  return monthlyAverageGapDays(entries, m.year, m.month);
+});
+
 /// Days (1..31) of the given month that have at least one top-level record.
 Set<int> recordedDaysOfMonth(
     List<DiaryEntry> entries, int year, int month) {
