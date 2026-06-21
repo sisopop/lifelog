@@ -28,6 +28,7 @@ class CalendarScreen extends ConsumerWidget {
     final recordedDays = recordedDaysOfMonth(all, selected.year, selected.month);
     final dayMoods = dominantMoodByDay(all, selected.year, selected.month);
     final dayEntries = entriesOfDay(all, selected);
+    final monthCount = monthEntryCount(all, selected.year, selected.month);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,8 +66,18 @@ class CalendarScreen extends ConsumerWidget {
             selectedDay: selected.day,
             onDayTap: ctrl.select,
           ),
+          if (monthCount > 0) ...[
+            const SizedBox(height: 12),
+            Text('🗓️ 이번 달 ${recordedDays.length}일 · 기록 $monthCount개',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary)),
+          ],
           const SizedBox(height: 20),
-          Text('${selected.month}월 ${selected.day}일 기록',
+          Text(
+              dayEntries.isEmpty
+                  ? '${selected.month}월 ${selected.day}일 기록'
+                  : '${selected.month}월 ${selected.day}일 기록 · ${dayEntries.length}개',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           if (dayEntries.isEmpty)
