@@ -23,6 +23,7 @@ class TagEntriesScreen extends ConsumerWidget {
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
     final replyCounts = replyCountsByParent(all);
+    final related = coOccurringTags(all, tag);
 
     return Scaffold(
       appBar: AppBar(
@@ -35,10 +36,13 @@ class TagEntriesScreen extends ConsumerWidget {
             )
           : ListView.separated(
               padding: const EdgeInsets.all(20),
-              itemCount: entries.length,
+              itemCount: entries.length + (related.isEmpty ? 0 : 1),
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
-                final e = entries[i];
+                if (related.isNotEmpty && i == 0) {
+                  return _CoOccurringRow(tags: related);
+                }
+                final e = entries[i - (related.isEmpty ? 0 : 1)];
                 final j = journalMap[e.journalId];
                 return EntryCard(
                   e,
@@ -49,6 +53,46 @@ class TagEntriesScreen extends ConsumerWidget {
                 );
               },
             ),
+    );
+  }
+}
+
+/// "함께 쓴 태그" chips shown above a tag's records; each opens that tag.
+class _CoOccurringRow extends StatelessWidget {
+  const _CoOccurringRow({required this.tags});
+  final List<MapEntry<String, int>> tags;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('함께 쓴 태그',
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary)),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final t in tags)
+              ActionChip(
+                label: Text('#${t.key} ${t.value}'),
+                backgroundColor: AppColors.primarySoft,
+                labelStyle: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryDark),
+                side: BorderSide.none,
+                onPressed: () => context.push(
+                    Uri(path: '/tag', queryParameters: {'t': t.key})
+                        .toString()),
+              ),
+          ],
+        ),
+      ],
     );
   }
 }

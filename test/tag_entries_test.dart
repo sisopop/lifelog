@@ -40,4 +40,41 @@ void main() {
   test('empty when no entry carries the tag', () {
     expect(entriesWithTag(entries, '운동'), isEmpty);
   });
+
+  group('coOccurringTags', () {
+    test('counts tags sharing a record with the target, by frequency', () {
+      final r = coOccurringTags([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행', '가족']),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행', '가족']),
+        _e(id: 'c', at: DateTime(2026, 6, 3), tags: ['여행', '맛집']),
+        _e(id: 'd', at: DateTime(2026, 6, 4), tags: ['일상']), // no overlap
+      ], '여행');
+      expect(r.map((e) => e.key).toList(), ['가족', '맛집']);
+      expect(r.first.value, 2);
+    });
+
+    test('excludes the target tag itself and replies', () {
+      final r = coOccurringTags([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행', '가족']),
+        _e(id: 'r', at: DateTime(2026, 6, 2), tags: ['여행', '가족'], replyTo: 'a'),
+      ], '여행');
+      expect(r.length, 1);
+      expect(r.single.key, '가족');
+      expect(r.single.value, 1); // reply not counted
+    });
+
+    test('ties resolve alphabetically and respect the limit', () {
+      final r = coOccurringTags([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행', '다', '나', '가']),
+      ], '여행', limit: 2);
+      expect(r.map((e) => e.key).toList(), ['가', '나']);
+    });
+
+    test('empty when nothing co-occurs', () {
+      final r = coOccurringTags([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행']),
+      ], '여행');
+      expect(r, isEmpty);
+    });
+  });
 }
