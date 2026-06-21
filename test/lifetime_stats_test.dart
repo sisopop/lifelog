@@ -57,6 +57,22 @@ void main() {
     expect(s.longestStreak, 3);
   });
 
+  group('avgCharsPerEntry', () {
+    test('zero when there are no records', () {
+      expect(computeLifetimeStats(const []).avgCharsPerEntry, 0);
+    });
+
+    test('rounds the mean body length, excluding replies', () {
+      final s = computeLifetimeStats([
+        _entry(id: 'a', content: '12345', at: DateTime(2026, 6, 1)), // 5
+        _entry(id: 'b', content: '12', at: DateTime(2026, 6, 2)), // 2
+        _entry(id: 'r', content: 'xxxx', at: DateTime(2026, 6, 3), replyTo: 'a'),
+      ]);
+      // (5 + 2) / 2 = 3.5 → rounds to 4
+      expect(s.avgCharsPerEntry, 4);
+    });
+  });
+
   group('topTags', () {
     test('empty when no tags', () {
       expect(topTags(const []), isEmpty);

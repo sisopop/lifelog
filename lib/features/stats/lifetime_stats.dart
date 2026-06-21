@@ -20,6 +20,11 @@ class LifetimeStats {
   final DateTime? firstDate; // earliest top-level record, null when none
 
   bool get isEmpty => totalEntries == 0;
+
+  /// Average body length per record (graphemes), rounded to the nearest whole
+  /// number. 0 when there are no records.
+  int get avgCharsPerEntry =>
+      totalEntries == 0 ? 0 : (totalChars / totalEntries).round();
 }
 
 /// Rough time-of-day buckets used for the "주로 기록하는 시간대" insight.

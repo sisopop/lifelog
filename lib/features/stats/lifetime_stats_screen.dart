@@ -100,6 +100,12 @@ class LifetimeStatsScreen extends ConsumerWidget {
                         '${busiest.key.label}에 기록해요 (${busiest.value}개)',
                   ),
                 ],
+                if (s.avgCharsPerEntry > 0) ...[
+                  const SizedBox(height: 12),
+                  _InsightLine(
+                    text: '✍️ 한 번에 평균 ${s.avgCharsPerEntry}자씩 기록해요',
+                  ),
+                ],
                 if (trend.any((m) => m.count > 0)) ...[
                   const SizedBox(height: 24),
                   _MonthlyTrend(months: trend),
