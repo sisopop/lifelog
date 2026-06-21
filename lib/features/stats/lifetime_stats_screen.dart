@@ -10,6 +10,7 @@ import '../../shared/models/enums.dart';
 import '../../shared/widgets/month_calendar.dart' show moodColor;
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
+import '../places/place_directory.dart';
 import 'lifetime_share.dart';
 import 'lifetime_stats.dart';
 
@@ -32,6 +33,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final longest = longestEntry(entries);
     final avgGap = averageEntryGapDays(entries);
     final sinceFirst = daysSinceFirstEntry(s.firstDate, DateTime.now());
+    final topPlace = placeCountsSorted(entries).firstOrNull;
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Scaffold(
@@ -147,6 +149,13 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   _InsightLine(
                     text: '🌱 기록을 시작한 지 $sinceFirst일째예요',
+                  ),
+                ],
+                if (topPlace != null) ...[
+                  const SizedBox(height: 12),
+                  _InsightLine(
+                    text: '📍 가장 많이 다녀온 곳은 ${topPlace.key}예요 '
+                        '(${topPlace.value}개)',
                   ),
                 ],
                 if (longest != null) ...[
