@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
+import '../timeline/timeline_filter.dart';
 import 'place_entries.dart';
 
 /// Lists every record sharing a location (reached by tapping a place pin on
@@ -21,6 +22,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
     final entries = entriesAtLocation(all, location);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
+    final replyCounts = replyCountsByParent(all);
 
     return Scaffold(
       appBar: AppBar(
@@ -52,6 +54,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
                   e,
                   journalName: j?.title,
                   journalIcon: j?.displayIcon,
+                  replyCount: replyCounts[e.entryId] ?? 0,
                   onTap: () => context.push('/entry/${e.entryId}'),
                 );
               },

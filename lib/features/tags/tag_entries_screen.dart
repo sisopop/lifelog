@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
+import '../timeline/timeline_filter.dart';
 import 'tag_entries.dart';
 
 /// Lists every record carrying a given tag (reached by tapping a tag chip).
@@ -21,6 +22,7 @@ class TagEntriesScreen extends ConsumerWidget {
     final entries = entriesWithTag(all, tag);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
+    final replyCounts = replyCountsByParent(all);
 
     return Scaffold(
       appBar: AppBar(
@@ -42,6 +44,7 @@ class TagEntriesScreen extends ConsumerWidget {
                   e,
                   journalName: j?.title,
                   journalIcon: j?.displayIcon,
+                  replyCount: replyCounts[e.entryId] ?? 0,
                   onTap: () => context.push('/entry/${e.entryId}'),
                 );
               },
