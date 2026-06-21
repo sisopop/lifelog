@@ -9,6 +9,7 @@ DiaryEntry _e({
   List<String> tags = const [],
   String? replyTo,
   DateTime? created,
+  bool favorite = false,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -18,6 +19,7 @@ DiaryEntry _e({
       mood: mood,
       tags: tags,
       content: 'x',
+      isFavorite: favorite,
       createdAt: created ?? DateTime(2026, 1, 1),
       updatedAt: created ?? DateTime(2026, 1, 1),
     );
@@ -55,6 +57,32 @@ void main() {
     test('always excludes replies', () {
       final r = filterEntries(entries, const TimelineFilter(tag: '여행'));
       expect(r.any((e) => e.entryId == '4'), isFalse);
+    });
+
+    test('filters by favorite', () {
+      final favs = [
+        _e(id: 'a', favorite: true),
+        _e(id: 'b'),
+        _e(id: 'c', favorite: true),
+      ];
+      final r = filterEntries(favs, const TimelineFilter(favorite: true));
+      expect(r.map((e) => e.entryId), ['a', 'c']);
+    });
+
+    test('favorite combines with tag (AND)', () {
+      final favs = [
+        _e(id: 'a', tags: ['여행'], favorite: true),
+        _e(id: 'b', tags: ['여행']),
+        _e(id: 'c', favorite: true),
+      ];
+      final r = filterEntries(
+          favs, const TimelineFilter(tag: '여행', favorite: true));
+      expect(r.map((e) => e.entryId), ['a']);
+    });
+
+    test('favorite is part of isActive', () {
+      expect(const TimelineFilter(favorite: true).isActive, isTrue);
+      expect(const TimelineFilter().isActive, isFalse);
     });
   });
 

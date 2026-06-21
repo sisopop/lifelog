@@ -6,30 +6,40 @@ import '../../shared/models/enums.dart';
 import '../auth/session.dart';
 import '../entries/entries_provider.dart';
 
-/// Active timeline filter. Null mood / null tag means "no filter on that axis".
+/// Active timeline filter. Null mood / null tag means "no filter on that axis";
+/// [favorite] true scopes the list to starred entries.
 class TimelineFilter {
-  const TimelineFilter({this.mood, this.tag});
+  const TimelineFilter({this.mood, this.tag, this.favorite = false});
 
   final Mood? mood;
   final String? tag;
+  final bool favorite;
 
-  bool get isActive => mood != null || tag != null;
+  bool get isActive => mood != null || tag != null || favorite;
 
-  TimelineFilter copyWith({Mood? mood, String? tag, bool clearMood = false, bool clearTag = false}) {
+  TimelineFilter copyWith({
+    Mood? mood,
+    String? tag,
+    bool? favorite,
+    bool clearMood = false,
+    bool clearTag = false,
+  }) {
     return TimelineFilter(
       mood: clearMood ? null : (mood ?? this.mood),
       tag: clearTag ? null : (tag ?? this.tag),
+      favorite: favorite ?? this.favorite,
     );
   }
 }
 
-/// Filters top-level entries by mood and/or tag. Replies are always excluded.
-/// Results keep the input order (caller sorts as needed).
+/// Filters top-level entries by mood, tag and/or favorite. Replies are always
+/// excluded. Results keep the input order (caller sorts as needed).
 List<DiaryEntry> filterEntries(List<DiaryEntry> entries, TimelineFilter filter) {
   return entries.where((e) {
     if (e.replyToEntryId != null) return false;
     if (filter.mood != null && e.mood != filter.mood) return false;
     if (filter.tag != null && !e.tags.contains(filter.tag)) return false;
+    if (filter.favorite && !e.isFavorite) return false;
     return true;
   }).toList();
 }
@@ -118,6 +128,8 @@ class TimelineFilterNotifier extends Notifier<TimelineFilter> {
         ? state.copyWith(clearTag: true)
         : state.copyWith(tag: tag);
   }
+
+  void toggleFavorite() => state = state.copyWith(favorite: !state.favorite);
 
   void clear() => state = const TimelineFilter();
 }

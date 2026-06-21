@@ -143,6 +143,13 @@ class _FilterBar extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
       child: Row(
         children: [
+          _Chip(
+            label: '즐겨찾기',
+            selected: filter.favorite,
+            icon: filter.favorite ? Icons.star : Icons.star_border,
+            onTap: notifier.toggleFavorite,
+          ),
+          const SizedBox(width: 8),
           for (final m in Mood.values) ...[
             _Chip(
               label: '${m.emoji} ${m.label}',
@@ -201,7 +208,9 @@ class _Chip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 14, color: AppColors.textSecondary),
+              Icon(icon,
+                  size: 14,
+                  color: selected ? Colors.amber : AppColors.textSecondary),
               const SizedBox(width: 4),
             ],
             Text(
