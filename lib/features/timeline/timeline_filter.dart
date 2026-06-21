@@ -34,6 +34,18 @@ List<DiaryEntry> filterEntries(List<DiaryEntry> entries, TimelineFilter filter) 
   }).toList();
 }
 
+/// Counts how many replies each parent entry has, keyed by the parent's
+/// entryId. Only entries with a [replyToEntryId] contribute. Parents with no
+/// replies are absent from the map.
+Map<String, int> replyCountsByParent(List<DiaryEntry> entries) {
+  final counts = <String, int>{};
+  for (final e in entries) {
+    final parent = e.replyToEntryId;
+    if (parent != null) counts[parent] = (counts[parent] ?? 0) + 1;
+  }
+  return counts;
+}
+
 /// Returns [entries] sorted by creation date. Newest-first by default;
 /// [ascending] true gives oldest-first. Does not mutate the input.
 List<DiaryEntry> sortByDate(List<DiaryEntry> entries, {bool ascending = false}) {

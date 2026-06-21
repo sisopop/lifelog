@@ -16,6 +16,7 @@ class EntryCard extends StatelessWidget {
     this.journalName,
     this.journalIcon,
     this.highlight,
+    this.replyCount = 0,
   });
 
   final DiaryEntry entry;
@@ -37,6 +38,9 @@ class EntryCard extends StatelessWidget {
 
   /// Emoji/icon of the owning journal, shown beside [journalName].
   final String? journalIcon;
+
+  /// Number of replies (답장) attached to this entry. >0 shows a "↳ N" badge.
+  final int replyCount;
 
   @override
   Widget build(BuildContext context) {
@@ -157,6 +161,17 @@ class EntryCard extends StatelessWidget {
                     ),
                   ],
                   const Spacer(),
+                  if (replyCount > 0) ...[
+                    const Icon(Icons.subdirectory_arrow_right,
+                        size: 13, color: AppColors.textHint),
+                    const SizedBox(width: 1),
+                    Text('$replyCount',
+                        style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textHint,
+                            fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 2),
+                  ],
                   ...entry.tags.take(2).map(
                         (t) => Padding(
                           padding: const EdgeInsets.only(left: 6),

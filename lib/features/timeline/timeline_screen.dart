@@ -55,6 +55,8 @@ class TimelineScreen extends ConsumerWidget {
           final tags = ref.watch(availableTagsProvider);
           final journals = ref.watch(journalsProvider).asData?.value ?? const [];
           final journalMap = {for (final j in journals) j.journalId: j};
+          final replyCounts = replyCountsByParent(
+              entriesAsync.asData?.value ?? const []);
           final groups = groupByMonth(entries);
           final locale = Localizations.localeOf(context).toLanguageTag();
           return Column(
@@ -93,6 +95,7 @@ class TimelineScreen extends ConsumerWidget {
                                     journalName: journalMap[e.journalId]?.title,
                                     journalIcon:
                                         journalMap[e.journalId]?.displayIcon,
+                                    replyCount: replyCounts[e.entryId] ?? 0,
                                     onTap: () =>
                                         context.push('/entry/${e.entryId}'),
                                     onLongPress: () =>
