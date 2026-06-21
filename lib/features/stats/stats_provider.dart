@@ -397,6 +397,28 @@ final dayMoodsProvider = Provider<Map<int, Mood>>((ref) {
   return dominantMoodByDay(entries, m.year, m.month);
 });
 
+/// Pure: the mood recorded most often across the given month's top-level
+/// records, or null when the month has no records that carry a mood. Ties
+/// resolve to the earlier mood in [Mood.values] order.
+Mood? dominantMonthMood(List<DiaryEntry> entries, int year, int month) {
+  final counts = <Mood, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    if (e.createdAt.year != year || e.createdAt.month != month) continue;
+    counts.update(e.mood!, (c) => c + 1, ifAbsent: () => 1);
+  }
+  Mood? best;
+  var bestCount = 0;
+  for (final m in Mood.values) {
+    final c = counts[m] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = m;
+    }
+  }
+  return best;
+}
+
 /// Top-level record counts per weekday for the given month.
 /// Index 0 = 일요일 … 6 = 토요일 (matches the calendar's column order).
 List<int> weekdayCounts(List<DiaryEntry> entries, int year, int month) {

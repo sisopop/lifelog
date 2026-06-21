@@ -29,6 +29,7 @@ class CalendarScreen extends ConsumerWidget {
     final dayMoods = dominantMoodByDay(all, selected.year, selected.month);
     final dayEntries = entriesOfDay(all, selected);
     final monthCount = monthEntryCount(all, selected.year, selected.month);
+    final monthMood = dominantMonthMood(all, selected.year, selected.month);
 
     return Scaffold(
       appBar: AppBar(
@@ -72,6 +73,13 @@ class CalendarScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                     fontSize: 13, color: AppColors.textSecondary)),
+            if (monthMood != null) ...[
+              const SizedBox(height: 4),
+              Text('${monthMood.emoji} 이번 달은 주로 ${monthMood.label}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary)),
+            ],
           ],
           const SizedBox(height: 20),
           Text(
