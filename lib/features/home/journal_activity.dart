@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/enums.dart';
 import '../../shared/models/journal.dart';
 
 /// The most recent top-level entry creation time within [journalId], or null
@@ -29,6 +30,28 @@ String relativeDayLabel(DateTime date, DateTime now) {
   if (days < 30) return '${days ~/ 7}주 전';
   if (days < 365) return '${days ~/ 30}개월 전';
   return '${days ~/ 365}년 전';
+}
+
+/// Pure: the mood recorded most often among [journalId]'s top-level records,
+/// or null when none of them carry a mood. Ties resolve to the earlier mood
+/// in [Mood.values] order.
+Mood? dominantMoodForJournal(List<DiaryEntry> entries, String journalId) {
+  final counts = <Mood, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    if (e.journalId != journalId) continue;
+    counts.update(e.mood!, (c) => c + 1, ifAbsent: () => 1);
+  }
+  Mood? best;
+  var bestCount = 0;
+  for (final m in Mood.values) {
+    final c = counts[m] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = m;
+    }
+  }
+  return best;
 }
 
 /// Returns [journals] reordered so the one with the most recent (non-reply)

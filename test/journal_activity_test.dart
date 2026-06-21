@@ -9,6 +9,7 @@ DiaryEntry _e({
   required DateTime at,
   String journalId = 'j1',
   String? replyTo,
+  Mood? mood,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -16,6 +17,7 @@ DiaryEntry _e({
       journalId: journalId,
       replyToEntryId: replyTo,
       content: 'x',
+      mood: mood,
       createdAt: at,
       updatedAt: at,
     );
@@ -76,6 +78,54 @@ void main() {
       expect(relativeDayLabel(DateTime(2026, 6, 7), now), '2주 전'); // 14d
       expect(relativeDayLabel(DateTime(2026, 4, 21), now), '2개월 전'); // ~61d
       expect(relativeDayLabel(DateTime(2024, 6, 21), now), '2년 전');
+    });
+  });
+
+  group('dominantMoodForJournal', () {
+    test('returns the most-recorded mood within the journal', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 1), journalId: 'j1', mood: Mood.good),
+        _e(id: '2', at: DateTime(2026, 6, 2), journalId: 'j1', mood: Mood.good),
+        _e(id: '3', at: DateTime(2026, 6, 3), journalId: 'j1', mood: Mood.hard),
+        // other journal must not count
+        _e(id: '4', at: DateTime(2026, 6, 4), journalId: 'j2', mood: Mood.hard),
+      ];
+      expect(dominantMoodForJournal(entries, 'j1'), Mood.good);
+    });
+
+    test('ignores replies and moodless records', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 1), journalId: 'j1', mood: Mood.hard),
+        _e(
+            id: '2',
+            at: DateTime(2026, 6, 2),
+            journalId: 'j1',
+            mood: Mood.good,
+            replyTo: '1'),
+        _e(
+            id: '3',
+            at: DateTime(2026, 6, 3),
+            journalId: 'j1',
+            mood: Mood.good,
+            replyTo: '1'),
+        _e(id: '4', at: DateTime(2026, 6, 4), journalId: 'j1'),
+      ];
+      expect(dominantMoodForJournal(entries, 'j1'), Mood.hard);
+    });
+
+    test('ties resolve to the earlier mood in enum order', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 1), journalId: 'j1', mood: Mood.hard),
+        _e(id: '2', at: DateTime(2026, 6, 2), journalId: 'j1', mood: Mood.good),
+      ];
+      expect(dominantMoodForJournal(entries, 'j1'), Mood.good);
+    });
+
+    test('null when the journal has no records with a mood', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 1), journalId: 'j1'),
+      ];
+      expect(dominantMoodForJournal(entries, 'j1'), isNull);
     });
   });
 

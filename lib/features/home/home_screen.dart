@@ -118,6 +118,7 @@ class HomeScreen extends ConsumerWidget {
             else
               ...journals.map((j) {
                 final last = lastEntryDate(allEntries, j.journalId);
+                final mood = dominantMoodForJournal(allEntries, j.journalId);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _JournalCard(
@@ -125,6 +126,7 @@ class HomeScreen extends ConsumerWidget {
                     entryCount: counts[j.journalId] ?? 0,
                     lastLabel:
                         last == null ? null : relativeDayLabel(last, now),
+                    moodEmoji: mood?.emoji,
                     onTap: () => context.push('/journal/${j.journalId}'),
                   ),
                 );
@@ -172,10 +174,12 @@ class _JournalCard extends StatelessWidget {
     required this.entryCount,
     required this.onTap,
     this.lastLabel,
+    this.moodEmoji,
   });
   final Journal journal;
   final int entryCount;
   final String? lastLabel;
+  final String? moodEmoji;
   final VoidCallback onTap;
 
   @override
@@ -223,9 +227,8 @@ class _JournalCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                      lastLabel == null
-                          ? '기록 $entryCount개'
-                          : '기록 $entryCount개 · 마지막 $lastLabel',
+                      '${moodEmoji == null ? '' : '$moodEmoji '}'
+                      '${lastLabel == null ? '기록 $entryCount개' : '기록 $entryCount개 · 마지막 $lastLabel'}',
                       style:
                           const TextStyle(color: Colors.white70, fontSize: 13)),
                 ],
