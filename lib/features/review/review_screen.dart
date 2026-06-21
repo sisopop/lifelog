@@ -4,11 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/month_calendar.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../export/export_markdown.dart';
+import '../stats/lifetime_stats.dart';
 import '../stats/stats_provider.dart';
 import '../stats/streak.dart';
 import 'review_share.dart';
@@ -159,6 +161,18 @@ class ReviewScreen extends ConsumerWidget {
                       fontSize: 13, color: AppColors.textSecondary),
                 ),
               ),
+            Builder(builder: (context) {
+              final longest = longestEntryOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (longest == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: _MonthLongestCard(
+                  entry: longest,
+                  chars: longest.content.trim().characters.length,
+                ),
+              );
+            }),
           ],
           const SizedBox(height: 20),
           const Text('기록 달력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),

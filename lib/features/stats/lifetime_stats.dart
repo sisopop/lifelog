@@ -140,6 +140,15 @@ DiaryEntry? longestEntry(List<DiaryEntry> entries) {
   return best;
 }
 
+/// Pure: the longest (grapheme-aware, trimmed) top-level record within the
+/// given [year]/[month]. Returns null when that month has no record with text.
+DiaryEntry? longestEntryOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where((e) =>
+      e.createdAt.year == year && e.createdAt.month == month);
+  return longestEntry(monthly.toList());
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.

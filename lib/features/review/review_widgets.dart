@@ -1,5 +1,47 @@
 part of 'review_screen.dart';
 
+/// Tappable highlight for the month's longest record; opens the entry.
+class _MonthLongestCard extends StatelessWidget {
+  const _MonthLongestCard({required this.entry, required this.chars});
+  final DiaryEntry entry;
+  final int chars;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = (entry.title?.trim().isNotEmpty ?? false)
+        ? entry.title!.trim()
+        : entry.content.trim();
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => context.push('/entry/${entry.entryId}'),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('📜 이번 달 가장 긴 기록 ($chars자)',
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryDark)),
+            const SizedBox(height: 6),
+            Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Horizontal chip row scoping all 회고 stats to 전체 or one journal.
 class _JournalFilterRow extends ConsumerWidget {
   const _JournalFilterRow();

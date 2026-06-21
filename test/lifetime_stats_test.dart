@@ -320,4 +320,37 @@ void main() {
           isNull);
     });
   });
+
+  group('longestEntryOfMonth', () {
+    test('returns the longest top-level record in that month', () {
+      final e = longestEntryOfMonth([
+        _entry(id: 'a', content: '짧다', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', content: '훨씬 더 긴 기록', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', content: '다른 달의 아주 긴 기록', at: DateTime(2026, 7, 1)),
+      ], 2026, 6);
+      expect(e!.entryId, 'b');
+    });
+
+    test('ignores replies', () {
+      final e = longestEntryOfMonth([
+        _entry(id: 'a', content: '본문', at: DateTime(2026, 6, 1)),
+        _entry(
+            id: 'r',
+            content: '아주 긴 답장 본문입니다',
+            at: DateTime(2026, 6, 2),
+            replyTo: 'a'),
+      ], 2026, 6);
+      expect(e!.entryId, 'a');
+    });
+
+    test('null when the month has no record with text', () {
+      expect(longestEntryOfMonth(const [], 2026, 6), isNull);
+      expect(
+          longestEntryOfMonth(
+              [_entry(id: 'a', content: '6월', at: DateTime(2026, 5, 1))],
+              2026,
+              6),
+          isNull);
+    });
+  });
 }
