@@ -12,6 +12,7 @@ import 'reading_time.dart';
 import '../../shared/models/journal_member.dart';
 import '../../shared/widgets/photo.dart';
 import 'mood_editor.dart';
+import 'related_entries_section.dart';
 import '../entries/entries_provider.dart';
 import '../journals/members_provider.dart';
 import '../journals/members_repository.dart';
@@ -119,6 +120,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                           ))
                       .toList(),
                 ),
+                RelatedEntriesSection(entry: entry),
                 const SizedBox(height: 20),
                 OutlinedButton.icon(
                   onPressed: () => context.push('/entry/${widget.entryId}/share'),
