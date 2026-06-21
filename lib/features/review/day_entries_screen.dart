@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -35,6 +36,20 @@ class DayEntriesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
         actions: [
+          if (entries.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.ios_share),
+              tooltip: '이 날 공유',
+              onPressed: () async {
+                await Clipboard.setData(
+                    ClipboardData(text: dayShareText(entries, title)));
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('이 날의 기록을 복사했어요')),
+                  );
+                }
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.chevron_left),
             tooltip: '이전 기록일',

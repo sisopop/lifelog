@@ -15,6 +15,33 @@ List<DiaryEntry> entriesOfDay(List<DiaryEntry> entries, DateTime day) {
   return result;
 }
 
+/// Pure: a shareable plain-text summary of one day's [entries] (already
+/// filtered to that day by the caller). [dateLabel] is a pre-formatted date
+/// string. Mood emoji + title head, content, then #tags per record.
+String dayShareText(List<DiaryEntry> entries, String dateLabel) {
+  if (entries.isEmpty) {
+    return '📔 $dateLabel\n\n이 날의 기록이 없어요\n\n— lifelog';
+  }
+  final blocks = <String>['📔 $dateLabel · 기록 ${entries.length}개'];
+  for (final e in entries) {
+    final lines = <String>[];
+    final emoji = e.mood?.emoji;
+    final title = (e.title ?? '').trim();
+    final head = [
+      ?emoji,
+      if (title.isNotEmpty) title,
+    ].join(' ');
+    if (head.isNotEmpty) lines.add(head);
+    final content = e.content.trim();
+    if (content.isNotEmpty) lines.add(content);
+    if (e.tags.isNotEmpty) lines.add(e.tags.map((t) => '#$t').join(' '));
+    if (lines.isEmpty) lines.add('(내용 없음)');
+    blocks.add(lines.join('\n'));
+  }
+  blocks.add('— lifelog');
+  return blocks.join('\n\n');
+}
+
 /// The nearest recorded days immediately before/after [day], for browsing
 /// between days that actually have records. Time is ignored.
 class AdjacentDays {

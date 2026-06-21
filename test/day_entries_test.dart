@@ -8,14 +8,19 @@ DiaryEntry _e({
   required DateTime at,
   String? replyTo,
   Mood? mood,
+  String? title,
+  String content = 'x',
+  List<String> tags = const [],
 }) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
       journalId: 'j1',
       replyToEntryId: replyTo,
-      content: 'x',
+      title: title,
+      content: content,
       mood: mood,
+      tags: tags,
       createdAt: at,
       updatedAt: at,
     );
@@ -40,6 +45,48 @@ void main() {
 
   test('empty when no entries on that day', () {
     expect(entriesOfDay(entries, DateTime(2026, 6, 1)), isEmpty);
+  });
+
+  group('dayShareText', () {
+    test('placeholder when there are no records', () {
+      final t = dayShareText(const [], '6월 13일 (토)');
+      expect(t, contains('이 날의 기록이 없어요'));
+      expect(t, endsWith('— lifelog'));
+    });
+
+    test('includes header count, mood, title, content and tags', () {
+      final t = dayShareText([
+        _e(
+          id: '1',
+          at: DateTime(2026, 6, 13),
+          mood: Mood.good,
+          title: '제주',
+          content: '바닷가',
+          tags: ['추억', '가족'],
+        ),
+      ], '6월 13일 (토)');
+      expect(t, startsWith('📔 6월 13일 (토) · 기록 1개'));
+      expect(t, contains('😊 제주'));
+      expect(t, contains('바닷가'));
+      expect(t, contains('#추억 #가족'));
+      expect(t, endsWith('— lifelog'));
+    });
+
+    test('omits missing pieces gracefully', () {
+      final t = dayShareText([
+        _e(id: '1', at: DateTime(2026, 6, 13), content: '메모만'),
+      ], '6월 13일 (토)');
+      expect(t, contains('메모만'));
+      expect(t, isNot(contains('#')));
+    });
+
+    test('records are separated by a blank line', () {
+      final t = dayShareText([
+        _e(id: '1', at: DateTime(2026, 6, 13), content: 'a'),
+        _e(id: '2', at: DateTime(2026, 6, 13), content: 'b'),
+      ], '6월 13일 (토)');
+      expect(t, contains('a\n\nb'));
+    });
   });
 
   group('adjacentRecordedDays', () {
