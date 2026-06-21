@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
+import '../timeline/timeline_filter.dart';
 import 'day_entries.dart';
 
 /// Lists the records of a single day (reached by tapping a day on the
@@ -24,6 +25,7 @@ class DayEntriesScreen extends ConsumerWidget {
     final entries = entriesOfDay(all, day);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
+    final replyCounts = replyCountsByParent(all);
 
     return Scaffold(
       appBar: AppBar(
@@ -36,15 +38,25 @@ class DayEntriesScreen extends ConsumerWidget {
             )
           : ListView.separated(
               padding: const EdgeInsets.all(20),
-              itemCount: entries.length,
+              itemCount: entries.length + 1,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
-                final e = entries[i];
+                if (i == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text('이 날의 기록 ${entries.length}개',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary)),
+                  );
+                }
+                final e = entries[i - 1];
                 final j = journalMap[e.journalId];
                 return EntryCard(
                   e,
                   journalName: j?.title,
                   journalIcon: j?.displayIcon,
+                  replyCount: replyCounts[e.entryId] ?? 0,
                   onTap: () => context.push('/entry/${e.entryId}'),
                 );
               },
