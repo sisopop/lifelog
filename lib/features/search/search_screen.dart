@@ -134,11 +134,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         Expanded(
           child: results.isEmpty
-              ? _Hint(
-                  icon: Icons.search_off,
-                  text: mood != null
-                      ? "'$query' · ${mood.label} 결과가 없어요"
-                      : "'$query'에 대한 결과가 없어요",
+              ? _NoResults(
+                  query: query,
+                  mood: mood,
+                  tags: ref.watch(availableTagsProvider).take(8).toList(),
+                  onTagTap: _runRecent,
                 )
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
@@ -369,10 +369,15 @@ class _RecentList extends StatelessWidget {
 /// user can jump straight into a tag search. Reuses the timeline's usage-ranked
 /// tag list.
 class _SuggestedTags extends StatelessWidget {
-  const _SuggestedTags({required this.tags, required this.onTap});
+  const _SuggestedTags({
+    required this.tags,
+    required this.onTap,
+    this.title = '자주 쓰는 태그',
+  });
 
   final List<String> tags;
   final void Function(String term) onTap;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -381,8 +386,8 @@ class _SuggestedTags extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('자주 쓰는 태그',
-              style: TextStyle(
+          Text(title,
+              style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textSecondary)),
@@ -404,6 +409,47 @@ class _SuggestedTags extends StatelessWidget {
                 ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Empty-results view: the "no matches" hint plus a few tag chips the user can
+/// tap to pivot into a tag search.
+class _NoResults extends StatelessWidget {
+  const _NoResults({
+    required this.query,
+    required this.mood,
+    required this.tags,
+    required this.onTagTap,
+  });
+
+  final String query;
+  final Mood? mood;
+  final List<String> tags;
+  final void Function(String term) onTagTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(top: 48, bottom: 20),
+      child: Column(
+        children: [
+          const Icon(Icons.search_off, size: 56, color: AppColors.textHint),
+          const SizedBox(height: 12),
+          Text(
+            mood != null
+                ? "'$query' · ${mood!.label} 결과가 없어요"
+                : "'$query'에 대한 결과가 없어요",
+            style: const TextStyle(color: AppColors.textSecondary),
+          ),
+          if (tags.isNotEmpty)
+            _SuggestedTags(
+              tags: tags,
+              onTap: onTagTap,
+              title: '이런 태그는 어때요?',
+            ),
         ],
       ),
     );
