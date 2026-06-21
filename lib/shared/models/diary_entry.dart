@@ -69,6 +69,7 @@ class DiaryEntry {
     List<String>? tags,
     bool? isFavorite,
     SyncStatus? syncStatus,
+    bool clearMood = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -80,7 +81,7 @@ class DiaryEntry {
       content: content ?? this.content,
       aiSummary: aiSummary ?? this.aiSummary,
       aiStatus: aiStatus ?? this.aiStatus,
-      mood: mood ?? this.mood,
+      mood: clearMood ? null : (mood ?? this.mood),
       visibility: visibility ?? this.visibility,
       location: location ?? this.location,
       createdAt: createdAt ?? this.createdAt,

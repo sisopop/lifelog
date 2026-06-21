@@ -102,6 +102,12 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
     state = AsyncData(await _repo.getAll());
   }
 
+  /// Removes the mood from an entry. Like setMood, doesn't touch updatedAt.
+  Future<void> clearMood(DiaryEntry entry) async {
+    await _repo.save(entry.copyWith(clearMood: true));
+    state = AsyncData(await _repo.getAll());
+  }
+
   /// Renames a tag across every entry that uses it. No-op when nothing changes.
   Future<void> renameTag(String from, String to) async {
     final current = state.asData?.value ?? const [];
