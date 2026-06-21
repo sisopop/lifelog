@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/models/diary_entry.dart';
 import 'entry_clipboard.dart';
 import 'entry_edited.dart';
+import 'reading_time.dart';
 import '../../shared/models/journal_member.dart';
 import '../../shared/widgets/photo.dart';
 import '../entries/entries_provider.dart';
@@ -93,6 +94,12 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                 ],
                 Text(entry.content,
                     style: TextStyle(fontSize: 16 * scale, height: 1.6)),
+                if (readingMetaLabel(entry.content).isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Text(readingMetaLabel(entry.content),
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textHint)),
+                ],
                 const SizedBox(height: 24),
                 _aiSummary(entry),
                 const SizedBox(height: 16),
