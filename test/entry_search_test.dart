@@ -10,6 +10,7 @@ DiaryEntry _entry({
   List<String> tags = const [],
   String? replyTo,
   DateTime? createdAt,
+  bool favorite = false,
 }) {
   final now = createdAt ?? DateTime(2026, 1, 1);
   return DiaryEntry(
@@ -21,6 +22,7 @@ DiaryEntry _entry({
     content: content,
     aiSummary: summary,
     tags: tags,
+    isFavorite: favorite,
     createdAt: now,
     updatedAt: now,
   );
@@ -96,6 +98,28 @@ void main() {
         _entry(id: 'c', content: '산책', createdAt: DateTime(2026, 1, 3)),
       ];
       expect(searchEntries(multi, '산책').map((e) => e.entryId), ['b', 'c', 'a']);
+    });
+  });
+
+  group('filterByFavorite', () {
+    final entries = [
+      _entry(id: '1', content: 'a', favorite: true),
+      _entry(id: '2', content: 'b'),
+      _entry(id: '3', content: 'c', favorite: true),
+    ];
+
+    test('false returns the list unchanged', () {
+      expect(filterByFavorite(entries, false).map((e) => e.entryId),
+          ['1', '2', '3']);
+    });
+
+    test('true keeps only starred entries', () {
+      expect(
+          filterByFavorite(entries, true).map((e) => e.entryId), ['1', '3']);
+    });
+
+    test('true with no favorites is empty', () {
+      expect(filterByFavorite([_entry(id: 'x', content: 'x')], true), isEmpty);
     });
   });
 }

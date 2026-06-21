@@ -69,6 +69,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ref.read(searchQueryProvider.notifier).set('');
                 ref.read(searchMoodProvider.notifier).clear();
                 ref.read(searchJournalProvider.notifier).clear();
+                ref.read(searchFavoriteProvider.notifier).clear();
               },
             ),
         ],
@@ -97,6 +98,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
     final mood = ref.watch(searchMoodProvider);
     final journalId = ref.watch(searchJournalProvider);
+    final onlyFavorites = ref.watch(searchFavoriteProvider);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
     final activeJournals = journals.where((j) => !j.isArchived).toList();
@@ -106,6 +108,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         _MoodFilterRow(
           selected: mood,
           onTap: (m) => ref.read(searchMoodProvider.notifier).toggle(m),
+          favorite: onlyFavorites,
+          onFavoriteTap: () =>
+              ref.read(searchFavoriteProvider.notifier).toggle(),
         ),
         if (activeJournals.length > 1)
           _JournalFilterRow(
@@ -154,12 +159,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 }
 
-/// Horizontal mood chips that scope the search results to one emotion.
+/// Horizontal mood chips (plus a favorites toggle) that scope the results.
 class _MoodFilterRow extends StatelessWidget {
-  const _MoodFilterRow({required this.selected, required this.onTap});
+  const _MoodFilterRow({
+    required this.selected,
+    required this.onTap,
+    required this.favorite,
+    required this.onFavoriteTap,
+  });
 
   final Mood? selected;
   final void Function(Mood mood) onTap;
+  final bool favorite;
+  final VoidCallback onFavoriteTap;
 
   @override
   Widget build(BuildContext context) {
@@ -167,16 +179,34 @@ class _MoodFilterRow extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
       child: Row(
-        children: Mood.values
-            .map((m) => Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: MoodChip(
-                    m,
-                    selected: selected == m,
-                    onTap: () => onTap(m),
-                  ),
-                ))
-            .toList(),
+        children: [
+          for (final m in Mood.values)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: MoodChip(
+                m,
+                selected: selected == m,
+                onTap: () => onTap(m),
+              ),
+            ),
+          FilterChip(
+            avatar: Icon(
+              favorite ? Icons.star : Icons.star_border,
+              size: 18,
+              color: favorite ? Colors.amber : AppColors.textSecondary,
+            ),
+            label: const Text('즐겨찾기'),
+            selected: favorite,
+            onSelected: (_) => onFavoriteTap(),
+            showCheckmark: false,
+            selectedColor: AppColors.primarySoft,
+            labelStyle: TextStyle(
+              fontSize: 13,
+              color: favorite ? AppColors.primaryDark : AppColors.textSecondary,
+              fontWeight: favorite ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

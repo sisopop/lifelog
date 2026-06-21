@@ -39,6 +39,14 @@ List<DiaryEntry> filterByJournal(List<DiaryEntry> entries, String? journalId) {
   return entries.where((e) => e.journalId == journalId).toList();
 }
 
+/// Pure: when [onlyFavorites] is true keep only starred entries; otherwise
+/// returns the list unchanged.
+List<DiaryEntry> filterByFavorite(
+    List<DiaryEntry> entries, bool onlyFavorites) {
+  if (!onlyFavorites) return entries;
+  return entries.where((e) => e.isFavorite).toList();
+}
+
 /// Current search query (updated as the user types).
 class SearchQueryNotifier extends Notifier<String> {
   @override
@@ -79,13 +87,29 @@ class SearchJournalNotifier extends Notifier<String?> {
 final searchJournalProvider =
     NotifierProvider<SearchJournalNotifier, String?>(SearchJournalNotifier.new);
 
+/// Whether results are scoped to favorites only (false = 전체).
+class SearchFavoriteNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
+
+  void clear() => state = false;
+}
+
+final searchFavoriteProvider =
+    NotifierProvider<SearchFavoriteNotifier, bool>(SearchFavoriteNotifier.new);
+
 /// Search results derived from [entriesProvider], the current query and the
-/// optional mood and journal filters.
+/// optional mood, journal and favorite filters.
 final searchResultsProvider = Provider<List<DiaryEntry>>((ref) {
   final all = ref.watch(entriesProvider).asData?.value ?? const <DiaryEntry>[];
   final query = ref.watch(searchQueryProvider);
   final mood = ref.watch(searchMoodProvider);
   final journalId = ref.watch(searchJournalProvider);
-  return filterByJournal(
-      filterByMood(searchEntries(all, query), mood), journalId);
+  final onlyFavorites = ref.watch(searchFavoriteProvider);
+  return filterByFavorite(
+    filterByJournal(filterByMood(searchEntries(all, query), mood), journalId),
+    onlyFavorites,
+  );
 });
