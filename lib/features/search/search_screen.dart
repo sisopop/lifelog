@@ -124,10 +124,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 )
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                  itemCount: results.length,
+                  itemCount: results.length + 1,
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (_, i) {
-                    final e = results[i];
+                    if (i == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text('${results.length}개 찾음',
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary)),
+                      );
+                    }
+                    final e = results[i - 1];
                     final j = journalMap[e.journalId];
                     return EntryCard(
                       e,
