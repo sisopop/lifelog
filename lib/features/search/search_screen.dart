@@ -7,7 +7,9 @@ import '../../shared/models/enums.dart';
 import '../../shared/models/journal.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../../shared/widgets/mood_chip.dart';
+import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
+import '../places/place_directory.dart';
 import '../timeline/timeline_filter.dart' show availableTagsProvider, DatePreset;
 import 'entry_search.dart';
 import 'recent_searches.dart';
@@ -87,29 +89,33 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (query.trim().isEmpty) {
       final recent = ref.watch(recentSearchesProvider);
       final tags = ref.watch(availableTagsProvider).take(12).toList();
-      if (recent.isEmpty && tags.isEmpty) {
+      final allEntries = ref.watch(entriesProvider).asData?.value ?? const [];
+      final places =
+          placeCountsSorted(allEntries).take(8).map((e) => e.key).toList();
+      if (recent.isEmpty && tags.isEmpty && places.isEmpty) {
         return const _Hint(
           icon: Icons.search,
           text: '기록을 검색해보세요',
         );
       }
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (tags.isNotEmpty) _SuggestedTags(tags: tags, onTap: _runRecent),
-          Expanded(
-            child: recent.isEmpty
-                ? const SizedBox.shrink()
-                : _RecentList(
-                    terms: recent,
-                    onTap: _runRecent,
-                    onRemove: (t) =>
-                        ref.read(recentSearchesProvider.notifier).remove(t),
-                    onClear: () =>
-                        ref.read(recentSearchesProvider.notifier).clear(),
-                  ),
-          ),
-        ],
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (tags.isNotEmpty) _SuggestedTags(tags: tags, onTap: _runRecent),
+            if (places.isNotEmpty)
+              _SuggestedPlaces(places: places, onTap: _runRecent),
+            if (recent.isNotEmpty)
+              _RecentList(
+                terms: recent,
+                onTap: _runRecent,
+                onRemove: (t) =>
+                    ref.read(recentSearchesProvider.notifier).remove(t),
+                onClear: () =>
+                    ref.read(recentSearchesProvider.notifier).clear(),
+              ),
+          ],
+        ),
       );
     }
     final mood = ref.watch(searchMoodProvider);

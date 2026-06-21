@@ -37,27 +37,27 @@ class _RecentList extends StatelessWidget {
             ],
           ),
         ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 20),
-            itemCount: terms.length,
-            itemBuilder: (_, i) {
-              final term = terms[i];
-              return ListTile(
-                leading: const Icon(Icons.history,
-                    size: 20, color: AppColors.textHint),
-                title: Text(term,
-                    style: const TextStyle(
-                        fontSize: 15, color: AppColors.textPrimary)),
-                trailing: IconButton(
-                  icon: const Icon(Icons.close,
-                      size: 18, color: AppColors.textHint),
-                  onPressed: () => onRemove(term),
-                ),
-                onTap: () => onTap(term),
-              );
-            },
-          ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 20),
+          itemCount: terms.length,
+          itemBuilder: (_, i) {
+            final term = terms[i];
+            return ListTile(
+              leading: const Icon(Icons.history,
+                  size: 20, color: AppColors.textHint),
+              title: Text(term,
+                  style: const TextStyle(
+                      fontSize: 15, color: AppColors.textPrimary)),
+              trailing: IconButton(
+                icon: const Icon(Icons.close,
+                    size: 18, color: AppColors.textHint),
+                onPressed: () => onRemove(term),
+              ),
+              onTap: () => onTap(term),
+            );
+          },
         ),
       ],
     );
@@ -99,6 +99,53 @@ class _SuggestedTags extends StatelessWidget {
                 ActionChip(
                   label: Text('#$t'),
                   onPressed: () => onTap(t),
+                  backgroundColor: AppColors.primarySoft,
+                  side: BorderSide.none,
+                  labelStyle: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.primaryDark,
+                      fontWeight: FontWeight.w600),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tappable "places I've recorded" chips on the empty-query start screen so the
+/// user can jump straight to a location search. Reuses the place directory's
+/// usage-ranked list; tapping searches that location (searchEntries matches it).
+class _SuggestedPlaces extends StatelessWidget {
+  const _SuggestedPlaces({required this.places, required this.onTap});
+
+  final List<String> places;
+  final void Function(String term) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('자주 간 장소',
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final p in places)
+                ActionChip(
+                  avatar: const Icon(Icons.place_outlined,
+                      size: 16, color: AppColors.primaryDark),
+                  label: Text(p),
+                  onPressed: () => onTap(p),
                   backgroundColor: AppColors.primarySoft,
                   side: BorderSide.none,
                   labelStyle: const TextStyle(
