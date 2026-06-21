@@ -12,6 +12,8 @@ import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
 import '../export/export_markdown.dart';
 import '../stats/lifetime_stats.dart';
+import '../timeline/timeline_filter.dart' show sortByDate;
+import 'journal_detail_sort.dart';
 import 'journal_members_panel.dart';
 import 'journal_repository.dart';
 import 'journals_provider.dart';
@@ -30,10 +32,14 @@ class JournalDetailScreen extends ConsumerWidget {
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journal =
         journals.where((j) => j.journalId == journalId).firstOrNull;
-    // Top-level entries only; 답장(reply) records render inside entry detail.
-    final entries = (ref.watch(entriesProvider).asData?.value ?? const [])
-        .where((e) => e.journalId == journalId && e.replyToEntryId == null)
-        .toList();
+    // Top-level entries only (답장 render inside entry detail), sorted per the
+    // per-journal newest/oldest toggle.
+    final ascending = ref.watch(journalDetailSortProvider);
+    final entries = sortByDate(
+        (ref.watch(entriesProvider).asData?.value ?? const [])
+            .where((e) => e.journalId == journalId && e.replyToEntryId == null)
+            .toList(),
+        ascending: ascending);
 
     final color = journal != null ? Color(journal.coverColor) : AppColors.primary;
     final readOnly = journal?.isArchived ?? false;
@@ -76,6 +82,13 @@ class JournalDetailScreen extends ConsumerWidget {
           ),
         ),
         actions: [
+          if (entries.length > 1)
+            IconButton(
+              icon: Icon(ascending ? Icons.arrow_upward : Icons.arrow_downward),
+              tooltip: ascending ? '오래된순' : '최신순',
+              onPressed: () =>
+                  ref.read(journalDetailSortProvider.notifier).toggle(),
+            ),
           if (journal != null)
             _JournalMenu(journal: journal),
         ],
