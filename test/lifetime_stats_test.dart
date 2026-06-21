@@ -214,4 +214,41 @@ void main() {
           isEmpty);
     });
   });
+
+  group('averageEntryGapDays', () {
+    test('null with fewer than two distinct days', () {
+      expect(averageEntryGapDays(const []), isNull);
+      expect(
+          averageEntryGapDays(
+              [_entry(id: 'a', at: DateTime(2026, 6, 1, 9))]),
+          isNull);
+      // same calendar day twice still counts as one day
+      expect(
+          averageEntryGapDays([
+            _entry(id: 'a', at: DateTime(2026, 6, 1, 9)),
+            _entry(id: 'b', at: DateTime(2026, 6, 1, 20)),
+          ]),
+          isNull);
+    });
+
+    test('averages the gaps between distinct recorded days', () {
+      // days 6/1, 6/4, 6/10 → span 9 over 2 gaps → 4.5 → rounds to 5
+      final r = averageEntryGapDays([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 4)),
+        _entry(id: 'c', at: DateTime(2026, 6, 10)),
+      ]);
+      expect(r, 5);
+    });
+
+    test('ignores replies', () {
+      // top-level on 6/1 and 6/3 → span 2 / 1 gap = 2; reply on 6/30 ignored
+      final r = averageEntryGapDays([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 3)),
+        _entry(id: 'r', at: DateTime(2026, 6, 30), replyTo: 'a'),
+      ]);
+      expect(r, 2);
+    });
+  });
 }

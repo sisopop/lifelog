@@ -94,6 +94,21 @@ MapEntry<String, int>? busiestWeekday(List<DiaryEntry> entries) {
   return MapEntry('${_weekdayNames[bestDay!]}요일', bestCount);
 }
 
+/// Pure: the average number of days between consecutive recorded calendar days
+/// across top-level entries. Returns null when fewer than two distinct days
+/// were recorded (no meaningful interval). Replies are ignored.
+int? averageEntryGapDays(List<DiaryEntry> entries) {
+  final days = <DateTime>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    days.add(DateTime(e.createdAt.year, e.createdAt.month, e.createdAt.day));
+  }
+  if (days.length < 2) return null;
+  final sorted = days.toList()..sort();
+  final span = sorted.last.difference(sorted.first).inDays;
+  return (span / (sorted.length - 1)).round();
+}
+
 /// Pure: the top-level entry with the longest (grapheme-aware, trimmed) body.
 /// Returns null when no top-level entry carries any text. Ties resolve to the
 /// most recent entry.

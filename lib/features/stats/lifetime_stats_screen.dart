@@ -30,6 +30,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final tags = topTags(entries);
     final trend = recentMonthlyCounts(entries, DateTime.now());
     final longest = longestEntry(entries);
+    final avgGap = averageEntryGapDays(entries);
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Scaffold(
@@ -131,6 +132,14 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   _InsightLine(
                     text: '✍️ 한 번에 평균 ${s.avgCharsPerEntry}자씩 기록해요',
+                  ),
+                ],
+                if (avgGap != null) ...[
+                  const SizedBox(height: 12),
+                  _InsightLine(
+                    text: avgGap == 0
+                        ? '🗓️ 거의 매일 기록해요'
+                        : '🗓️ 평균 $avgGap일마다 기록해요',
                   ),
                 ],
                 if (longest != null) ...[
