@@ -275,6 +275,35 @@ void main() {
     });
   });
 
+  group('busiestDayPartOfMonth', () {
+    test('null when the month has no record', () {
+      expect(
+          busiestDayPartOfMonth(
+              [_entry(id: 'a', at: DateTime(2026, 5, 1, 9))], 2026, 6),
+          isNull);
+    });
+
+    test('picks the busiest part within the month, ignoring other months', () {
+      final r = busiestDayPartOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1, 20)), // evening
+        _entry(id: 'b', at: DateTime(2026, 6, 2, 21)), // evening
+        _entry(id: 'c', at: DateTime(2026, 6, 3, 9)), // morning
+        _entry(id: 'd', at: DateTime(2026, 7, 1, 9)), // other month, ignored
+      ], 2026, 6);
+      expect(r!.key, DayPart.evening);
+      expect(r.value, 2);
+    });
+
+    test('ignores replies', () {
+      final r = busiestDayPartOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1, 9)), // morning
+        _entry(id: 'r', at: DateTime(2026, 6, 1, 20), replyTo: 'a'), // ignored
+      ], 2026, 6);
+      expect(r!.key, DayPart.morning);
+      expect(r.value, 1);
+    });
+  });
+
   group('longestGapDays', () {
     test('null with fewer than two distinct days', () {
       expect(longestGapDays(const []), isNull);

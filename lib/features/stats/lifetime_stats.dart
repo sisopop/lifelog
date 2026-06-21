@@ -80,6 +80,16 @@ MapEntry<DayPart, int>? busiestDayPart(List<DiaryEntry> entries) {
   return best;
 }
 
+/// Pure: the busiest day-part within the given [year]/[month], reusing
+/// [busiestDayPart]. Returns null when that month has no top-level record.
+MapEntry<DayPart, int>? busiestDayPartOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries
+      .where((e) => e.createdAt.year == year && e.createdAt.month == month)
+      .toList();
+  return busiestDayPart(monthly);
+}
+
 /// Korean weekday names indexed by [DateTime.weekday] (1=Mon … 7=Sun).
 const _weekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
 

@@ -141,6 +141,22 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final part = busiestDayPartOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (part == null || part.value < 2) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '${part.key.emoji} 이번 달은 주로 ${part.key.label}에 기록했어요 '
+                  '(${part.value}개)',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final place = ref.watch(topPlaceProvider);
               if (place == null) return const SizedBox.shrink();
               return Padding(
