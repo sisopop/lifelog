@@ -13,11 +13,25 @@ class TagManageScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
-    final tags = tagCountsSorted(entries);
+    final byName = ref.watch(tagSortByNameProvider);
+    final tags = tagCountsSorted(entries, byName: byName);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('태그 관리', style: TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          if (tags.length > 1)
+            TextButton.icon(
+              onPressed: () =>
+                  ref.read(tagSortByNameProvider.notifier).toggle(),
+              icon: Icon(byName ? Icons.sort_by_alpha : Icons.tag,
+                  size: 18, color: AppColors.primaryDark),
+              label: Text(byName ? '이름순' : '빈도순',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryDark)),
+            ),
+        ],
       ),
       body: tags.isEmpty
           ? const Center(

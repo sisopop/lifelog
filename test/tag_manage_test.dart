@@ -30,6 +30,33 @@ void main() {
     test('empty when no tags', () {
       expect(tagCountsSorted([_e('1', const [])]), isEmpty);
     });
+
+    test('byName sorts alphabetically, ties by higher count', () {
+      final entries = [
+        _e('1', ['여행', '가족']),
+        _e('2', ['여행']),
+        _e('3', ['가족']),
+        _e('4', ['일상']),
+      ];
+      expect(
+        tagCountsSorted(entries, byName: true)
+            .map((e) => '${e.key}:${e.value}')
+            .toList(),
+        ['가족:2', '여행:2', '일상:1'],
+      );
+    });
+
+    test('byName orders distinct names regardless of count', () {
+      final entries = [
+        _e('1', ['하늘']),
+        _e('2', ['하늘']),
+        _e('3', ['바다']),
+      ];
+      expect(
+        tagCountsSorted(entries, byName: true).map((e) => e.key).toList(),
+        ['바다', '하늘'],
+      );
+    });
   });
 
   group('renameTagInEntries', () {

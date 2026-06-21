@@ -1,8 +1,12 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../shared/models/diary_entry.dart';
 
-/// Count of entries carrying each tag, most-used first (ties → name asc).
-/// Considers every entry that has tags (top-level and replies alike).
-List<MapEntry<String, int>> tagCountsSorted(List<DiaryEntry> entries) {
+/// Count of entries carrying each tag. Defaults to most-used first (ties →
+/// name asc); pass [byName] true to sort alphabetically (ties → higher count
+/// first). Considers every entry that has tags (top-level and replies alike).
+List<MapEntry<String, int>> tagCountsSorted(List<DiaryEntry> entries,
+    {bool byName = false}) {
   final counts = <String, int>{};
   for (final e in entries) {
     for (final t in e.tags) {
@@ -11,11 +15,25 @@ List<MapEntry<String, int>> tagCountsSorted(List<DiaryEntry> entries) {
   }
   final list = counts.entries.toList()
     ..sort((a, b) {
+      if (byName) {
+        final byKey = a.key.compareTo(b.key);
+        return byKey != 0 ? byKey : b.value.compareTo(a.value);
+      }
       final byCount = b.value.compareTo(a.value);
       return byCount != 0 ? byCount : a.key.compareTo(b.key);
     });
   return list;
 }
+
+/// Toggles the tag-management list between count-order (false) and name-order.
+class TagSortNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+  void toggle() => state = !state;
+}
+
+final tagSortByNameProvider =
+    NotifierProvider<TagSortNotifier, bool>(TagSortNotifier.new);
 
 /// Returns the entries that change when renaming tag [from] → [to], each with
 /// its tag list updated (order preserved, duplicates collapsed when [to]
