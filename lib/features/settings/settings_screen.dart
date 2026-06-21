@@ -11,6 +11,7 @@ import '../entries/entries_provider.dart';
 import '../export/export_markdown.dart';
 import '../journals/default_journal_provider.dart';
 import '../journals/journals_provider.dart';
+import '../stats/lifetime_stats.dart';
 import 'reading_text_scale.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -20,6 +21,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
     final l = L10n.of(context);
+    final stats = computeLifetimeStats(
+        ref.watch(entriesProvider).asData?.value ?? const []);
     return Scaffold(
       appBar: AppBar(title: Text(l.settingsTitle)),
       body: ListView(
@@ -42,6 +45,9 @@ class SettingsScreen extends ConsumerWidget {
           _SectionTile(
             icon: Icons.insights,
             label: '내 기록 요약',
+            subtitle: stats.isEmpty
+                ? null
+                : '총 ${stats.totalEntries}개 · ${stats.totalChars}자',
             onTap: () => context.push('/stats'),
           ),
           _SectionTile(
@@ -297,9 +303,11 @@ class _ReadingTextSizeTile extends ConsumerWidget {
 }
 
 class _SectionTile extends StatelessWidget {
-  const _SectionTile({required this.icon, required this.label, this.onTap});
+  const _SectionTile(
+      {required this.icon, required this.label, this.subtitle, this.onTap});
   final IconData icon;
   final String label;
+  final String? subtitle;
   final VoidCallback? onTap;
 
   @override
@@ -309,6 +317,7 @@ class _SectionTile extends StatelessWidget {
       child: ListTile(
         leading: Icon(icon, color: AppColors.textSecondary),
         title: Text(label),
+        subtitle: subtitle == null ? null : Text(subtitle!),
         trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
         onTap: onTap,
       ),
