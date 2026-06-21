@@ -42,9 +42,13 @@ class DayEntriesScreen extends ConsumerWidget {
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
                 if (i == 0) {
+                  final mood = dominantMoodOf(entries);
+                  final header = mood == null
+                      ? '이 날의 기록 ${entries.length}개'
+                      : '이 날의 기록 ${entries.length}개 · ${mood.emoji}';
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text('이 날의 기록 ${entries.length}개',
+                    child: Text(header,
                         style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             color: AppColors.textSecondary)),
