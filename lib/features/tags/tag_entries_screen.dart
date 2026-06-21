@@ -27,7 +27,9 @@ class TagEntriesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('#$tag', style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(
+            entries.isEmpty ? '#$tag' : '#$tag · ${entries.length}개',
+            style: const TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: entries.isEmpty
           ? const Center(
