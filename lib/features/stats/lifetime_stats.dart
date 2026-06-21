@@ -209,6 +209,36 @@ List<MonthCount> recentMonthlyCounts(
   return result;
 }
 
+/// Pure: the calendar month with the most top-level records across all of
+/// [entries], as a [MonthCount]. Returns null when there are no records.
+/// Ties resolve to the earlier month.
+MonthCount? mostActiveMonth(List<DiaryEntry> entries) {
+  final counts = <String, int>{}; // "y-m" -> count
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final key = '${e.createdAt.year}-${e.createdAt.month}';
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+  if (counts.isEmpty) return null;
+  int? bestYear;
+  int? bestMonth;
+  var bestCount = 0;
+  counts.forEach((key, count) {
+    final parts = key.split('-');
+    final y = int.parse(parts[0]);
+    final m = int.parse(parts[1]);
+    final isEarlier = bestYear == null ||
+        y < bestYear! ||
+        (y == bestYear! && m < bestMonth!);
+    if (count > bestCount || (count == bestCount && isEarlier)) {
+      bestCount = count;
+      bestYear = y;
+      bestMonth = m;
+    }
+  });
+  return MonthCount(bestYear!, bestMonth!, bestCount);
+}
+
 /// Pure: aggregate every [entries] into lifetime totals. 답장(reply) records
 /// are excluded so the figures match the timeline.
 LifetimeStats computeLifetimeStats(List<DiaryEntry> entries) {

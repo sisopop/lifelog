@@ -274,4 +274,50 @@ void main() {
       expect(r, 2);
     });
   });
+
+  group('mostActiveMonth', () {
+    test('returns the month with the most top-level records', () {
+      final m = mostActiveMonth([
+        _entry(id: '1', at: DateTime(2026, 5, 3)),
+        _entry(id: '2', at: DateTime(2026, 6, 1)),
+        _entry(id: '3', at: DateTime(2026, 6, 10)),
+        _entry(id: '4', at: DateTime(2026, 6, 20)),
+      ]);
+      expect(m, isNotNull);
+      expect(m!.year, 2026);
+      expect(m.month, 6);
+      expect(m.count, 3);
+    });
+
+    test('excludes replies from the count', () {
+      final m = mostActiveMonth([
+        _entry(id: '1', at: DateTime(2026, 6, 1)),
+        _entry(id: 'r1', at: DateTime(2026, 6, 2), replyTo: '1'),
+        _entry(id: 'r2', at: DateTime(2026, 6, 3), replyTo: '1'),
+        _entry(id: '2', at: DateTime(2026, 7, 1)),
+        _entry(id: '3', at: DateTime(2026, 7, 2)),
+      ]);
+      // June has 1 real record, July has 2 → July wins.
+      expect(m!.month, 7);
+      expect(m.count, 2);
+    });
+
+    test('ties resolve to the earlier month', () {
+      final m = mostActiveMonth([
+        _entry(id: '1', at: DateTime(2026, 6, 1)),
+        _entry(id: '2', at: DateTime(2026, 8, 1)),
+      ]);
+      expect(m!.year, 2026);
+      expect(m.month, 6);
+      expect(m.count, 1);
+    });
+
+    test('null when there are no records', () {
+      expect(mostActiveMonth(const []), isNull);
+      expect(
+          mostActiveMonth(
+              [_entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'x')]),
+          isNull);
+    });
+  });
 }
