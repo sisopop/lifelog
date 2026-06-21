@@ -98,6 +98,20 @@ class ReviewScreen extends ConsumerWidget {
                 ),
               );
             }),
+            Builder(builder: (context) {
+              final busiest = ref.watch(busiestDayProvider);
+              if (busiest == null || busiest.value < 2) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '🔥 ${busiest.key}일에 가장 많이 기록했어요 (${busiest.value}개)',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
           ],
           const SizedBox(height: 20),
           const Text('기록 달력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),

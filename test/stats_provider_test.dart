@@ -121,6 +121,36 @@ void main() {
     });
   });
 
+  group('busiestDayOfMonth', () {
+    test('null when the month has no records', () {
+      expect(busiestDayOfMonth(const [], 2026, 6), isNull);
+      expect(
+          busiestDayOfMonth(
+              [_e(id: 'a', at: DateTime(2026, 5, 1))], 2026, 6),
+          isNull);
+    });
+
+    test('picks the day with the most top-level records', () {
+      final b = busiestDayOfMonth([
+        _e(id: 'a', at: DateTime(2026, 6, 3)),
+        _e(id: 'b', at: DateTime(2026, 6, 10)),
+        _e(id: 'c', at: DateTime(2026, 6, 10)),
+        _e(id: 'r', at: DateTime(2026, 6, 10), replyTo: 'b'), // reply excluded
+      ], 2026, 6);
+      expect(b!.key, 10);
+      expect(b.value, 2);
+    });
+
+    test('ties resolve to the earlier day', () {
+      final b = busiestDayOfMonth([
+        _e(id: 'a', at: DateTime(2026, 6, 5)),
+        _e(id: 'b', at: DateTime(2026, 6, 20)),
+      ], 2026, 6);
+      expect(b!.key, 5);
+      expect(b.value, 1);
+    });
+  });
+
   group('monthlyAverageGapDays', () {
     test('null with fewer than two distinct days in the month', () {
       expect(monthlyAverageGapDays(const [], 2026, 6), isNull);

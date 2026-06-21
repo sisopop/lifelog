@@ -278,6 +278,33 @@ final monthlyGapProvider = Provider<int?>((ref) {
   return monthlyAverageGapDays(entries, m.year, m.month);
 });
 
+/// Pure: the day (1..31) of the given month with the most top-level records,
+/// paired with that count. Returns null when the month has no records. Ties
+/// resolve to the earlier day. Only meaningful (count >= 2) is left to callers.
+MapEntry<int, int>? busiestDayOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final counts = <int, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.createdAt.year != year || e.createdAt.month != month) continue;
+    counts[e.createdAt.day] = (counts[e.createdAt.day] ?? 0) + 1;
+  }
+  if (counts.isEmpty) return null;
+  final days = counts.keys.toList()..sort();
+  var best = MapEntry(days.first, counts[days.first]!);
+  for (final d in days) {
+    if (counts[d]! > best.value) best = MapEntry(d, counts[d]!);
+  }
+  return best;
+}
+
+/// Busiest recording day for the month currently shown on the 회고 screen.
+final busiestDayProvider = Provider<MapEntry<int, int>?>((ref) {
+  final entries = ref.watch(reviewEntriesProvider);
+  final m = ref.watch(reviewMonthProvider);
+  return busiestDayOfMonth(entries, m.year, m.month);
+});
+
 /// Days (1..31) of the given month that have at least one top-level record.
 Set<int> recordedDaysOfMonth(
     List<DiaryEntry> entries, int year, int month) {
