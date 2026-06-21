@@ -89,6 +89,42 @@ class _StatBox extends StatelessWidget {
   }
 }
 
+/// One-line month-over-month change in record count. Color and icon shift
+/// with the sign; a flat month reads as "지난달과 같아요".
+class _DeltaLine extends StatelessWidget {
+  const _DeltaLine(this.delta);
+  final int delta;
+
+  @override
+  Widget build(BuildContext context) {
+    final IconData icon;
+    final Color color;
+    final String text;
+    if (delta > 0) {
+      icon = Icons.trending_up;
+      color = AppColors.primaryDark;
+      text = '지난달보다 $delta개 더 기록했어요';
+    } else if (delta < 0) {
+      icon = Icons.trending_down;
+      color = AppColors.textSecondary;
+      text = '지난달보다 ${-delta}개 적게 기록했어요';
+    } else {
+      icon = Icons.trending_flat;
+      color = AppColors.textSecondary;
+      text = '지난달과 같은 개수예요';
+    }
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Text(text,
+            style: TextStyle(
+                fontSize: 13, fontWeight: FontWeight.w600, color: color)),
+      ],
+    );
+  }
+}
+
 /// History-wide streak banner (current run + best run).
 class _StreakBanner extends StatelessWidget {
   const _StreakBanner(this.streak);

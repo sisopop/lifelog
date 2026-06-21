@@ -64,6 +64,10 @@ class ReviewScreen extends ConsumerWidget {
                       label: '쓴 글자', value: '${stats.charsWritten}자')),
             ],
           ),
+          if (!stats.isEmpty) ...[
+            const SizedBox(height: 12),
+            _DeltaLine(ref.watch(monthDeltaProvider)),
+          ],
           const SizedBox(height: 20),
           const Text('기록 달력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),

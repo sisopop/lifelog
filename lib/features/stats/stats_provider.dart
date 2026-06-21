@@ -235,6 +235,24 @@ final monthlyStatsProvider = Provider<MonthlyStats>((ref) {
   return computeMonthlyStats(entries, m.year, m.month);
 });
 
+/// Pure: signed change in top-level entry count between [year]/[month] and the
+/// immediately preceding calendar month. Positive = more than last month,
+/// negative = fewer, 0 = same (or no data either way).
+int monthOverMonthDelta(List<DiaryEntry> entries, int year, int month) {
+  final prevYear = month == 1 ? year - 1 : year;
+  final prevMonth = month == 1 ? 12 : month - 1;
+  return monthEntryCount(entries, year, month) -
+      monthEntryCount(entries, prevYear, prevMonth);
+}
+
+/// Month-over-month change in record count for the selected review month,
+/// scoped to the selected journal.
+final monthDeltaProvider = Provider<int>((ref) {
+  final entries = ref.watch(reviewEntriesProvider);
+  final m = ref.watch(reviewMonthProvider);
+  return monthOverMonthDelta(entries, m.year, m.month);
+});
+
 /// Days (1..31) of the given month that have at least one top-level record.
 Set<int> recordedDaysOfMonth(
     List<DiaryEntry> entries, int year, int month) {

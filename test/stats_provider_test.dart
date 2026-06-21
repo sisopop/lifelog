@@ -78,6 +78,49 @@ void main() {
     });
   });
 
+  group('monthOverMonthDelta', () {
+    final entries = [
+      _e(id: '1', at: DateTime(2026, 6, 1)),
+      _e(id: '2', at: DateTime(2026, 6, 20)),
+      _e(id: '3', at: DateTime(2026, 6, 20), replyTo: '2'), // reply excluded
+      _e(id: '4', at: DateTime(2026, 5, 10)),
+    ];
+
+    test('positive when the month has more than the previous', () {
+      // June: 2 top-level, May: 1 → +1
+      expect(monthOverMonthDelta(entries, 2026, 6), 1);
+    });
+
+    test('negative when the month has fewer than the previous', () {
+      final shrinking = [
+        _e(id: 'a', at: DateTime(2026, 6, 1)),
+        _e(id: 'b', at: DateTime(2026, 5, 1)),
+        _e(id: 'c', at: DateTime(2026, 5, 12)),
+        _e(id: 'd', at: DateTime(2026, 5, 20)),
+      ];
+      // June: 1, May: 3 → -2
+      expect(monthOverMonthDelta(shrinking, 2026, 6), -2);
+    });
+
+    test('zero when both months match', () {
+      final flat = [
+        _e(id: 'a', at: DateTime(2026, 6, 1)),
+        _e(id: 'b', at: DateTime(2026, 5, 1)),
+      ];
+      expect(monthOverMonthDelta(flat, 2026, 6), 0);
+    });
+
+    test('rolls back across the year boundary (Jan vs prev Dec)', () {
+      final yb = [
+        _e(id: 'a', at: DateTime(2026, 1, 5)),
+        _e(id: 'b', at: DateTime(2025, 12, 5)),
+        _e(id: 'c', at: DateTime(2025, 12, 20)),
+      ];
+      // Jan 1 vs Dec 2 → -1
+      expect(monthOverMonthDelta(yb, 2026, 1), -1);
+    });
+  });
+
   group('recordedDaysOfMonth', () {
     final entries = [
       _e(id: '1', at: DateTime(2026, 6, 1)),
