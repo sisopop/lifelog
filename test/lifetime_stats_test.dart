@@ -107,6 +107,45 @@ void main() {
     });
   });
 
+  group('longestEntry', () {
+    test('null when there is no text', () {
+      expect(longestEntry(const []), isNull);
+      expect(
+          longestEntry(
+              [_entry(id: 'a', content: '   ', at: DateTime(2026, 6, 1))]),
+          isNull);
+    });
+
+    test('picks the top-level entry with the most graphemes', () {
+      final e = longestEntry([
+        _entry(id: 'a', content: '짧다', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', content: '아주 긴 기록이다', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', content: '중간', at: DateTime(2026, 6, 3)),
+      ]);
+      expect(e!.entryId, 'b');
+    });
+
+    test('excludes replies', () {
+      final e = longestEntry([
+        _entry(id: 'a', content: '본문', at: DateTime(2026, 6, 1)),
+        _entry(
+            id: 'r',
+            content: '이 답장이 더 길지만 제외',
+            at: DateTime(2026, 6, 2),
+            replyTo: 'a'),
+      ]);
+      expect(e!.entryId, 'a');
+    });
+
+    test('ties resolve to the most recent', () {
+      final e = longestEntry([
+        _entry(id: 'old', content: '1234', at: DateTime(2026, 6, 1)),
+        _entry(id: 'new', content: 'abcd', at: DateTime(2026, 6, 5)),
+      ]);
+      expect(e!.entryId, 'new');
+    });
+  });
+
   group('busiestWeekday', () {
     test('null when there are no top-level entries', () {
       expect(busiestWeekday(const []), isNull);

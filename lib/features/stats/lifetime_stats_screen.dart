@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/month_calendar.dart' show moodColor;
 import '../entries/entries_provider.dart';
@@ -26,6 +27,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final busyDay = busiestWeekday(entries);
     final tags = topTags(entries);
     final trend = recentMonthlyCounts(entries, DateTime.now());
+    final longest = longestEntry(entries);
     final locale = Localizations.localeOf(context).toLanguageTag();
 
     return Scaffold(
@@ -113,6 +115,14 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     text: '✍️ 한 번에 평균 ${s.avgCharsPerEntry}자씩 기록해요',
                   ),
                 ],
+                if (longest != null) ...[
+                  const SizedBox(height: 12),
+                  _LongestEntryCard(
+                    entry: longest,
+                    chars: longest.content.trim().characters.length,
+                    locale: locale,
+                  ),
+                ],
                 if (trend.any((m) => m.count > 0)) ...[
                   const SizedBox(height: 24),
                   _MonthlyTrend(months: trend),
@@ -147,6 +157,55 @@ class _InsightLine extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: AppColors.primaryDark),
+      ),
+    );
+  }
+}
+
+/// Tappable highlight for the user's longest record; opens the entry.
+class _LongestEntryCard extends StatelessWidget {
+  const _LongestEntryCard({
+    required this.entry,
+    required this.chars,
+    required this.locale,
+  });
+
+  final DiaryEntry entry;
+  final int chars;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = (entry.title?.trim().isNotEmpty ?? false)
+        ? entry.title!.trim()
+        : entry.content.trim();
+    final date = DateFormat('yyyy.M.d', locale).format(entry.createdAt);
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => context.push('/entry/${entry.entryId}'),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('📜 가장 긴 기록 ($chars자)',
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryDark)),
+            const SizedBox(height: 6),
+            Text('$date · $title',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary)),
+          ],
+        ),
       ),
     );
   }

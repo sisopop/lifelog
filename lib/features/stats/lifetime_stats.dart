@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import 'stats_provider.dart';
@@ -90,6 +92,25 @@ MapEntry<String, int>? busiestWeekday(List<DiaryEntry> entries) {
     }
   }
   return MapEntry('${_weekdayNames[bestDay!]}요일', bestCount);
+}
+
+/// Pure: the top-level entry with the longest (grapheme-aware, trimmed) body.
+/// Returns null when no top-level entry carries any text. Ties resolve to the
+/// most recent entry.
+DiaryEntry? longestEntry(List<DiaryEntry> entries) {
+  DiaryEntry? best;
+  var bestLen = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final len = e.content.trim().characters.length;
+    if (len == 0) continue;
+    if (len > bestLen ||
+        (len == bestLen && best != null && e.createdAt.isAfter(best.createdAt))) {
+      bestLen = len;
+      best = e;
+    }
+  }
+  return best;
 }
 
 /// Pure: count top-level entries by mood. Only moods that actually occur are
