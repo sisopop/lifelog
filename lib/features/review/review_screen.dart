@@ -112,6 +112,18 @@ class ReviewScreen extends ConsumerWidget {
                 ),
               );
             }),
+            Builder(builder: (context) {
+              final place = ref.watch(topPlaceProvider);
+              if (place == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '📍 이번 달은 ${place.key}에 가장 많이 다녀왔어요 (${place.value}개)',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
           ],
           const SizedBox(height: 20),
           const Text('기록 달력', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
