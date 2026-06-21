@@ -11,6 +11,7 @@ import '../entries/entries_provider.dart';
 import '../export/export_markdown.dart';
 import '../journals/default_journal_provider.dart';
 import '../journals/journals_provider.dart';
+import '../places/place_directory.dart';
 import '../stats/lifetime_stats.dart';
 import 'reading_text_scale.dart';
 
@@ -21,8 +22,9 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final session = ref.watch(sessionProvider);
     final l = L10n.of(context);
-    final stats = computeLifetimeStats(
-        ref.watch(entriesProvider).asData?.value ?? const []);
+    final allEntries = ref.watch(entriesProvider).asData?.value ?? const [];
+    final stats = computeLifetimeStats(allEntries);
+    final placeCount = placeCountsSorted(allEntries).length;
     return Scaffold(
       appBar: AppBar(title: Text(l.settingsTitle)),
       body: ListView(
@@ -54,6 +56,12 @@ class SettingsScreen extends ConsumerWidget {
             icon: Icons.tag,
             label: '태그 관리',
             onTap: () => context.push('/tags/manage'),
+          ),
+          _SectionTile(
+            icon: Icons.place_outlined,
+            label: '장소 모아보기',
+            subtitle: placeCount == 0 ? null : '$placeCount곳',
+            onTap: () => context.push('/places'),
           ),
           _LanguageTile(),
           _ReadingTextSizeTile(),
