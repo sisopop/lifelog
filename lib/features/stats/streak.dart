@@ -79,3 +79,14 @@ final homeStreakProvider = Provider<int>((ref) {
   final entries = ref.watch(entriesProvider).asData?.value ?? const [];
   return currentStreak(recordedDates(entries), DateTime.now());
 });
+
+/// Current and longest streak across every journal (used by the home screen
+/// to nudge the user toward beating their personal best).
+final homeStreakInfoProvider = Provider<StreakInfo>((ref) {
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  final days = recordedDates(entries);
+  return StreakInfo(
+    current: currentStreak(days, DateTime.now()),
+    longest: longestStreak(days),
+  );
+});

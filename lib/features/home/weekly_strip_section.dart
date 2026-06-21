@@ -15,8 +15,12 @@ class WeeklyStripSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dots = ref.watch(weeklyProgressProvider);
     final recorded = dots.where((d) => d.done).length;
-    final streak = ref.watch(homeStreakProvider);
+    final streakInfo = ref.watch(homeStreakInfoProvider);
+    final streak = streakInfo.current;
     final monthCount = ref.watch(thisMonthCountProvider);
+    // Encourage beating the record only when the best run is meaningfully
+    // longer than the current one.
+    final showBest = streakInfo.longest >= 2 && streakInfo.longest > streak;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -74,6 +78,12 @@ class WeeklyStripSection extends ConsumerWidget {
           if (monthCount > 0) ...[
             const SizedBox(height: 12),
             Text('이번 달 $monthCount개 기록했어요',
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+          ],
+          if (showBest) ...[
+            const SizedBox(height: 6),
+            Text('🏆 최고 기록은 ${streakInfo.longest}일 연속이에요',
                 style: const TextStyle(
                     fontSize: 12, color: AppColors.textSecondary)),
           ],
