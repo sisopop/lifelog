@@ -26,10 +26,30 @@ class DayEntriesScreen extends ConsumerWidget {
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
     final replyCounts = replyCountsByParent(all);
+    final adjacent = adjacentRecordedDays(all, day);
+
+    String iso(DateTime d) =>
+        '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
     return Scaffold(
       appBar: AppBar(
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            tooltip: '이전 기록일',
+            onPressed: adjacent.previous == null
+                ? null
+                : () => context.pushReplacement('/day/${iso(adjacent.previous!)}'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            tooltip: '다음 기록일',
+            onPressed: adjacent.next == null
+                ? null
+                : () => context.pushReplacement('/day/${iso(adjacent.next!)}'),
+          ),
+        ],
       ),
       body: entries.isEmpty
           ? const Center(

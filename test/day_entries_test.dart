@@ -42,6 +42,50 @@ void main() {
     expect(entriesOfDay(entries, DateTime(2026, 6, 1)), isEmpty);
   });
 
+  group('adjacentRecordedDays', () {
+    final entries = [
+      _e(id: '1', at: DateTime(2026, 6, 10, 9)),
+      _e(id: '2', at: DateTime(2026, 6, 10, 20)), // same day, dedup
+      _e(id: '3', at: DateTime(2026, 6, 13, 8)),
+      _e(id: '4', at: DateTime(2026, 6, 18, 8)),
+      _e(id: '5', at: DateTime(2026, 6, 20, 8), replyTo: '4'), // reply ignored
+    ];
+
+    test('returns nearest recorded days around the query day', () {
+      final a = adjacentRecordedDays(entries, DateTime(2026, 6, 13));
+      expect(a.previous, DateTime(2026, 6, 10));
+      expect(a.next, DateTime(2026, 6, 18));
+    });
+
+    test('null previous before the first recorded day', () {
+      final a = adjacentRecordedDays(entries, DateTime(2026, 6, 10));
+      expect(a.previous, isNull);
+      expect(a.next, DateTime(2026, 6, 13));
+    });
+
+    test('null next after the last recorded day', () {
+      final a = adjacentRecordedDays(entries, DateTime(2026, 6, 18));
+      expect(a.previous, DateTime(2026, 6, 13));
+      expect(a.next, isNull);
+    });
+
+    test('works from a day with no records of its own', () {
+      final a = adjacentRecordedDays(entries, DateTime(2026, 6, 15));
+      expect(a.previous, DateTime(2026, 6, 13));
+      expect(a.next, DateTime(2026, 6, 18));
+    });
+
+    test('replies do not create recorded days', () {
+      // 6/20 is only a reply, so the next after 6/18 is null, not 6/20.
+      expect(adjacentRecordedDays(entries, DateTime(2026, 6, 18)).next, isNull);
+      expect(recordedDaysSorted(entries), [
+        DateTime(2026, 6, 10),
+        DateTime(2026, 6, 13),
+        DateTime(2026, 6, 18),
+      ]);
+    });
+  });
+
   group('dominantMoodOf', () {
     test('returns the most-recorded mood', () {
       final m = dominantMoodOf([
