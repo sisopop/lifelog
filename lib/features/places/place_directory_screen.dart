@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../entries/entries_provider.dart';
+import '../home/journal_activity.dart';
 import 'place_directory.dart';
 
 /// Lists every location used across records with its count, newest-used first.
@@ -15,6 +16,8 @@ class PlaceDirectoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
     final places = placeCountsSorted(entries);
+    final lastVisits = lastVisitByPlace(entries);
+    final now = DateTime.now();
 
     return Scaffold(
       appBar: AppBar(
@@ -42,12 +45,16 @@ class PlaceDirectoryScreen extends ConsumerWidget {
                   );
                 }
                 final p = places[i - 1];
+                final last = lastVisits[p.key];
+                final subtitle = last == null
+                    ? '${p.value}개 기록'
+                    : '${p.value}개 기록 · 마지막 ${relativeDayLabel(last, now)}';
                 return ListTile(
                   leading: const Icon(Icons.place_outlined,
                       color: AppColors.primaryDark),
                   title: Text(p.key,
                       style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text('${p.value}개 기록'),
+                  subtitle: Text(subtitle),
                   trailing: const Icon(Icons.chevron_right,
                       color: AppColors.textHint),
                   onTap: () => context.push(

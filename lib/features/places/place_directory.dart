@@ -25,3 +25,21 @@ List<MapEntry<String, int>> placeCountsSorted(List<DiaryEntry> entries) {
     });
   return list;
 }
+
+/// Pure: the most-recent top-level record date for each location, keyed by the
+/// location's display spelling (matching [placeCountsSorted]). Replies and
+/// blank locations are ignored. Locations are grouped case-insensitively.
+Map<String, DateTime> lastVisitByPlace(List<DiaryEntry> entries) {
+  final latest = <String, DateTime>{};
+  final display = <String, String>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final loc = (e.location ?? '').trim();
+    if (loc.isEmpty) continue;
+    final key = loc.toLowerCase();
+    display.putIfAbsent(key, () => loc);
+    final cur = latest[key];
+    if (cur == null || e.createdAt.isAfter(cur)) latest[key] = e.createdAt;
+  }
+  return {for (final k in latest.keys) display[k]!: latest[k]!};
+}
