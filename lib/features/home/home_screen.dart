@@ -5,10 +5,12 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/journal.dart';
+import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../memories/on_this_day_section.dart';
 import '../memories/random_memory_section.dart';
 import 'home_greeting.dart';
+import 'journal_activity.dart';
 import 'today_prompt_section.dart';
 import 'weekly_strip_section.dart';
 
@@ -26,6 +28,7 @@ class HomeScreen extends ConsumerWidget {
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final counts =
         ref.watch(journalEntryCountsProvider).asData?.value ?? const {};
+    final allEntries = ref.watch(entriesProvider).asData?.value ?? const [];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -93,14 +96,19 @@ class HomeScreen extends ConsumerWidget {
                 ),
               )
             else
-              ...journals.map((j) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _JournalCard(
-                      journal: j,
-                      entryCount: counts[j.journalId] ?? 0,
-                      onTap: () => context.push('/journal/${j.journalId}'),
-                    ),
-                  )),
+              ...journals.map((j) {
+                final last = lastEntryDate(allEntries, j.journalId);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _JournalCard(
+                    journal: j,
+                    entryCount: counts[j.journalId] ?? 0,
+                    lastLabel:
+                        last == null ? null : relativeDayLabel(last, now),
+                    onTap: () => context.push('/journal/${j.journalId}'),
+                  ),
+                );
+              }),
           ],
         ),
       ),
@@ -143,9 +151,11 @@ class _JournalCard extends StatelessWidget {
     required this.journal,
     required this.entryCount,
     required this.onTap,
+    this.lastLabel,
   });
   final Journal journal;
   final int entryCount;
+  final String? lastLabel;
   final VoidCallback onTap;
 
   @override
@@ -192,8 +202,12 @@ class _JournalCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text('기록 $entryCount개',
-                      style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text(
+                      lastLabel == null
+                          ? '기록 $entryCount개'
+                          : '기록 $entryCount개 · 마지막 $lastLabel',
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 13)),
                 ],
               ),
             ),
