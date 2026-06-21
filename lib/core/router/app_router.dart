@@ -13,6 +13,8 @@ import '../../features/journals/new_journal_screen.dart';
 import '../../features/people/people_screen.dart';
 import '../../features/places/place_entries_screen.dart';
 import '../../features/stats/lifetime_stats_screen.dart';
+import '../../features/stats/mood_entries.dart';
+import '../../features/stats/mood_entries_screen.dart';
 import '../../features/review/day_entries_screen.dart';
 import '../../features/review/review_screen.dart';
 import '../../features/search/search_screen.dart';
@@ -109,6 +111,16 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/stats',
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const LifetimeStatsScreen(),
+      ),
+      GoRoute(
+        path: '/mood',
+        parentNavigatorKey: _rootKey,
+        builder: (_, state) {
+          final mood = moodFromName(state.uri.queryParameters['m'] ?? '');
+          return mood == null
+              ? const LifetimeStatsScreen()
+              : MoodEntriesScreen(mood: mood);
+        },
       ),
       GoRoute(
         path: '/tags/manage',

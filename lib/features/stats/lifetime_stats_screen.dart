@@ -177,22 +177,32 @@ class _MoodDistribution extends StatelessWidget {
             runSpacing: 8,
             children: [
               for (final e in counts.entries)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                          color: moodColor(e.key), shape: BoxShape.circle),
+                InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => context.push(Uri(
+                    path: '/mood',
+                    queryParameters: {'m': e.key.name},
+                  ).toString()),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                              color: moodColor(e.key), shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${e.key.label} ${e.value}개 (${(e.value * 100 / total).round()}%)',
+                          style: const TextStyle(
+                              fontSize: 13, color: AppColors.textSecondary),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${e.key.label} ${e.value}개 (${(e.value * 100 / total).round()}%)',
-                      style: const TextStyle(
-                          fontSize: 13, color: AppColors.textSecondary),
-                    ),
-                  ],
+                  ),
                 ),
             ],
           ),
