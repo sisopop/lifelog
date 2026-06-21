@@ -100,16 +100,42 @@ class SearchFavoriteNotifier extends Notifier<bool> {
 final searchFavoriteProvider =
     NotifierProvider<SearchFavoriteNotifier, bool>(SearchFavoriteNotifier.new);
 
+/// Pure: returns [entries] ordered by creation date. Newest-first by default;
+/// [ascending] true gives oldest-first. Does not mutate the input.
+List<DiaryEntry> sortSearchResults(List<DiaryEntry> entries,
+    {bool ascending = false}) {
+  final sorted = [...entries];
+  sorted.sort((a, b) => ascending
+      ? a.createdAt.compareTo(b.createdAt)
+      : b.createdAt.compareTo(a.createdAt));
+  return sorted;
+}
+
+/// Result sort order. false (default) = newest-first, true = oldest-first.
+class SearchSortNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void toggle() => state = !state;
+
+  void clear() => state = false;
+}
+
+final searchSortProvider =
+    NotifierProvider<SearchSortNotifier, bool>(SearchSortNotifier.new);
+
 /// Search results derived from [entriesProvider], the current query and the
-/// optional mood, journal and favorite filters.
+/// optional mood, journal and favorite filters, in the chosen sort order.
 final searchResultsProvider = Provider<List<DiaryEntry>>((ref) {
   final all = ref.watch(entriesProvider).asData?.value ?? const <DiaryEntry>[];
   final query = ref.watch(searchQueryProvider);
   final mood = ref.watch(searchMoodProvider);
   final journalId = ref.watch(searchJournalProvider);
   final onlyFavorites = ref.watch(searchFavoriteProvider);
-  return filterByFavorite(
+  final ascending = ref.watch(searchSortProvider);
+  final filtered = filterByFavorite(
     filterByJournal(filterByMood(searchEntries(all, query), mood), journalId),
     onlyFavorites,
   );
+  return sortSearchResults(filtered, ascending: ascending);
 });

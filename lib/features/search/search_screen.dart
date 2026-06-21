@@ -70,6 +70,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 ref.read(searchMoodProvider.notifier).clear();
                 ref.read(searchJournalProvider.notifier).clear();
                 ref.read(searchFavoriteProvider.notifier).clear();
+                ref.read(searchSortProvider.notifier).clear();
               },
             ),
         ],
@@ -133,13 +134,46 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (_, i) {
                     if (i == 0) {
+                      final ascending = ref.watch(searchSortProvider);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: Text('${results.length}개 찾음',
-                            style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textSecondary)),
+                        child: Row(
+                          children: [
+                            Text('${results.length}개 찾음',
+                                style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textSecondary)),
+                            const Spacer(),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => ref
+                                  .read(searchSortProvider.notifier)
+                                  .toggle(),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 4),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                        ascending
+                                            ? Icons.arrow_upward
+                                            : Icons.arrow_downward,
+                                        size: 14,
+                                        color: AppColors.primaryDark),
+                                    const SizedBox(width: 4),
+                                    Text(ascending ? '오래된순' : '최신순',
+                                        style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.primaryDark)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     }
                     final e = results[i - 1];

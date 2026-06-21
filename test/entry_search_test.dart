@@ -122,4 +122,28 @@ void main() {
       expect(filterByFavorite([_entry(id: 'x', content: 'x')], true), isEmpty);
     });
   });
+
+  group('sortSearchResults', () {
+    final entries = [
+      _entry(id: 'mid', content: 'x', createdAt: DateTime(2026, 6, 10)),
+      _entry(id: 'old', content: 'x', createdAt: DateTime(2026, 6, 1)),
+      _entry(id: 'new', content: 'x', createdAt: DateTime(2026, 6, 20)),
+    ];
+
+    test('defaults to newest-first', () {
+      expect(sortSearchResults(entries).map((e) => e.entryId),
+          ['new', 'mid', 'old']);
+    });
+
+    test('ascending gives oldest-first', () {
+      expect(sortSearchResults(entries, ascending: true).map((e) => e.entryId),
+          ['old', 'mid', 'new']);
+    });
+
+    test('does not mutate the input list', () {
+      final before = entries.map((e) => e.entryId).toList();
+      sortSearchResults(entries, ascending: true);
+      expect(entries.map((e) => e.entryId).toList(), before);
+    });
+  });
 }
