@@ -44,10 +44,20 @@ class FavoritesScreen extends ConsumerWidget {
             )
           : ListView.separated(
               padding: const EdgeInsets.all(20),
-              itemCount: entries.length,
+              itemCount: entries.length + 1,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
-                final e = entries[i];
+                if (i == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text('즐겨찾기 ${entries.length}개',
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary)),
+                  );
+                }
+                final e = entries[i - 1];
                 final j = journalMap[e.journalId];
                 return EntryCard(
                   e,
