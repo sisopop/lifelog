@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +10,7 @@ import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../stats/stats_provider.dart';
 import '../stats/streak.dart';
+import 'review_share.dart';
 
 part 'review_widgets.dart';
 
@@ -23,7 +25,24 @@ class ReviewScreen extends ConsumerWidget {
     final monthCtrl = ref.read(reviewMonthProvider.notifier);
     final canGoNext = monthCtrl.canGoNext;
     return Scaffold(
-      appBar: AppBar(title: const Text('회고', style: TextStyle(fontWeight: FontWeight.w800))),
+      appBar: AppBar(
+        title: const Text('회고', style: TextStyle(fontWeight: FontWeight.w800)),
+        actions: [
+          if (!stats.isEmpty)
+            IconButton(
+              icon: const Icon(Icons.ios_share),
+              tooltip: '이번 달 회고 공유',
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                await Clipboard.setData(
+                    ClipboardData(text: monthlyReviewShareText(stats)));
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('이번 달 회고를 복사했어요')),
+                );
+              },
+            ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
