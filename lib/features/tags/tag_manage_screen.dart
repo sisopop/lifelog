@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../entries/entries_provider.dart';
+import '../home/journal_activity.dart';
 import 'tag_manage.dart';
 
 /// Lists every tag with its usage count and lets the user rename or delete it
@@ -16,6 +17,8 @@ class TagManageScreen extends ConsumerWidget {
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
     final byName = ref.watch(tagSortByNameProvider);
     final tags = tagCountsSorted(entries, byName: byName);
+    final lastUse = lastUseByTag(entries);
+    final now = DateTime.now();
 
     return Scaffold(
       appBar: AppBar(
@@ -55,11 +58,15 @@ class TagManageScreen extends ConsumerWidget {
                   );
                 }
                 final t = tags[i - 1];
+                final last = lastUse[t.key];
+                final subtitle = last == null
+                    ? '${t.value}개 기록'
+                    : '${t.value}개 기록 · 마지막 ${relativeDayLabel(last, now)}';
                 return ListTile(
                   leading: const Icon(Icons.tag, color: AppColors.primaryDark),
                   title: Text('#${t.key}',
                       style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text('${t.value}개 기록'),
+                  subtitle: Text(subtitle),
                   onTap: () => context.push(
                     Uri(path: '/tag', queryParameters: {'t': t.key}).toString(),
                   ),

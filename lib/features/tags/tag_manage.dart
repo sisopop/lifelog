@@ -25,6 +25,19 @@ List<MapEntry<String, int>> tagCountsSorted(List<DiaryEntry> entries,
   return list;
 }
 
+/// Pure: the most-recent date each tag was used on, across every entry that
+/// carries it (top-level and replies alike, matching [tagCountsSorted]).
+Map<String, DateTime> lastUseByTag(List<DiaryEntry> entries) {
+  final latest = <String, DateTime>{};
+  for (final e in entries) {
+    for (final t in e.tags) {
+      final cur = latest[t];
+      if (cur == null || e.createdAt.isAfter(cur)) latest[t] = e.createdAt;
+    }
+  }
+  return latest;
+}
+
 /// Toggles the tag-management list between count-order (false) and name-order.
 class TagSortNotifier extends Notifier<bool> {
   @override
