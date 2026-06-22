@@ -207,6 +207,17 @@ DiaryEntry? longestEntry(List<DiaryEntry> entries) {
   return best;
 }
 
+/// Pure: the earliest top-level record (replies excluded). Returns null when
+/// there is no top-level entry. Ties (same instant) keep the first encountered.
+DiaryEntry? firstEntry(List<DiaryEntry> entries) {
+  DiaryEntry? best;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (best == null || e.createdAt.isBefore(best.createdAt)) best = e;
+  }
+  return best;
+}
+
 /// Pure: the longest (grapheme-aware, trimmed) top-level record within the
 /// given [year]/[month]. Returns null when that month has no record with text.
 DiaryEntry? longestEntryOfMonth(

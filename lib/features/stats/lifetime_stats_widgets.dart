@@ -74,6 +74,50 @@ class _LongestEntryCard extends StatelessWidget {
   }
 }
 
+/// Tappable highlight for the user's very first record; opens the entry.
+class _FirstEntryCard extends StatelessWidget {
+  const _FirstEntryCard({required this.entry, required this.locale});
+
+  final DiaryEntry entry;
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = (entry.title?.trim().isNotEmpty ?? false)
+        ? entry.title!.trim()
+        : entry.content.trim();
+    final date = DateFormat('yyyy.M.d', locale).format(entry.createdAt);
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => context.push('/entry/${entry.entryId}'),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('🌱 첫 기록 다시 보기',
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryDark)),
+            const SizedBox(height: 6),
+            Text('$date · $title',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// A proportional bar + legend showing how the recorded moods split.
 class _MoodDistribution extends StatelessWidget {
   const _MoodDistribution({required this.counts});

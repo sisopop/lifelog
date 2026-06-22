@@ -34,6 +34,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
     final tags = topTags(entries);
     final trend = recentMonthlyCounts(entries, DateTime.now());
     final longest = longestEntry(entries);
+    final first = firstEntry(entries);
     final avgGap = averageEntryGapDays(entries);
     final longestGap = longestGapDays(entries);
     final sinceFirst = daysSinceFirstEntry(s.firstDate, DateTime.now());
@@ -199,6 +200,10 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     chars: longest.content.trim().characters.length,
                     locale: locale,
                   ),
+                ],
+                if (first != null) ...[
+                  const SizedBox(height: 12),
+                  _FirstEntryCard(entry: first, locale: locale),
                 ],
                 if (trend.any((m) => m.count > 0)) ...[
                   const SizedBox(height: 24),

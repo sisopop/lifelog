@@ -324,6 +324,29 @@ void main() {
     });
   });
 
+  group('firstEntry', () {
+    test('null when empty', () {
+      expect(firstEntry(const []), isNull);
+    });
+
+    test('returns the earliest top-level entry', () {
+      final e = firstEntry([
+        _entry(id: 'late', at: DateTime(2026, 6, 10, 9)),
+        _entry(id: 'early', at: DateTime(2026, 6, 2, 23, 59)),
+        _entry(id: 'mid', at: DateTime(2026, 6, 5)),
+      ]);
+      expect(e!.entryId, 'early');
+    });
+
+    test('ignores replies even when a reply is older', () {
+      final e = firstEntry([
+        _entry(id: 'top', at: DateTime(2026, 6, 10)),
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'top'),
+      ]);
+      expect(e!.entryId, 'top');
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);
