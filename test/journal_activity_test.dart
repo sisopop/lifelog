@@ -58,6 +58,38 @@ void main() {
     });
   });
 
+  group('daysSinceLastEntry', () {
+    final now = DateTime(2026, 6, 21, 15);
+
+    test('null when there are no entries at all', () {
+      expect(daysSinceLastEntry(const [], now), isNull);
+    });
+
+    test('counts calendar days from the newest top-level entry', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 10), journalId: 'j1'),
+        _e(id: '2', at: DateTime(2026, 6, 18, 9), journalId: 'j2'),
+      ];
+      expect(daysSinceLastEntry(entries, now), 3); // 6/18 → 6/21
+    });
+
+    test('ignores replies even if newer', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 15), journalId: 'j1'),
+        _e(id: '2', at: DateTime(2026, 6, 20), journalId: 'j1', replyTo: '1'),
+      ];
+      expect(daysSinceLastEntry(entries, now), 6); // reply 6/20 ignored
+    });
+
+    test('today or future reads as 0', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 21, 8), journalId: 'j1'),
+        _e(id: '2', at: DateTime(2026, 6, 25), journalId: 'j1'),
+      ];
+      expect(daysSinceLastEntry(entries, now), 0);
+    });
+  });
+
   group('relativeDayLabel', () {
     final now = DateTime(2026, 6, 21, 15);
 

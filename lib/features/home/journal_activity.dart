@@ -17,6 +17,22 @@ DateTime? lastEntryDate(List<DiaryEntry> entries, String journalId) {
   return latest;
 }
 
+/// Pure: calendar days since the most recent top-level entry across ALL
+/// journals, or null when there are no (non-reply) entries yet. Replies are
+/// ignored. A record made today (or a future-dated one) reads as 0.
+int? daysSinceLastEntry(List<DiaryEntry> entries, DateTime now) {
+  DateTime? latest;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (latest == null || e.createdAt.isAfter(latest)) latest = e.createdAt;
+  }
+  if (latest == null) return null;
+  final d0 = DateTime(latest.year, latest.month, latest.day);
+  final n0 = DateTime(now.year, now.month, now.day);
+  final days = n0.difference(d0).inDays;
+  return days < 0 ? 0 : days;
+}
+
 /// A short Korean relative-day label comparing [date] to [now], by calendar
 /// day: 오늘 / 어제 / N일 전 / N주 전 / N개월 전 / N년 전. Future or same-day
 /// dates read as "오늘".
