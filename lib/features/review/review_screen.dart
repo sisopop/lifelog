@@ -180,6 +180,20 @@ class ReviewScreen extends ConsumerWidget {
                 ),
               );
             }),
+            Builder(builder: (context) {
+              final weekday = ref.watch(busiestWeekdayProvider);
+              if (weekday == null || weekday.value < 2) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '📅 이번 달은 주로 ${weekday.key}에 기록했어요 (${weekday.value}개)',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
             if (stats.avgChars > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 6),

@@ -398,6 +398,42 @@ final topTagProvider = Provider<MapEntry<String, int>?>((ref) {
   return topTagOfMonth(entries, m.year, m.month);
 });
 
+/// Korean weekday names indexed by [DateTime.weekday] (1=Mon … 7=Sun).
+const _monthWeekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
+
+/// Pure: the weekday the user records on most often within the given month,
+/// as `(name, count)`. Top-level records only (replies ignored). Returns null
+/// when the month has no records. Ties resolve to the earlier weekday
+/// (Mon before Sun).
+MapEntry<String, int>? busiestWeekdayOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final counts = <int, int>{}; // weekday(1..7) -> count
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.createdAt.year != year || e.createdAt.month != month) continue;
+    final w = e.createdAt.weekday;
+    counts[w] = (counts[w] ?? 0) + 1;
+  }
+  if (counts.isEmpty) return null;
+  int? bestDay;
+  var bestCount = 0;
+  for (var w = 1; w <= 7; w++) {
+    final c = counts[w];
+    if (c != null && c > bestCount) {
+      bestDay = w;
+      bestCount = c;
+    }
+  }
+  return MapEntry('${_monthWeekdayNames[bestDay!]}요일', bestCount);
+}
+
+/// Busiest weekday for the month currently shown on the 회고 screen.
+final busiestWeekdayProvider = Provider<MapEntry<String, int>?>((ref) {
+  final entries = ref.watch(reviewEntriesProvider);
+  final m = ref.watch(reviewMonthProvider);
+  return busiestWeekdayOfMonth(entries, m.year, m.month);
+});
+
 /// Days (1..31) of the given month that have at least one top-level record.
 Set<int> recordedDaysOfMonth(
     List<DiaryEntry> entries, int year, int month) {
