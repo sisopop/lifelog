@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:lifelog/features/auth/session.dart';
 import 'package:lifelog/features/entries/entries_provider.dart';
 import 'package:lifelog/features/home/home_screen.dart';
 import 'package:lifelog/features/journals/journals_provider.dart';
@@ -34,9 +36,12 @@ void main() {
   setUpAll(() => initializeDateFormatting());
 
   testWidgets('Home lists journals and the new-journal action', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          sharedPrefsProvider.overrideWithValue(prefs),
           journalsProvider.overrideWith(_FakeJournalsNotifier.new),
           journalEntryCountsProvider.overrideWith((ref) async => {'jr_default': 3}),
           entriesProvider.overrideWith(_FakeEntriesNotifier.new),

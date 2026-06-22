@@ -11,6 +11,7 @@ import '../entries/entries_provider.dart';
 import '../export/export_markdown.dart';
 import '../journals/default_journal_provider.dart';
 import '../journals/journals_provider.dart';
+import '../home/home_journal_layout.dart';
 import '../places/place_directory.dart';
 import '../stats/lifetime_stats.dart';
 import 'reading_text_scale.dart';
@@ -64,6 +65,7 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => context.push('/places'),
           ),
           _LanguageTile(),
+          _HomeLayoutTile(),
           _ReadingTextSizeTile(),
           _ExportTile(),
           _SectionTile(
@@ -303,6 +305,56 @@ class _ReadingTextSizeTile extends ConsumerWidget {
           );
           if (picked != null) {
             await ref.read(readingTextScaleProvider.notifier).set(picked);
+          }
+        },
+      ),
+    );
+  }
+}
+
+/// Picks how the home journal list is laid out (card list vs. 2/3/4-col grid).
+class _HomeLayoutTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final current = ref.watch(homeJournalLayoutProvider);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading:
+            const Icon(Icons.grid_view_outlined, color: AppColors.textSecondary),
+        title: const Text('홈 일기장 보기'),
+        subtitle: Text('홈에서 일기장을 보여주는 방식 · ${current.label}'),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        onTap: () async {
+          final picked = await showModalBottomSheet<HomeJournalLayout>(
+            context: context,
+            builder: (ctx) => SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('홈 일기장 보기',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w700)),
+                    ),
+                  ),
+                  for (final l in HomeJournalLayout.values)
+                    ListTile(
+                      title: Text(l.label),
+                      trailing: l == current
+                          ? const Icon(Icons.check, color: AppColors.primary)
+                          : null,
+                      onTap: () => Navigator.pop(ctx, l),
+                    ),
+                ],
+              ),
+            ),
+          );
+          if (picked != null) {
+            await ref.read(homeJournalLayoutProvider.notifier).set(picked);
           }
         },
       ),
