@@ -10,6 +10,7 @@ DiaryEntry _e({
   String? replyTo,
   DateTime? created,
   bool favorite = false,
+  List<String> media = const [],
 }) =>
     DiaryEntry(
       entryId: id,
@@ -20,6 +21,7 @@ DiaryEntry _e({
       tags: tags,
       content: 'x',
       isFavorite: favorite,
+      mediaUrls: media,
       createdAt: created ?? DateTime(2026, 1, 1),
       updatedAt: created ?? DateTime(2026, 1, 1),
     );
@@ -82,6 +84,32 @@ void main() {
 
     test('favorite is part of isActive', () {
       expect(const TimelineFilter(favorite: true).isActive, isTrue);
+      expect(const TimelineFilter().isActive, isFalse);
+    });
+
+    test('filters by hasPhoto', () {
+      final pics = [
+        _e(id: 'a', media: ['u1']),
+        _e(id: 'b'),
+        _e(id: 'c', media: ['u2', 'u3']),
+      ];
+      final r = filterEntries(pics, const TimelineFilter(hasPhoto: true));
+      expect(r.map((e) => e.entryId), ['a', 'c']);
+    });
+
+    test('hasPhoto combines with tag (AND)', () {
+      final pics = [
+        _e(id: 'a', tags: ['여행'], media: ['u1']),
+        _e(id: 'b', tags: ['여행']),
+        _e(id: 'c', media: ['u2']),
+      ];
+      final r = filterEntries(
+          pics, const TimelineFilter(tag: '여행', hasPhoto: true));
+      expect(r.map((e) => e.entryId), ['a']);
+    });
+
+    test('hasPhoto is part of isActive', () {
+      expect(const TimelineFilter(hasPhoto: true).isActive, isTrue);
       expect(const TimelineFilter().isActive, isFalse);
     });
   });

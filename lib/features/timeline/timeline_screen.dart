@@ -163,6 +163,15 @@ class _FilterBar extends ConsumerWidget {
             onTap: notifier.toggleFavorite,
           ),
           const SizedBox(width: 8),
+          _Chip(
+            label: '사진',
+            selected: filter.hasPhoto,
+            icon: filter.hasPhoto
+                ? Icons.photo
+                : Icons.photo_outlined,
+            onTap: notifier.toggleHasPhoto,
+          ),
+          const SizedBox(width: 8),
           for (final m in Mood.values) ...[
             _Chip(
               label: '${m.emoji} ${m.label}',

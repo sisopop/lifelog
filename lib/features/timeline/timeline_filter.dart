@@ -26,21 +26,28 @@ class TimelineFilter {
     this.mood,
     this.tag,
     this.favorite = false,
+    this.hasPhoto = false,
     this.period = DatePreset.all,
   });
 
   final Mood? mood;
   final String? tag;
   final bool favorite;
+  final bool hasPhoto;
   final DatePreset period;
 
   bool get isActive =>
-      mood != null || tag != null || favorite || period != DatePreset.all;
+      mood != null ||
+      tag != null ||
+      favorite ||
+      hasPhoto ||
+      period != DatePreset.all;
 
   TimelineFilter copyWith({
     Mood? mood,
     String? tag,
     bool? favorite,
+    bool? hasPhoto,
     DatePreset? period,
     bool clearMood = false,
     bool clearTag = false,
@@ -49,6 +56,7 @@ class TimelineFilter {
       mood: clearMood ? null : (mood ?? this.mood),
       tag: clearTag ? null : (tag ?? this.tag),
       favorite: favorite ?? this.favorite,
+      hasPhoto: hasPhoto ?? this.hasPhoto,
       period: period ?? this.period,
     );
   }
@@ -62,6 +70,7 @@ List<DiaryEntry> filterEntries(List<DiaryEntry> entries, TimelineFilter filter) 
     if (filter.mood != null && e.mood != filter.mood) return false;
     if (filter.tag != null && !e.tags.contains(filter.tag)) return false;
     if (filter.favorite && !e.isFavorite) return false;
+    if (filter.hasPhoto && e.mediaUrls.isEmpty) return false;
     return true;
   }).toList();
 }
@@ -175,6 +184,8 @@ class TimelineFilterNotifier extends Notifier<TimelineFilter> {
   }
 
   void toggleFavorite() => state = state.copyWith(favorite: !state.favorite);
+
+  void toggleHasPhoto() => state = state.copyWith(hasPhoto: !state.hasPhoto);
 
   /// Sets the date preset, or returns to [DatePreset.all] when the currently
   /// active preset is tapped again.
