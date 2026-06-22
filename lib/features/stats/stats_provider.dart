@@ -81,6 +81,27 @@ final thisMonthCountProvider = Provider<int>((ref) {
   return monthEntryCount(entries, now.year, now.month);
 });
 
+/// Pure: number of top-level entries created in the last 7 calendar days
+/// ending with [now]'s day (the same window as [weekDots]). 답장(reply)
+/// records are excluded.
+int weekEntryCount(List<DiaryEntry> entries, DateTime now) {
+  final today = DateTime(now.year, now.month, now.day);
+  final start = today.subtract(const Duration(days: 6));
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final d = DateTime(e.createdAt.year, e.createdAt.month, e.createdAt.day);
+    if (!d.isBefore(start) && !d.isAfter(today)) n++;
+  }
+  return n;
+}
+
+/// How many top-level entries the user has recorded in the last 7 days.
+final thisWeekCountProvider = Provider<int>((ref) {
+  final entries = ref.watch(entriesProvider).asData?.value ?? const [];
+  return weekEntryCount(entries, DateTime.now());
+});
+
 class MonthlyStats {
   const MonthlyStats({
     required this.year,

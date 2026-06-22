@@ -18,6 +18,7 @@ class WeeklyStripSection extends ConsumerWidget {
     final streakInfo = ref.watch(homeStreakInfoProvider);
     final streak = streakInfo.current;
     final monthCount = ref.watch(thisMonthCountProvider);
+    final weekCount = ref.watch(thisWeekCountProvider);
     // Encourage beating the record only when the best run is meaningfully
     // longer than the current one.
     final showBest = streakInfo.longest >= 2 && streakInfo.longest > streak;
@@ -75,8 +76,14 @@ class WeeklyStripSection extends ConsumerWidget {
                 ),
             ],
           ),
-          if (monthCount > 0) ...[
+          if (weekCount > 0) ...[
             const SizedBox(height: 12),
+            Text('이번 주 $weekCount개 기록했어요',
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+          ],
+          if (monthCount > 0) ...[
+            SizedBox(height: weekCount > 0 ? 6 : 12),
             Text('이번 달 $monthCount개 기록했어요',
                 style: const TextStyle(
                     fontSize: 12, color: AppColors.textSecondary)),

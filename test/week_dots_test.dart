@@ -46,4 +46,30 @@ void main() {
     ], now);
     expect(dots.every((d) => !d.done), isTrue);
   });
+
+  group('weekEntryCount', () {
+    test('counts top-level entries in the last 7 days, multiple per day', () {
+      // window 6/11 … 6/17
+      final n = weekEntryCount([
+        _entry(DateTime(2026, 6, 11, 9)), // oldest in window
+        _entry(DateTime(2026, 6, 14, 9)),
+        _entry(DateTime(2026, 6, 14, 20)), // same day, still counts
+        _entry(DateTime(2026, 6, 17, 8)), // today
+      ], now);
+      expect(n, 4);
+    });
+
+    test('excludes entries before the window and replies', () {
+      final n = weekEntryCount([
+        _entry(DateTime(2026, 6, 10, 23)), // one day before window → out
+        _entry(DateTime(2026, 6, 17, 9), replyTo: 'x'), // reply → ignored
+        _entry(DateTime(2026, 6, 13, 9)), // in window
+      ], now);
+      expect(n, 1);
+    });
+
+    test('zero when nothing falls in the window', () {
+      expect(weekEntryCount(const [], now), 0);
+    });
+  });
 }
