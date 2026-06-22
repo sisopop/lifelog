@@ -28,6 +28,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
         .length;
     final s = computeLifetimeStats(entries);
     final moods = moodBreakdown(entries);
+    final dayParts = dayPartBreakdown(entries);
     final busiest = busiestDayPart(entries);
     final busyDay = busiestWeekday(entries);
     final tags = topTags(entries);
@@ -121,6 +122,10 @@ class LifetimeStatsScreen extends ConsumerWidget {
                 if (moods.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   _MoodDistribution(counts: moods),
+                ],
+                if (dayParts.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _DayPartDistribution(counts: dayParts),
                 ],
                 if (busiest != null) ...[
                   const SizedBox(height: 12),

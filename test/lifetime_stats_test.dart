@@ -324,6 +324,35 @@ void main() {
     });
   });
 
+  group('dayPartBreakdown', () {
+    test('empty → empty map', () {
+      expect(dayPartBreakdown(const []), isEmpty);
+    });
+
+    test('counts by day-part and excludes replies', () {
+      final m = dayPartBreakdown([
+        _entry(id: 'a', at: DateTime(2026, 6, 1, 2)), // dawn
+        _entry(id: 'b', at: DateTime(2026, 6, 2, 9)), // morning
+        _entry(id: 'c', at: DateTime(2026, 6, 3, 14)), // afternoon
+        _entry(id: 'd', at: DateTime(2026, 6, 4, 20)), // evening
+        _entry(id: 'e', at: DateTime(2026, 6, 5, 21)), // evening
+        _entry(id: 'r', at: DateTime(2026, 6, 6, 9), replyTo: 'a'), // ignored
+      ]);
+      expect(m[DayPart.dawn], 1);
+      expect(m[DayPart.morning], 1);
+      expect(m[DayPart.afternoon], 1);
+      expect(m[DayPart.evening], 2);
+    });
+
+    test('only present day-parts appear, ordered by DayPart.values', () {
+      final m = dayPartBreakdown([
+        _entry(id: 'a', at: DateTime(2026, 6, 1, 20)), // evening
+        _entry(id: 'b', at: DateTime(2026, 6, 2, 2)), // dawn
+      ]);
+      expect(m.keys.toList(), [DayPart.dawn, DayPart.evening]);
+    });
+  });
+
   group('longestGapDays', () {
     test('null with fewer than two distinct days', () {
       expect(longestGapDays(const []), isNull);

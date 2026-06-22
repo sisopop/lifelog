@@ -101,6 +101,22 @@ MapEntry<DayPart, int>? busiestDayPartOfMonth(
   return busiestDayPart(monthly);
 }
 
+/// Pure: count top-level entries by day-part (시간대). Only day-parts that
+/// actually occur are present in the map, ordered by [DayPart.values] for
+/// stable rendering. Replies are ignored.
+Map<DayPart, int> dayPartBreakdown(List<DiaryEntry> entries) {
+  final counts = <DayPart, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final p = _partOfHour(e.createdAt.hour);
+    counts[p] = (counts[p] ?? 0) + 1;
+  }
+  return {
+    for (final p in DayPart.values)
+      if (counts[p] != null) p: counts[p]!,
+  };
+}
+
 /// Korean weekday names indexed by [DateTime.weekday] (1=Mon … 7=Sun).
 const _weekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
 
