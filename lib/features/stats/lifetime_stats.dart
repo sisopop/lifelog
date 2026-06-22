@@ -117,6 +117,16 @@ Map<DayPart, int> dayPartBreakdown(List<DiaryEntry> entries) {
   };
 }
 
+/// Pure: [dayPartBreakdown] restricted to the given [year]/[month]. Returns an
+/// empty map when that month has no top-level record.
+Map<DayPart, int> dayPartBreakdownOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries
+      .where((e) => e.createdAt.year == year && e.createdAt.month == month)
+      .toList();
+  return dayPartBreakdown(monthly);
+}
+
 /// Korean weekday names indexed by [DateTime.weekday] (1=Mon … 7=Sun).
 const _weekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
 

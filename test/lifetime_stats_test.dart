@@ -353,6 +353,26 @@ void main() {
     });
   });
 
+  group('dayPartBreakdownOfMonth', () {
+    test('empty when the month has no record', () {
+      expect(
+          dayPartBreakdownOfMonth(
+              [_entry(id: 'a', at: DateTime(2026, 5, 1, 9))], 2026, 6),
+          isEmpty);
+    });
+
+    test('counts only the given month, by day-part', () {
+      final m = dayPartBreakdownOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1, 2)), // dawn, in
+        _entry(id: 'b', at: DateTime(2026, 6, 2, 20)), // evening, in
+        _entry(id: 'c', at: DateTime(2026, 7, 1, 9)), // other month, out
+      ], 2026, 6);
+      expect(m[DayPart.dawn], 1);
+      expect(m[DayPart.evening], 1);
+      expect(m.containsKey(DayPart.morning), isFalse);
+    });
+  });
+
   group('longestGapDays', () {
     test('null with fewer than two distinct days', () {
       expect(longestGapDays(const []), isNull);

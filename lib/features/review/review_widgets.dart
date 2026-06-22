@@ -290,6 +290,84 @@ class _WeekdayChart extends StatelessWidget {
   }
 }
 
+/// A soft, distinct color per day-part for the 시간대 분포 chart.
+Color _dayPartColor(DayPart part) {
+  switch (part) {
+    case DayPart.dawn:
+      return const Color(0xFF5C6BC0); // indigo — 새벽
+    case DayPart.morning:
+      return const Color(0xFFFFB74D); // orange — 아침
+    case DayPart.afternoon:
+      return const Color(0xFF4FC3F7); // sky — 오후
+    case DayPart.evening:
+      return const Color(0xFF9575CD); // violet — 저녁
+  }
+}
+
+/// A proportional bar + legend showing how this month's records split across
+/// the day. Mirrors the lifetime summary's 시간대 분포 chart.
+class _DayPartChart extends StatelessWidget {
+  const _DayPartChart(this.counts);
+  final Map<DayPart, int> counts;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = counts.values.fold<int>(0, (a, b) => a + b);
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Row(
+              children: [
+                for (final e in counts.entries)
+                  Expanded(
+                    flex: e.value,
+                    child:
+                        Container(height: 14, color: _dayPartColor(e.key)),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              for (final e in counts.entries)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                          color: _dayPartColor(e.key),
+                          shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${e.key.emoji} ${e.key.label} ${e.value}개 '
+                      '(${(e.value * 100 / total).round()}%)',
+                      style: const TextStyle(
+                          fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _MoodBar extends StatelessWidget {
   const _MoodBar(this.mood, this.ratio);
   final Mood mood;

@@ -241,6 +241,22 @@ class ReviewScreen extends ConsumerWidget {
           const Text('요일별 기록', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           _WeekdayChart(ref.watch(weekdayCountsProvider)),
+          Builder(builder: (context) {
+            final parts = dayPartBreakdownOfMonth(
+                ref.watch(reviewEntriesProvider), stats.year, stats.month);
+            if (parts.isEmpty) return const SizedBox.shrink();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 20),
+                const Text('시간대 분포',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 12),
+                _DayPartChart(parts),
+              ],
+            );
+          }),
           const SizedBox(height: 20),
           const Text('감정 분포', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
