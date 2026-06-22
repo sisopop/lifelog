@@ -9,6 +9,7 @@ import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../review/day_entries.dart';
 import '../stats/stats_provider.dart';
+import '../write/write_date.dart';
 import 'calendar_provider.dart';
 
 /// A dedicated calendar screen: browse months, see which days have records
@@ -89,11 +90,22 @@ class CalendarScreen extends ConsumerWidget {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           if (dayEntries.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: Text('이 날의 기록이 없어요',
-                    style: TextStyle(color: AppColors.textSecondary)),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: [
+                  const Text('이 날의 기록이 없어요',
+                      style: TextStyle(color: AppColors.textSecondary)),
+                  const SizedBox(height: 14),
+                  OutlinedButton.icon(
+                    onPressed: () => context.push(Uri(
+                      path: '/write',
+                      queryParameters: {'date': writeDateParam(selected)},
+                    ).toString()),
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    label: Text('${selected.month}월 ${selected.day}일 기록 쓰기'),
+                  ),
+                ],
               ),
             )
           else

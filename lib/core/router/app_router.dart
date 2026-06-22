@@ -24,6 +24,7 @@ import '../../features/share/share_screen.dart';
 import '../../features/tags/tag_entries_screen.dart';
 import '../../features/tags/tag_manage_screen.dart';
 import '../../features/timeline/timeline_screen.dart';
+import '../../features/write/write_date.dart';
 import '../../features/write/write_screen.dart';
 import '../../shared/widgets/scaffold_with_nav.dart';
 
@@ -55,6 +56,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             journalId: qp['journalId'],
             authorId: qp['authorId'],
             advanceTurn: qp['advance'] == '1',
+            initialDate: parseWriteDate(qp['date']),
           );
         },
       ),

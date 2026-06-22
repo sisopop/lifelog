@@ -32,6 +32,7 @@ class WriteScreen extends ConsumerStatefulWidget {
     this.journalId,
     this.authorId,
     this.advanceTurn = false,
+    this.initialDate,
   });
 
   /// When set, the screen edits an existing entry instead of creating one.
@@ -45,6 +46,10 @@ class WriteScreen extends ConsumerStatefulWidget {
 
   /// After saving, advance the exchange-journal turn to the next member.
   final bool advanceTurn;
+
+  /// Pre-selects a calendar day for a new entry (e.g. writing from a past day
+  /// on the calendar). Ignored when editing. Null → today.
+  final DateTime? initialDate;
 
   @override
   ConsumerState<WriteScreen> createState() => _WriteScreenState();
@@ -64,6 +69,14 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   /// Selected calendar day for the entry (lets you back-date past diaries).
   /// Only the date part matters; the time-of-day is preserved on save.
   DateTime _date = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    if (!_isEditing && widget.initialDate != null) {
+      _date = widget.initialDate!;
+    }
+  }
 
   /// Target journal for a new entry. Defaults to the route param / default
   /// journal, but can be changed via the journal selector at the top.
