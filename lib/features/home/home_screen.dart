@@ -97,10 +97,29 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 20),
-            if (journals.isEmpty) ...[
-              _NewJournalCard(onTap: () => context.push('/journal/new')),
-              const SizedBox(height: 16),
-            ],
+            // The journals are the hero: a bookshelf grid right under the
+            // header, with "새 일기장" as the trailing tile.
+            if (journals.isEmpty)
+              _NewJournalCard(onTap: () => context.push('/journal/new'))
+            else
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
+                childAspectRatio: 0.74,
+                children: [
+                  for (final j in journals)
+                    _JournalBook(
+                      journal: j,
+                      entryCount: counts[j.journalId] ?? 0,
+                      onTap: () => context.push('/journal/${j.journalId}'),
+                    ),
+                  _AddJournalBook(onTap: () => context.push('/journal/new')),
+                ],
+              ),
+            const SizedBox(height: 20),
             const TodayPromptSection(),
             const WeeklyStripSection(),
             const SizedBox(height: 16),
@@ -114,23 +133,7 @@ class HomeScreen extends ConsumerWidget {
                       textAlign: TextAlign.center,
                       style: TextStyle(color: AppColors.textHint, height: 1.5)),
                 ),
-              )
-            else
-              ...journals.map((j) {
-                final last = lastEntryDate(allEntries, j.journalId);
-                final mood = dominantMoodForJournal(allEntries, j.journalId);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _JournalCard(
-                    journal: j,
-                    entryCount: counts[j.journalId] ?? 0,
-                    lastLabel:
-                        last == null ? null : relativeDayLabel(last, now),
-                    moodEmoji: mood?.emoji,
-                    onTap: () => context.push('/journal/${j.journalId}'),
-                  ),
-                );
-              }),
+              ),
           ],
         ),
       ),
@@ -168,73 +171,93 @@ class _NewJournalCard extends StatelessWidget {
   }
 }
 
-class _JournalCard extends StatelessWidget {
-  const _JournalCard({
+/// A journal shown as a book cover. Structured so a future "skin" system can
+/// swap the cover decoration (color → gradient → pattern → texture) without
+/// touching the layout. For now it shows icon · title · record count only.
+class _JournalBook extends StatelessWidget {
+  const _JournalBook({
     required this.journal,
     required this.entryCount,
     required this.onTap,
-    this.lastLabel,
-    this.moodEmoji,
   });
   final Journal journal;
   final int entryCount;
-  final String? lastLabel;
-  final String? moodEmoji;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final color = Color(journal.coverColor);
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           gradient: LinearGradient(
             colors: [color, color.withValues(alpha: 0.78)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        child: Row(
+        child: Stack(
           children: [
-            Text(journal.displayIcon, style: const TextStyle(fontSize: 30)),
-            const SizedBox(width: 14),
-            Expanded(
+            // Spine accent on the left edge to read as a book.
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 8,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.16),
+                  borderRadius: const BorderRadius.horizontal(
+                      left: Radius.circular(14)),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('$entryCount',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(journal.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800)),
-                      ),
-                      const SizedBox(width: 8),
-                      _TypeBadge(journal.type.label),
-                      if (journal.isArchived) ...[
-                        const SizedBox(width: 6),
-                        _TypeBadge('보관'),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                      '${moodEmoji == null ? '' : '$moodEmoji '}'
-                      '${lastLabel == null ? '기록 $entryCount개' : '기록 $entryCount개 · 마지막 $lastLabel'}',
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 13)),
+                  Text(journal.displayIcon,
+                      style: const TextStyle(fontSize: 34)),
+                  Text(journal.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          height: 1.2)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.white70),
           ],
         ),
       ),
@@ -242,21 +265,35 @@ class _JournalCard extends StatelessWidget {
   }
 }
 
-class _TypeBadge extends StatelessWidget {
-  const _TypeBadge(this.label);
-  final String label;
+/// Trailing "새 일기장" tile that matches the book grid.
+class _AddJournalBook extends StatelessWidget {
+  const _AddJournalBook({required this.onTap});
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.white24,
-        borderRadius: BorderRadius.circular(8),
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.primary, width: 1.4),
+          color: AppColors.primarySoft.withValues(alpha: 0.4),
+        ),
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add, color: AppColors.primary, size: 30),
+            SizedBox(height: 8),
+            Text('새 일기장',
+                style: TextStyle(
+                    color: AppColors.primaryDark,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13)),
+          ],
+        ),
       ),
-      child: Text(label,
-          style: const TextStyle(
-              color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
     );
   }
 }
