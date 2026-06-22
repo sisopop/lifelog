@@ -19,6 +19,7 @@ class FavoritesScreen extends ConsumerWidget {
     final all = ref.watch(entriesProvider).asData?.value ?? const [];
     final ascending = ref.watch(favoriteSortProvider);
     final entries = favoriteEntries(all, ascending: ascending);
+    final charTotal = favoriteCharTotal(all);
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
     final replyCounts = replyCountsByParent(all);
@@ -53,7 +54,10 @@ class FavoritesScreen extends ConsumerWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Row(
                       children: [
-                        Text('즐겨찾기 ${entries.length}개',
+                        Text(
+                            charTotal > 0
+                                ? '즐겨찾기 ${entries.length}개 · 총 $charTotal자'
+                                : '즐겨찾기 ${entries.length}개',
                             style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,

@@ -7,6 +7,7 @@ DiaryEntry _e({
   required DateTime at,
   bool isFavorite = false,
   String? replyTo,
+  String content = 'x',
 }) =>
     DiaryEntry(
       entryId: id,
@@ -14,7 +15,7 @@ DiaryEntry _e({
       journalId: 'j1',
       replyToEntryId: replyTo,
       isFavorite: isFavorite,
-      content: 'x',
+      content: content,
       createdAt: at,
       updatedAt: at,
     );
@@ -64,6 +65,36 @@ void main() {
       ];
       favoriteEntries(entries, ascending: true);
       expect(entries.map((e) => e.entryId), ['1', '2']);
+    });
+  });
+
+  group('favoriteCharTotal', () {
+    test('sums trimmed content of starred top-level entries', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 1), isFavorite: true, content: '  안녕  '),
+        _e(id: '2', at: DateTime(2026, 6, 2), isFavorite: true, content: 'hi'),
+        _e(id: '3', at: DateTime(2026, 6, 3), content: '제외'),
+      ];
+      // '안녕' = 2 graphemes, 'hi' = 2 → 4. id=3 not starred.
+      expect(favoriteCharTotal(entries), 4);
+    });
+
+    test('excludes starred replies', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 1), isFavorite: true, content: 'ab'),
+        _e(
+            id: '2',
+            at: DateTime(2026, 6, 2),
+            isFavorite: true,
+            replyTo: '1',
+            content: 'xyz'),
+      ];
+      expect(favoriteCharTotal(entries), 2);
+    });
+
+    test('zero when nothing is starred', () {
+      final entries = [_e(id: '1', at: DateTime(2026, 6, 1), content: 'abc')];
+      expect(favoriteCharTotal(entries), 0);
     });
   });
 }
