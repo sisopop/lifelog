@@ -362,6 +362,42 @@ final topPlaceProvider = Provider<MapEntry<String, int>?>((ref) {
   return topPlaceOfMonth(entries, m.year, m.month);
 });
 
+/// Pure: the tag used most across the given month's top-level records, paired
+/// with that count (kept display spelling, grouped case-insensitively and
+/// trimmed). Records without tags are ignored; empty/blank tags are skipped.
+/// Returns null when the month has no tagged records. Ties resolve
+/// alphabetically.
+MapEntry<String, int>? topTagOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final counts = <String, int>{};
+  final display = <String, String>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.createdAt.year != year || e.createdAt.month != month) continue;
+    for (final raw in e.tags) {
+      final tag = raw.trim();
+      if (tag.isEmpty) continue;
+      final key = tag.toLowerCase();
+      counts[key] = (counts[key] ?? 0) + 1;
+      display.putIfAbsent(key, () => tag);
+    }
+  }
+  if (counts.isEmpty) return null;
+  final keys = counts.keys.toList()..sort();
+  var best = MapEntry(keys.first, counts[keys.first]!);
+  for (final k in keys) {
+    if (counts[k]! > best.value) best = MapEntry(k, counts[k]!);
+  }
+  return MapEntry(display[best.key]!, best.value);
+}
+
+/// Most-used tag for the month currently shown on the 회고 screen.
+final topTagProvider = Provider<MapEntry<String, int>?>((ref) {
+  final entries = ref.watch(reviewEntriesProvider);
+  final m = ref.watch(reviewMonthProvider);
+  return topTagOfMonth(entries, m.year, m.month);
+});
+
 /// Days (1..31) of the given month that have at least one top-level record.
 Set<int> recordedDaysOfMonth(
     List<DiaryEntry> entries, int year, int month) {

@@ -168,6 +168,18 @@ class ReviewScreen extends ConsumerWidget {
                 ),
               );
             }),
+            Builder(builder: (context) {
+              final tag = ref.watch(topTagProvider);
+              if (tag == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '🏷️ 이번 달 가장 많이 쓴 태그는 #${tag.key} 예요 (${tag.value}개)',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
             if (stats.avgChars > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
