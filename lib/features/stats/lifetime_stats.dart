@@ -41,6 +41,17 @@ int? daysSinceFirstEntry(DateTime? firstDate, DateTime now) {
   return diff + 1;
 }
 
+/// Pure: what share of the days since the first record actually have a record,
+/// as an integer percent (0..100). [recordedDays] is the count of distinct
+/// calendar days with a record; [spanDays] is the inclusive day count since the
+/// first entry (i.e. [daysSinceFirstEntry]). Returns null when [spanDays] is
+/// null or below 2 (a single-day span has no meaningful ratio). Clamped to 100.
+int? recordingConsistency(int recordedDays, int? spanDays) {
+  if (spanDays == null || spanDays < 2) return null;
+  final pct = (recordedDays / spanDays * 100).round();
+  return pct > 100 ? 100 : pct;
+}
+
 /// Rough time-of-day buckets used for the "주로 기록하는 시간대" insight.
 enum DayPart {
   dawn('새벽', '🌙'), // 00:00–05:59

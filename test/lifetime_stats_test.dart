@@ -80,6 +80,26 @@ void main() {
     });
   });
 
+  group('recordingConsistency', () {
+    test('null when span is null or below 2', () {
+      expect(recordingConsistency(1, null), isNull);
+      expect(recordingConsistency(1, 1), isNull);
+    });
+
+    test('percent of the span that has a record', () {
+      expect(recordingConsistency(5, 10), 50);
+      expect(recordingConsistency(3, 8), 38); // 37.5 rounds to 38
+    });
+
+    test('clamps to 100 when recorded days exceed the span', () {
+      expect(recordingConsistency(12, 10), 100);
+    });
+
+    test('every day recorded reads as 100', () {
+      expect(recordingConsistency(7, 7), 100);
+    });
+  });
+
   group('avgCharsPerEntry', () {
     test('zero when there are no records', () {
       expect(computeLifetimeStats(const []).avgCharsPerEntry, 0);

@@ -161,6 +161,18 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     text: '🌱 기록을 시작한 지 $sinceFirst일째예요',
                   ),
                 ],
+                Builder(builder: (context) {
+                  final pct =
+                      recordingConsistency(s.recordedDays, sinceFirst);
+                  if (pct == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '📆 시작한 뒤 $sinceFirst일 중 ${s.recordedDays}일 '
+                          '기록했어요 ($pct%)',
+                    ),
+                  );
+                }),
                 if (topPlace != null) ...[
                   const SizedBox(height: 12),
                   _InsightLine(
