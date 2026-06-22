@@ -1,9 +1,20 @@
+import 'package:characters/characters.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../entries/entries_provider.dart';
 import '../timeline/timeline_filter.dart' show DatePreset, filterByPeriod;
+
+/// Total characters (graphemes) of the trimmed content across [entries].
+/// Used to summarise a result set; returns 0 for an empty list.
+int charTotalOf(List<DiaryEntry> entries) {
+  var total = 0;
+  for (final e in entries) {
+    total += e.content.trim().characters.length;
+  }
+  return total;
+}
 
 /// Pure, case-insensitive search over top-level entries.
 ///

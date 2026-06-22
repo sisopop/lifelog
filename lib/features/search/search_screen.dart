@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/models/journal.dart';
 import '../../shared/widgets/entry_card.dart';
@@ -161,11 +162,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   itemBuilder: (_, i) {
                     if (i == 0) {
                       final ascending = ref.watch(searchSortProvider);
+                      final chars = charTotalOf(results.cast<DiaryEntry>());
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Row(
                           children: [
-                            Text('${results.length}개 찾음',
+                            Text(
+                                chars > 0
+                                    ? '${results.length}개 찾음 · 총 $chars자'
+                                    : '${results.length}개 찾음',
                                 style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,

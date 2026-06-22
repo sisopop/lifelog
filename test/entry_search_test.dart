@@ -156,4 +156,26 @@ void main() {
       expect(entries.map((e) => e.entryId).toList(), before);
     });
   });
+
+  group('charTotalOf', () {
+    test('sums trimmed grapheme length of content', () {
+      final entries = [
+        _entry(id: '1', content: '  안녕  '), // 2
+        _entry(id: '2', content: 'hello'), // 5
+      ];
+      expect(charTotalOf(entries), 7);
+    });
+
+    test('zero for an empty list', () {
+      expect(charTotalOf(const []), 0);
+    });
+
+    test('counts every entry regardless of replies', () {
+      final entries = [
+        _entry(id: '1', content: 'ab'),
+        _entry(id: '2', content: 'cde', replyTo: '1'),
+      ];
+      expect(charTotalOf(entries), 5);
+    });
+  });
 }
