@@ -99,6 +99,31 @@ List<Journal> sortJournalsByActivity(
   return [for (final e in indexed) e.$2];
 }
 
+/// Pure: the mood recorded most often among top-level entries in the last
+/// 7 calendar days (today-6 .. today, inclusive — matching weekEntryCount),
+/// or null when none carry a mood. Ties resolve to the earlier [Mood.values].
+Mood? weekDominantMood(List<DiaryEntry> entries, DateTime now) {
+  final today = DateTime(now.year, now.month, now.day);
+  final start = today.subtract(const Duration(days: 6));
+  final counts = <Mood, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    final d = DateTime(e.createdAt.year, e.createdAt.month, e.createdAt.day);
+    if (d.isBefore(start) || d.isAfter(today)) continue;
+    counts.update(e.mood!, (c) => c + 1, ifAbsent: () => 1);
+  }
+  Mood? best;
+  var bestCount = 0;
+  for (final m in Mood.values) {
+    final c = counts[m] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = m;
+    }
+  }
+  return best;
+}
+
 /// Whether the home journal list is ordered by recent activity. false (default)
 /// keeps the journals' own order; true sorts by most recent entry first.
 class HomeJournalSortNotifier extends Notifier<bool> {

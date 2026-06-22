@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../entries/entries_provider.dart';
 import '../stats/stats_provider.dart';
 import '../stats/streak.dart';
+import 'journal_activity.dart';
 
 /// Home strip showing the last 7 days and whether each was journaled, with
 /// today highlighted. A gentle at-a-glance nudge to keep the habit going.
@@ -19,6 +21,8 @@ class WeeklyStripSection extends ConsumerWidget {
     final streak = streakInfo.current;
     final monthCount = ref.watch(thisMonthCountProvider);
     final weekCount = ref.watch(thisWeekCountProvider);
+    final allEntries = ref.watch(entriesProvider).asData?.value ?? const [];
+    final weekMood = weekDominantMood(allEntries, DateTime.now());
     // Encourage beating the record only when the best run is meaningfully
     // longer than the current one.
     final showBest = streakInfo.longest >= 2 && streakInfo.longest > streak;
@@ -79,6 +83,12 @@ class WeeklyStripSection extends ConsumerWidget {
           if (weekCount > 0) ...[
             const SizedBox(height: 12),
             Text('이번 주 $weekCount개 기록했어요',
+                style: const TextStyle(
+                    fontSize: 12, color: AppColors.textSecondary)),
+          ],
+          if (weekMood != null) ...[
+            SizedBox(height: weekCount > 0 ? 6 : 12),
+            Text('${weekMood.emoji} 이번 주는 주로 ${weekMood.label}',
                 style: const TextStyle(
                     fontSize: 12, color: AppColors.textSecondary)),
           ],

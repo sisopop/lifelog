@@ -199,4 +199,46 @@ void main() {
       expect(journals.map((j) => j.journalId).toList(), before);
     });
   });
+
+  group('weekDominantMood', () {
+    final now = DateTime(2026, 6, 17, 12); // window: 6/11 .. 6/17
+
+    test('picks the most frequent mood in the last 7 days', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 12), mood: Mood.good),
+        _e(id: '2', at: DateTime(2026, 6, 14), mood: Mood.good),
+        _e(id: '3', at: DateTime(2026, 6, 16), mood: Mood.hard),
+      ];
+      expect(weekDominantMood(entries, now), Mood.good);
+    });
+
+    test('ignores entries outside the 7-day window', () {
+      final entries = [
+        _e(id: 'old', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _e(id: 'in', at: DateTime(2026, 6, 15), mood: Mood.hard),
+      ];
+      expect(weekDominantMood(entries, now), Mood.hard);
+    });
+
+    test('excludes replies and moodless entries', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 15), mood: Mood.good, replyTo: 'x'),
+        _e(id: '2', at: DateTime(2026, 6, 15)),
+        _e(id: '3', at: DateTime(2026, 6, 16), mood: Mood.hard),
+      ];
+      expect(weekDominantMood(entries, now), Mood.hard);
+    });
+
+    test('ties resolve to the earlier Mood.values', () {
+      final entries = [
+        _e(id: '1', at: DateTime(2026, 6, 14), mood: Mood.good),
+        _e(id: '2', at: DateTime(2026, 6, 15), mood: Mood.hard),
+      ];
+      expect(weekDominantMood(entries, now), Mood.good);
+    });
+
+    test('null when no moods in window', () {
+      expect(weekDominantMood(const [], now), isNull);
+    });
+  });
 }
