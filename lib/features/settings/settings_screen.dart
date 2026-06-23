@@ -14,6 +14,7 @@ import '../journals/journals_provider.dart';
 import '../home/home_journal_layout.dart';
 import '../places/place_directory.dart';
 import '../stats/lifetime_stats.dart';
+import '../stats/mood_entries.dart';
 import 'reading_text_scale.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -26,6 +27,7 @@ class SettingsScreen extends ConsumerWidget {
     final allEntries = ref.watch(entriesProvider).asData?.value ?? const [];
     final stats = computeLifetimeStats(allEntries);
     final placeCount = placeCountsSorted(allEntries).length;
+    final moodCount = moodCountsSorted(allEntries).length;
     return Scaffold(
       appBar: AppBar(title: Text(l.settingsTitle)),
       body: ListView(
@@ -63,6 +65,12 @@ class SettingsScreen extends ConsumerWidget {
             label: '장소 모아보기',
             subtitle: placeCount == 0 ? null : '$placeCount곳',
             onTap: () => context.push('/places'),
+          ),
+          _SectionTile(
+            icon: Icons.mood,
+            label: '기분 모아보기',
+            subtitle: moodCount == 0 ? null : '$moodCount종',
+            onTap: () => context.push('/moods'),
           ),
           _LanguageTile(),
           _HomeLayoutTile(),

@@ -38,6 +38,50 @@ void main() {
     });
   });
 
+  group('moodCountsSorted', () {
+    test('counts top-level entries per mood, most-recorded first', () {
+      final entries = [
+        _entry('a', mood: Mood.good),
+        _entry('b', mood: Mood.good),
+        _entry('c', mood: Mood.hard),
+        _entry('d', mood: Mood.good),
+        _entry('e', mood: Mood.hard),
+      ];
+      final result = moodCountsSorted(entries);
+      expect(result.map((e) => e.key), [Mood.good, Mood.hard]);
+      expect(result.map((e) => e.value), [3, 2]);
+    });
+
+    test('excludes replies and moodless entries', () {
+      final entries = [
+        _entry('a', mood: Mood.good),
+        _entry('b'), // no mood
+        _entry('c', mood: Mood.hard, replyTo: 'a'), // reply excluded
+      ];
+      final result = moodCountsSorted(entries);
+      expect(result.map((e) => e.key), [Mood.good]);
+      expect(result.single.value, 1);
+    });
+
+    test('ties resolve to earlier Mood.values order', () {
+      final entries = [
+        _entry('a', mood: Mood.hard),
+        _entry('b', mood: Mood.neutral),
+        _entry('c', mood: Mood.good),
+      ];
+      // all tied at 1 → good, neutral, hard
+      expect(
+        moodCountsSorted(entries).map((e) => e.key),
+        [Mood.good, Mood.neutral, Mood.hard],
+      );
+    });
+
+    test('empty when nothing recorded', () {
+      expect(moodCountsSorted([_entry('a')]), isEmpty);
+      expect(moodCountsSorted(const []), isEmpty);
+    });
+  });
+
   group('entriesWithMood', () {
     test('keeps only top-level entries of the given mood', () {
       final entries = [
