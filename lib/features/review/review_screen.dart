@@ -127,6 +127,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final mood = dominantMonthMood(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (mood == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '${mood.emoji} 이번 달은 주로 ${mood.label} 기분이었어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final busiest = ref.watch(busiestDayProvider);
               if (busiest == null || busiest.value < 2) {
                 return const SizedBox.shrink();
