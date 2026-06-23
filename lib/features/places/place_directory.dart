@@ -1,4 +1,5 @@
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/enums.dart';
 
 /// Pure: every distinct location across top-level records with its usage
 /// count, most-used first (ties broken alphabetically). Replies are excluded
@@ -42,4 +43,37 @@ Map<String, DateTime> lastVisitByPlace(List<DiaryEntry> entries) {
     if (cur == null || e.createdAt.isAfter(cur)) latest[key] = e.createdAt;
   }
   return {for (final k in latest.keys) display[k]!: latest[k]!};
+}
+
+/// Pure: the dominant (most-recorded) mood for each location, keyed by the
+/// location's display spelling (matching [placeCountsSorted]). Replies, blank
+/// locations and moodless records are ignored. Locations are grouped
+/// case-insensitively. A place with no mood-bearing records is omitted; ties
+/// resolve to the earlier [Mood.values] entry.
+Map<String, Mood> dominantMoodByPlace(List<DiaryEntry> entries) {
+  final counts = <String, Map<Mood, int>>{};
+  final display = <String, String>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    final loc = (e.location ?? '').trim();
+    if (loc.isEmpty) continue;
+    final key = loc.toLowerCase();
+    display.putIfAbsent(key, () => loc);
+    final byMood = counts.putIfAbsent(key, () => <Mood, int>{});
+    byMood.update(e.mood!, (c) => c + 1, ifAbsent: () => 1);
+  }
+  final result = <String, Mood>{};
+  for (final entry in counts.entries) {
+    Mood? best;
+    var bestCount = 0;
+    for (final m in Mood.values) {
+      final c = entry.value[m] ?? 0;
+      if (c > bestCount) {
+        bestCount = c;
+        best = m;
+      }
+    }
+    if (best != null) result[display[entry.key]!] = best;
+  }
+  return result;
 }

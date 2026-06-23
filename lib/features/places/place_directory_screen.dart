@@ -17,6 +17,7 @@ class PlaceDirectoryScreen extends ConsumerWidget {
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
     final places = placeCountsSorted(entries);
     final lastVisits = lastVisitByPlace(entries);
+    final moods = dominantMoodByPlace(entries);
     final now = DateTime.now();
 
     return Scaffold(
@@ -46,13 +47,15 @@ class PlaceDirectoryScreen extends ConsumerWidget {
                 }
                 final p = places[i - 1];
                 final last = lastVisits[p.key];
+                final mood = moods[p.key];
                 final subtitle = last == null
                     ? '${p.value}개 기록'
                     : '${p.value}개 기록 · 마지막 ${relativeDayLabel(last, now)}';
+                final title = mood == null ? p.key : '${mood.emoji} ${p.key}';
                 return ListTile(
                   leading: const Icon(Icons.place_outlined,
                       color: AppColors.primaryDark),
-                  title: Text(p.key,
+                  title: Text(title,
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text(subtitle),
                   trailing: const Icon(Icons.chevron_right,

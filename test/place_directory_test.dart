@@ -1,11 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifelog/features/places/place_directory.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
+import 'package:lifelog/shared/models/enums.dart';
 
 DiaryEntry _entry({
   required String id,
   String? location,
   String? replyTo,
+  Mood? mood,
 }) {
   final t = DateTime(2026, 6, 10);
   return DiaryEntry(
@@ -15,6 +17,7 @@ DiaryEntry _entry({
     content: 'c',
     tags: const [],
     location: location,
+    mood: mood,
     replyToEntryId: replyTo,
     createdAt: t,
     updatedAt: t,
@@ -120,6 +123,54 @@ void main() {
     test('empty when no located records', () {
       expect(lastVisitByPlace([_dated(id: 'a', location: null, day: 1)]),
           isEmpty);
+    });
+  });
+
+  group('dominantMoodByPlace', () {
+    test('picks the most-recorded mood per place', () {
+      final map = dominantMoodByPlace([
+        _entry(id: '1', location: '제주', mood: Mood.good),
+        _entry(id: '2', location: '제주', mood: Mood.good),
+        _entry(id: '3', location: '제주', mood: Mood.hard),
+        _entry(id: '4', location: '서울', mood: Mood.hard),
+      ]);
+      expect(map['제주'], Mood.good);
+      expect(map['서울'], Mood.hard);
+    });
+
+    test('groups case-insensitively, keeping first spelling', () {
+      final map = dominantMoodByPlace([
+        _entry(id: '1', location: '제주', mood: Mood.good),
+        _entry(id: '2', location: '  제주  ', mood: Mood.good),
+      ]);
+      expect(map.keys, ['제주']);
+      expect(map['제주'], Mood.good);
+    });
+
+    test('ties resolve to the earlier Mood.values', () {
+      final map = dominantMoodByPlace([
+        _entry(id: '1', location: '제주', mood: Mood.hard),
+        _entry(id: '2', location: '제주', mood: Mood.good),
+      ]);
+      expect(map['제주'], Mood.good);
+    });
+
+    test('excludes replies, blank locations and moodless records', () {
+      final map = dominantMoodByPlace([
+        _entry(id: 'top', location: '제주', mood: Mood.good),
+        _entry(id: 'reply', location: '제주', mood: Mood.hard, replyTo: 'top'),
+        _entry(id: 'none', location: '제주'),
+        _entry(id: 'blank', location: '   ', mood: Mood.hard),
+      ]);
+      expect(map['제주'], Mood.good);
+      expect(map.length, 1);
+    });
+
+    test('omits places with no mood-bearing records', () {
+      final map = dominantMoodByPlace([
+        _entry(id: '1', location: '제주'),
+      ]);
+      expect(map, isEmpty);
     });
   });
 }
