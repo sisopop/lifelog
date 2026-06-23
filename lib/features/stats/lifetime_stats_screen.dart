@@ -191,6 +191,10 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   _InsightLine(
                     text: '📍 가장 많이 다녀온 곳은 ${topPlace.key}예요 '
                         '(${topPlace.value}개)',
+                    onTap: () => context.push(
+                      Uri(path: '/place', queryParameters: {'l': topPlace.key})
+                          .toString(),
+                    ),
                   ),
                 ],
                 if (activeMonth != null && activeMonth.count >= 2) ...[

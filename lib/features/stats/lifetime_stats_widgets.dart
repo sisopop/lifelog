@@ -1,26 +1,43 @@
 part of 'lifetime_stats_screen.dart';
 
-/// A single soft highlight line for a one-off insight.
+/// A single soft highlight line for a one-off insight. When [onTap] is given
+/// the line becomes tappable and shows a trailing chevron.
 class _InsightLine extends StatelessWidget {
-  const _InsightLine({required this.text});
+  const _InsightLine({required this.text, this.onTap});
   final String text;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final body = Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       decoration: BoxDecoration(
         color: AppColors.primarySoft,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Text(
-        text,
-        style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.primaryDark),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryDark),
+            ),
+          ),
+          if (onTap != null)
+            const Icon(Icons.chevron_right,
+                size: 20, color: AppColors.primaryDark),
+        ],
       ),
+    );
+    if (onTap == null) return body;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: body,
     );
   }
 }
