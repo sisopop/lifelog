@@ -28,6 +28,7 @@ class LifetimeStatsScreen extends ConsumerWidget {
         .length;
     final s = computeLifetimeStats(entries);
     final moods = moodBreakdown(entries);
+    final domMood = dominantMood(entries);
     final dayParts = dayPartBreakdown(entries);
     final busiest = busiestDayPart(entries);
     final busyDay = busiestWeekday(entries);
@@ -123,6 +124,12 @@ class LifetimeStatsScreen extends ConsumerWidget {
                 if (moods.isNotEmpty) ...[
                   const SizedBox(height: 24),
                   _MoodDistribution(counts: moods),
+                ],
+                if (domMood != null) ...[
+                  const SizedBox(height: 12),
+                  _InsightLine(
+                    text: '${domMood.emoji} 주로 ${domMood.label} 기분을 기록했어요',
+                  ),
                 ],
                 if (dayParts.isNotEmpty) ...[
                   const SizedBox(height: 12),

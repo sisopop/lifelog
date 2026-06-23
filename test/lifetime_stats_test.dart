@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifelog/features/stats/lifetime_stats.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
+import 'package:lifelog/shared/models/enums.dart';
 
 DiaryEntry _entry({
   required String id,
@@ -8,6 +9,7 @@ DiaryEntry _entry({
   required DateTime at,
   String? replyTo,
   List<String> tags = const [],
+  Mood? mood,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -15,6 +17,7 @@ DiaryEntry _entry({
       journalId: 'jr_default',
       content: content,
       tags: tags,
+      mood: mood,
       replyToEntryId: replyTo,
       createdAt: at,
       updatedAt: at,
@@ -504,6 +507,42 @@ void main() {
               2026,
               6),
           isNull);
+    });
+  });
+
+  group('dominantMood', () {
+    test('returns the most-recorded mood', () {
+      final m = dominantMood([
+        _entry(id: '1', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: '2', at: DateTime(2026, 6, 2), mood: Mood.good),
+        _entry(id: '3', at: DateTime(2026, 6, 3), mood: Mood.hard),
+      ]);
+      expect(m, Mood.good);
+    });
+
+    test('ignores replies and moodless records', () {
+      final m = dominantMood([
+        _entry(id: '1', at: DateTime(2026, 6, 1), mood: Mood.hard),
+        _entry(
+            id: '2', at: DateTime(2026, 6, 2), mood: Mood.good, replyTo: '1'),
+        _entry(
+            id: '3', at: DateTime(2026, 6, 3), mood: Mood.good, replyTo: '1'),
+        _entry(id: '4', at: DateTime(2026, 6, 4)),
+      ]);
+      expect(m, Mood.hard);
+    });
+
+    test('ties resolve to the earlier Mood.values', () {
+      final m = dominantMood([
+        _entry(id: '1', at: DateTime(2026, 6, 1), mood: Mood.hard),
+        _entry(id: '2', at: DateTime(2026, 6, 2), mood: Mood.good),
+      ]);
+      expect(m, Mood.good);
+    });
+
+    test('null when nothing carries a mood', () {
+      expect(dominantMood([_entry(id: '1', at: DateTime(2026, 6, 1))]), isNull);
+      expect(dominantMood(const []), isNull);
     });
   });
 }

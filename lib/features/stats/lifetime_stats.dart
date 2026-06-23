@@ -244,6 +244,23 @@ Map<Mood, int> moodBreakdown(List<DiaryEntry> entries) {
   };
 }
 
+/// Pure: the most-recorded mood across top-level entries, reusing
+/// [moodBreakdown]. Returns null when no top-level entry carries a mood. Ties
+/// resolve to the earlier [Mood.values] entry.
+Mood? dominantMood(List<DiaryEntry> entries) {
+  final counts = moodBreakdown(entries);
+  Mood? best;
+  var bestCount = 0;
+  for (final m in Mood.values) {
+    final c = counts[m] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = m;
+    }
+  }
+  return best;
+}
+
 /// Pure: most-used tags across top-level entries, most-frequent first.
 /// Ties resolve alphabetically. Capped at [limit] (no cap when limit <= 0).
 List<MapEntry<String, int>> topTags(List<DiaryEntry> entries, {int limit = 12}) {
