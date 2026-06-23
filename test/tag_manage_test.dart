@@ -1,12 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifelog/features/tags/tag_manage.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
+import 'package:lifelog/shared/models/enums.dart';
 
 DiaryEntry _e(String id, List<String> tags) => DiaryEntry(
       entryId: id,
       userId: 'me',
       journalId: 'j1',
       tags: tags,
+      content: 'x',
+      createdAt: DateTime(2026, 1, 1),
+      updatedAt: DateTime(2026, 1, 1),
+    );
+
+DiaryEntry _em(String id, List<String> tags, {Mood? mood, String? replyTo}) =>
+    DiaryEntry(
+      entryId: id,
+      userId: 'me',
+      journalId: 'j1',
+      tags: tags,
+      mood: mood,
+      replyToEntryId: replyTo,
       content: 'x',
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
@@ -128,6 +142,41 @@ void main() {
 
     test('empty when there are no tags', () {
       expect(lastUseByTag([_ed('1', const [], 5)]), isEmpty);
+    });
+  });
+
+  group('dominantMoodByTag', () {
+    test('picks the most-recorded mood per tag', () {
+      final map = dominantMoodByTag([
+        _em('1', ['여행'], mood: Mood.good),
+        _em('2', ['여행'], mood: Mood.good),
+        _em('3', ['여행'], mood: Mood.hard),
+        _em('4', ['가족'], mood: Mood.hard),
+      ]);
+      expect(map['여행'], Mood.good);
+      expect(map['가족'], Mood.hard);
+    });
+
+    test('ties resolve to the earlier Mood.values', () {
+      final map = dominantMoodByTag([
+        _em('1', ['여행'], mood: Mood.hard),
+        _em('2', ['여행'], mood: Mood.good),
+      ]);
+      expect(map['여행'], Mood.good);
+    });
+
+    test('excludes replies and moodless records', () {
+      final map = dominantMoodByTag([
+        _em('1', ['여행'], mood: Mood.good),
+        _em('2', ['여행'], mood: Mood.hard, replyTo: '1'),
+        _em('3', ['여행']),
+      ]);
+      expect(map['여행'], Mood.good);
+      expect(map.length, 1);
+    });
+
+    test('omits tags with no mood-bearing records', () {
+      expect(dominantMoodByTag([_em('1', ['여행'])]), isEmpty);
     });
   });
 }

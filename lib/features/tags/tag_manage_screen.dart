@@ -18,6 +18,7 @@ class TagManageScreen extends ConsumerWidget {
     final byName = ref.watch(tagSortByNameProvider);
     final tags = tagCountsSorted(entries, byName: byName);
     final lastUse = lastUseByTag(entries);
+    final moods = dominantMoodByTag(entries);
     final now = DateTime.now();
 
     return Scaffold(
@@ -59,12 +60,15 @@ class TagManageScreen extends ConsumerWidget {
                 }
                 final t = tags[i - 1];
                 final last = lastUse[t.key];
+                final mood = moods[t.key];
                 final subtitle = last == null
                     ? '${t.value}개 기록'
                     : '${t.value}개 기록 · 마지막 ${relativeDayLabel(last, now)}';
+                final title =
+                    mood == null ? '#${t.key}' : '${mood.emoji} #${t.key}';
                 return ListTile(
                   leading: const Icon(Icons.tag, color: AppColors.primaryDark),
-                  title: Text('#${t.key}',
+                  title: Text(title,
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text(subtitle),
                   onTap: () => context.push(

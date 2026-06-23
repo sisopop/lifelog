@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/enums.dart';
 
 /// Count of entries carrying each tag. Defaults to most-used first (ties →
 /// name asc); pass [byName] true to sort alphabetically (ties → higher count
@@ -36,6 +37,35 @@ Map<String, DateTime> lastUseByTag(List<DiaryEntry> entries) {
     }
   }
   return latest;
+}
+
+/// Pure: the dominant (most-recorded) mood for each tag. Replies and moodless
+/// records are excluded (mirroring the other "dominant mood" stats), so a tag
+/// only used on replies/moodless entries is omitted. Ties resolve to the
+/// earlier [Mood.values] entry.
+Map<String, Mood> dominantMoodByTag(List<DiaryEntry> entries) {
+  final counts = <String, Map<Mood, int>>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    for (final t in e.tags) {
+      final byMood = counts.putIfAbsent(t, () => <Mood, int>{});
+      byMood.update(e.mood!, (c) => c + 1, ifAbsent: () => 1);
+    }
+  }
+  final result = <String, Mood>{};
+  for (final entry in counts.entries) {
+    Mood? best;
+    var bestCount = 0;
+    for (final m in Mood.values) {
+      final c = entry.value[m] ?? 0;
+      if (c > bestCount) {
+        bestCount = c;
+        best = m;
+      }
+    }
+    if (best != null) result[entry.key] = best;
+  }
+  return result;
 }
 
 /// Toggles the tag-management list between count-order (false) and name-order.
