@@ -401,6 +401,38 @@ void main() {
     });
   });
 
+  group('weekendRecordShare', () {
+    test('percent of top-level records on Sat/Sun', () {
+      // 2026-06-13 Sat, 2026-06-14 Sun, 2026-06-15 Mon, 2026-06-16 Tue
+      // → 2 of 4 on weekend = 50%
+      final r = weekendRecordShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 13)),
+        _entry(id: 'b', at: DateTime(2026, 6, 14)),
+        _entry(id: 'c', at: DateTime(2026, 6, 15)),
+        _entry(id: 'd', at: DateTime(2026, 6, 16)),
+      ]);
+      expect(r, 50);
+    });
+
+    test('excludes replies', () {
+      // top-level: 6/15 Mon (weekday). reply on 6/13 Sat ignored → 0%
+      final r = weekendRecordShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 15)),
+        _entry(id: 'r', at: DateTime(2026, 6, 13), replyTo: 'a'),
+      ]);
+      expect(r, 0);
+    });
+
+    test('null when no top-level records', () {
+      expect(weekendRecordShare(const []), isNull);
+      expect(
+          weekendRecordShare([
+            _entry(id: 'r', at: DateTime(2026, 6, 13), replyTo: 'a'),
+          ]),
+          isNull);
+    });
+  });
+
   group('longestGapDays', () {
     test('null with fewer than two distinct days', () {
       expect(longestGapDays(const []), isNull);

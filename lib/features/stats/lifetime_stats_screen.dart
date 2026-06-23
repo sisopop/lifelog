@@ -148,6 +148,18 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     text: '📅 주로 ${busyDay.key}에 기록해요 (${busyDay.value}개)',
                   ),
                 ],
+                Builder(builder: (context) {
+                  final weekendPct = weekendRecordShare(entries);
+                  if (weekendPct == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: weekendPct >= 50
+                          ? '🏖️ 기록의 $weekendPct%를 주말에 남겼어요'
+                          : '💼 기록의 ${100 - weekendPct}%를 평일에 남겼어요',
+                    ),
+                  );
+                }),
                 if (s.avgCharsPerEntry > 0) ...[
                   const SizedBox(height: 12),
                   _InsightLine(

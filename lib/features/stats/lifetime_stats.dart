@@ -229,6 +229,22 @@ DiaryEntry? longestEntry(List<DiaryEntry> entries) {
   return best;
 }
 
+/// Pure: what percent of top-level records were written on a weekend (Saturday
+/// or Sunday), as a 0–100 value. Replies are excluded. Returns null when there
+/// are no top-level records.
+int? weekendRecordShare(List<DiaryEntry> entries) {
+  var total = 0;
+  var weekend = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    final wd = e.createdAt.weekday;
+    if (wd == DateTime.saturday || wd == DateTime.sunday) weekend++;
+  }
+  if (total == 0) return null;
+  return (weekend * 100 / total).round();
+}
+
 /// Pure: the earliest top-level record (replies excluded). Returns null when
 /// there is no top-level entry. Ties (same instant) keep the first encountered.
 DiaryEntry? firstEntry(List<DiaryEntry> entries) {
