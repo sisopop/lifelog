@@ -31,6 +31,18 @@ List<MapEntry<Mood, int>> moodCountsSorted(List<DiaryEntry> entries) {
   return result;
 }
 
+/// The most recent top-level [createdAt] for each recorded [Mood]. Reply
+/// records and moodless entries are excluded. Moods with no records are absent.
+Map<Mood, DateTime> lastUseByMood(List<DiaryEntry> entries) {
+  final result = <Mood, DateTime>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    final cur = result[e.mood!];
+    if (cur == null || e.createdAt.isAfter(cur)) result[e.mood!] = e.createdAt;
+  }
+  return result;
+}
+
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are
 /// excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {

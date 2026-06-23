@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../entries/entries_provider.dart';
+import '../home/journal_activity.dart';
 import 'mood_entries.dart';
 
 /// Lists every recorded mood with its count, most-recorded first. Tapping a
@@ -15,6 +16,8 @@ class MoodDirectoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
     final moods = moodCountsSorted(entries);
+    final lastUse = lastUseByMood(entries);
+    final now = DateTime.now();
 
     return Scaffold(
       appBar: AppBar(
@@ -42,12 +45,16 @@ class MoodDirectoryScreen extends ConsumerWidget {
                   );
                 }
                 final m = moods[i - 1];
+                final last = lastUse[m.key];
+                final subtitle = last == null
+                    ? '${m.value}개 기록'
+                    : '${m.value}개 기록 · 마지막 ${relativeDayLabel(last, now)}';
                 return ListTile(
                   leading: Text(m.key.emoji,
                       style: const TextStyle(fontSize: 24)),
                   title: Text(m.key.label,
                       style: const TextStyle(fontWeight: FontWeight.w600)),
-                  subtitle: Text('${m.value}개 기록'),
+                  subtitle: Text(subtitle),
                   trailing: const Icon(Icons.chevron_right,
                       color: AppColors.textHint),
                   onTap: () => context.push(

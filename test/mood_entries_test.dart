@@ -82,6 +82,34 @@ void main() {
     });
   });
 
+  group('lastUseByMood', () {
+    test('keeps the most recent created date per mood', () {
+      final entries = [
+        _entry('a', mood: Mood.good, created: DateTime(2026, 1, 1)),
+        _entry('b', mood: Mood.good, created: DateTime(2026, 6, 1)),
+        _entry('c', mood: Mood.hard, created: DateTime(2026, 3, 1)),
+      ];
+      final last = lastUseByMood(entries);
+      expect(last[Mood.good], DateTime(2026, 6, 1));
+      expect(last[Mood.hard], DateTime(2026, 3, 1));
+    });
+
+    test('excludes replies and moodless entries', () {
+      final entries = [
+        _entry('a', mood: Mood.good, created: DateTime(2026, 1, 1)),
+        _entry('b', created: DateTime(2026, 6, 1)), // no mood
+        _entry('c', mood: Mood.good, replyTo: 'a', created: DateTime(2026, 6, 1)),
+      ];
+      final last = lastUseByMood(entries);
+      expect(last[Mood.good], DateTime(2026, 1, 1));
+      expect(last.length, 1);
+    });
+
+    test('empty when nothing recorded', () {
+      expect(lastUseByMood(const []), isEmpty);
+    });
+  });
+
   group('entriesWithMood', () {
     test('keeps only top-level entries of the given mood', () {
       final entries = [
