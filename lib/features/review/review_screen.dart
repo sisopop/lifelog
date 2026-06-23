@@ -142,6 +142,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final rate = monthlyRecordingRate(
+                  stats.daysRecorded, stats.year, stats.month, DateTime.now());
+              if (rate == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '📆 ${stats.month}월 중 ${stats.daysRecorded}일 기록했어요 ($rate%)',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final mood = dominantMonthMood(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (mood == null) return const SizedBox.shrink();

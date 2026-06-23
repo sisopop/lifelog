@@ -433,6 +433,29 @@ void main() {
     });
   });
 
+  group('monthlyRecordingRate', () {
+    test('past month uses full month length as denominator', () {
+      // May has 31 days; 10 recorded → 10/31 ≈ 32%
+      final r = monthlyRecordingRate(10, 2026, 5, DateTime(2026, 6, 23));
+      expect(r, 32);
+    });
+
+    test('current month uses days elapsed so far', () {
+      // June, today = 23rd; 4 recorded → 4/23 ≈ 17%
+      final r = monthlyRecordingRate(4, 2026, 6, DateTime(2026, 6, 23));
+      expect(r, 17);
+    });
+
+    test('null when nothing recorded', () {
+      expect(monthlyRecordingRate(0, 2026, 6, DateTime(2026, 6, 23)), isNull);
+    });
+
+    test('clamps to 100', () {
+      final r = monthlyRecordingRate(40, 2026, 6, DateTime(2026, 6, 23));
+      expect(r, 100);
+    });
+  });
+
   group('longestGapDaysOfMonth', () {
     test('only considers the given month', () {
       // June: 6/1, 6/5 → gap 4. July entry ignored.

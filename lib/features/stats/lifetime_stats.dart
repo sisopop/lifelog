@@ -188,6 +188,19 @@ int? longestGapDays(List<DiaryEntry> entries) {
   return longest;
 }
 
+/// Pure: what share of the month's days carry a record, as a 0–100 percent.
+/// For the current month the denominator is the number of days elapsed so far
+/// ([now.day]); for past months it is the full month length. Returns null when
+/// nothing was recorded or the denominator is non-positive.
+int? monthlyRecordingRate(
+    int recordedDays, int year, int month, DateTime now) {
+  if (recordedDays <= 0) return null;
+  final isCurrent = now.year == year && now.month == month;
+  final denom = isCurrent ? now.day : DateTime(year, month + 1, 0).day;
+  if (denom <= 0) return null;
+  return (recordedDays / denom * 100).round().clamp(0, 100);
+}
+
 /// Pure: the longest gap (in days) between consecutive recorded days *within*
 /// the given [year]/[month]. Reuses [longestGapDays] on that month's entries,
 /// so it is null when fewer than two distinct days were recorded that month.
