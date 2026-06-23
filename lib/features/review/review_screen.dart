@@ -172,13 +172,12 @@ class ReviewScreen extends ConsumerWidget {
               if (busiest == null || busiest.value < 2) {
                 return const SizedBox.shrink();
               }
-              return Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  '🔥 ${busiest.key}일에 가장 많이 기록했어요 (${busiest.value}개)',
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary),
-                ),
+              final d = DateTime(stats.year, stats.month, busiest.key);
+              final iso =
+                  '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+              return _TappableInsight(
+                text: '🔥 ${busiest.key}일에 가장 많이 기록했어요 (${busiest.value}개)',
+                onTap: () => context.push('/day/$iso'),
               );
             }),
             Builder(builder: (context) {
