@@ -127,6 +127,21 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final longestGap = longestGapDaysOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (longestGap == null || longestGap < 2) {
+                return const SizedBox.shrink();
+              }
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '💤 이번 달 가장 길게 쉰 적은 $longestGap일이에요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final mood = dominantMonthMood(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (mood == null) return const SizedBox.shrink();

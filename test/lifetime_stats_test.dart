@@ -433,6 +433,25 @@ void main() {
     });
   });
 
+  group('longestGapDaysOfMonth', () {
+    test('only considers the given month', () {
+      // June: 6/1, 6/5 → gap 4. July entry ignored.
+      final r = longestGapDaysOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 5)),
+        _entry(id: 'c', at: DateTime(2026, 7, 20)),
+      ], 2026, 6);
+      expect(r, 4);
+    });
+
+    test('null when the month has fewer than two distinct days', () {
+      final r = longestGapDaysOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+      ], 2026, 6);
+      expect(r, isNull);
+    });
+  });
+
   group('mostActiveMonth', () {
     test('returns the month with the most top-level records', () {
       final m = mostActiveMonth([

@@ -188,6 +188,15 @@ int? longestGapDays(List<DiaryEntry> entries) {
   return longest;
 }
 
+/// Pure: the longest gap (in days) between consecutive recorded days *within*
+/// the given [year]/[month]. Reuses [longestGapDays] on that month's entries,
+/// so it is null when fewer than two distinct days were recorded that month.
+int? longestGapDaysOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where((e) =>
+      e.createdAt.year == year && e.createdAt.month == month);
+  return longestGapDays(monthly.toList());
+}
+
 /// Pure: the top-level entry with the longest (grapheme-aware, trimmed) body.
 /// Returns null when no top-level entry carries any text. Ties resolve to the
 /// most recent entry.
