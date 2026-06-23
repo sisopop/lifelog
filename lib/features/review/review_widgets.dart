@@ -1,5 +1,37 @@
 part of 'review_screen.dart';
 
+/// A subtle one-line review insight that is tappable, with a trailing chevron
+/// to signal it navigates somewhere (e.g. that place's or tag's records).
+class _TappableInsight extends StatelessWidget {
+  const _TappableInsight({required this.text, required this.onTap});
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: onTap,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                text,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary),
+              ),
+            ),
+            const Icon(Icons.chevron_right,
+                size: 16, color: AppColors.textHint),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Tappable highlight for the month's longest record; opens the entry.
 class _MonthLongestCard extends StatelessWidget {
   const _MonthLongestCard({required this.entry, required this.chars});

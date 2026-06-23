@@ -200,24 +200,22 @@ class ReviewScreen extends ConsumerWidget {
             Builder(builder: (context) {
               final place = ref.watch(topPlaceProvider);
               if (place == null) return const SizedBox.shrink();
-              return Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  '📍 이번 달은 ${place.key}에 가장 많이 다녀왔어요 (${place.value}개)',
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary),
+              return _TappableInsight(
+                text:
+                    '📍 이번 달은 ${place.key}에 가장 많이 다녀왔어요 (${place.value}개)',
+                onTap: () => context.push(
+                  Uri(path: '/place', queryParameters: {'l': place.key})
+                      .toString(),
                 ),
               );
             }),
             Builder(builder: (context) {
               final tag = ref.watch(topTagProvider);
               if (tag == null) return const SizedBox.shrink();
-              return Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(
-                  '🏷️ 이번 달 가장 많이 쓴 태그는 #${tag.key} 예요 (${tag.value}개)',
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.textSecondary),
+              return _TappableInsight(
+                text: '🏷️ 이번 달 가장 많이 쓴 태그는 #${tag.key} 예요 (${tag.value}개)',
+                onTap: () => context.push(
+                  Uri(path: '/tag', queryParameters: {'t': tag.key}).toString(),
                 ),
               );
             }),
