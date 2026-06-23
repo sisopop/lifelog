@@ -232,6 +232,21 @@ class ReviewScreen extends ConsumerWidget {
                 ),
               );
             }),
+            Builder(builder: (context) {
+              final pct = weekendRecordShareOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (pct == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  pct >= 50
+                      ? '🏖️ 이번 달 기록의 $pct%를 주말에 남겼어요'
+                      : '💼 이번 달 기록의 ${100 - pct}%를 평일에 남겼어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
             if (stats.avgChars > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 6),

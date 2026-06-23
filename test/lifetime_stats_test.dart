@@ -433,6 +433,27 @@ void main() {
     });
   });
 
+  group('weekendRecordShareOfMonth', () {
+    test('only counts the target month', () {
+      // June: 6/13 Sat + 6/15 Mon → 1 of 2 weekend = 50%.
+      // July entry on a Saturday is ignored.
+      final r = weekendRecordShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 13)),
+        _entry(id: 'b', at: DateTime(2026, 6, 15)),
+        _entry(id: 'c', at: DateTime(2026, 7, 4)),
+      ], 2026, 6);
+      expect(r, 50);
+    });
+
+    test('null when the month has no top-level records', () {
+      expect(
+          weekendRecordShareOfMonth([
+            _entry(id: 'a', at: DateTime(2026, 7, 4)),
+          ], 2026, 6),
+          isNull);
+    });
+  });
+
   group('longestGapDays', () {
     test('null with fewer than two distinct days', () {
       expect(longestGapDays(const []), isNull);

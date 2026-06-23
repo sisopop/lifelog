@@ -245,6 +245,16 @@ int? weekendRecordShare(List<DiaryEntry> entries) {
   return (weekend * 100 / total).round();
 }
 
+/// Pure: the weekend record share (0–100) for one calendar month. Filters to
+/// the given year/month, then reuses [weekendRecordShare]. Returns null when
+/// that month has no top-level records.
+int? weekendRecordShareOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return weekendRecordShare(monthly.toList());
+}
+
 /// Pure: the earliest top-level record (replies excluded). Returns null when
 /// there is no top-level entry. Ties (same instant) keep the first encountered.
 DiaryEntry? firstEntry(List<DiaryEntry> entries) {
