@@ -227,6 +227,18 @@ DiaryEntry? longestEntryOfMonth(
   return longestEntry(monthly.toList());
 }
 
+/// Pure: how many top-level records in the given [year]/[month] are starred
+/// (favorite). Replies are excluded. Returns 0 when none.
+int favoriteCountOfMonth(List<DiaryEntry> entries, int year, int month) {
+  var count = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || !e.isFavorite) continue;
+    if (e.createdAt.year != year || e.createdAt.month != month) continue;
+    count++;
+  }
+  return count;
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.

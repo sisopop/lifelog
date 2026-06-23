@@ -217,6 +217,19 @@ class ReviewScreen extends ConsumerWidget {
                 ),
               ),
             Builder(builder: (context) {
+              final favs = favoriteCountOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (favs == 0) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '⭐ 이번 달 즐겨찾기한 기록이 $favs개 있어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final longest = longestEntryOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (longest == null) return const SizedBox.shrink();

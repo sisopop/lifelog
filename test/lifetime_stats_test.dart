@@ -10,6 +10,7 @@ DiaryEntry _entry({
   String? replyTo,
   List<String> tags = const [],
   Mood? mood,
+  bool favorite = false,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -18,6 +19,7 @@ DiaryEntry _entry({
       content: content,
       tags: tags,
       mood: mood,
+      isFavorite: favorite,
       replyToEntryId: replyTo,
       createdAt: at,
       updatedAt: at,
@@ -543,6 +545,38 @@ void main() {
     test('null when nothing carries a mood', () {
       expect(dominantMood([_entry(id: '1', at: DateTime(2026, 6, 1))]), isNull);
       expect(dominantMood(const []), isNull);
+    });
+  });
+
+  group('favoriteCountOfMonth', () {
+    test('counts starred top-level records in the month', () {
+      final n = favoriteCountOfMonth([
+        _entry(id: '1', at: DateTime(2026, 6, 1), favorite: true),
+        _entry(id: '2', at: DateTime(2026, 6, 20), favorite: true),
+        _entry(id: '3', at: DateTime(2026, 6, 5)), // not starred
+      ], 2026, 6);
+      expect(n, 2);
+    });
+
+    test('excludes other months and replies', () {
+      final n = favoriteCountOfMonth([
+        _entry(id: 'in', at: DateTime(2026, 6, 3), favorite: true),
+        _entry(id: 'may', at: DateTime(2026, 5, 30), favorite: true),
+        _entry(
+            id: 'reply',
+            at: DateTime(2026, 6, 4),
+            favorite: true,
+            replyTo: 'in'),
+      ], 2026, 6);
+      expect(n, 1);
+    });
+
+    test('zero when none starred', () {
+      expect(
+          favoriteCountOfMonth(
+              [_entry(id: '1', at: DateTime(2026, 6, 1))], 2026, 6),
+          0);
+      expect(favoriteCountOfMonth(const [], 2026, 6), 0);
     });
   });
 }
