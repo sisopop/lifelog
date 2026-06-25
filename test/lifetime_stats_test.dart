@@ -11,6 +11,7 @@ DiaryEntry _entry({
   List<String> tags = const [],
   Mood? mood,
   bool favorite = false,
+  List<String> media = const [],
 }) =>
     DiaryEntry(
       entryId: id,
@@ -20,6 +21,7 @@ DiaryEntry _entry({
       tags: tags,
       mood: mood,
       isFavorite: favorite,
+      mediaUrls: media,
       replyToEntryId: replyTo,
       createdAt: at,
       updatedAt: at,
@@ -376,6 +378,29 @@ void main() {
 
     test('zero when empty', () {
       expect(distinctMonthsRecorded(const []), 0);
+    });
+  });
+
+  group('photoEntryCount', () {
+    test('counts top-level entries with at least one photo', () {
+      final n = photoEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), media: ['u1']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), media: ['u2', 'u3']),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)), // no photo
+      ]);
+      expect(n, 2);
+    });
+
+    test('excludes replies even with photos', () {
+      final n = photoEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), media: ['u1']),
+        _entry(id: 'r', at: DateTime(2026, 6, 2), replyTo: 'a', media: ['u2']),
+      ]);
+      expect(n, 1);
+    });
+
+    test('zero when empty', () {
+      expect(photoEntryCount(const []), 0);
     });
   });
 

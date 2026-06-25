@@ -166,6 +166,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     text: '✍️ 한 번에 평균 ${s.avgCharsPerEntry}자씩 기록해요',
                   ),
                 ],
+                Builder(builder: (context) {
+                  final photos = photoEntryCount(entries);
+                  if (photos == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '📷 사진을 남긴 기록이 $photos개예요',
+                    ),
+                  );
+                }),
                 if (avgGap != null) ...[
                   const SizedBox(height: 12),
                   _InsightLine(

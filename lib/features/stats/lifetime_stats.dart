@@ -298,6 +298,18 @@ int favoriteCountOfMonth(List<DiaryEntry> entries, int year, int month) {
   return count;
 }
 
+/// Pure: how many top-level records carry at least one photo (a non-empty
+/// [DiaryEntry.mediaUrls]). Replies are excluded. Returns 0 when none.
+int photoEntryCount(List<DiaryEntry> entries) {
+  var count = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.mediaUrls.isEmpty) continue;
+    count++;
+  }
+  return count;
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.
