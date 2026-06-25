@@ -255,6 +255,17 @@ int? weekendRecordShareOfMonth(
   return weekendRecordShare(monthly.toList());
 }
 
+/// Pure: how many distinct calendar months contain at least one top-level
+/// record (replies excluded). Returns 0 when there are none.
+int distinctMonthsRecorded(List<DiaryEntry> entries) {
+  final months = <String>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    months.add('${e.createdAt.year}-${e.createdAt.month}');
+  }
+  return months.length;
+}
+
 /// Pure: the earliest top-level record (replies excluded). Returns null when
 /// there is no top-level entry. Ties (same instant) keep the first encountered.
 DiaryEntry? firstEntry(List<DiaryEntry> entries) {

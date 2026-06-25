@@ -198,6 +198,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     ),
                   );
                 }),
+                Builder(builder: (context) {
+                  final months = distinctMonthsRecorded(entries);
+                  if (months < 2) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '🗓️ $months개월에 걸쳐 기록했어요',
+                    ),
+                  );
+                }),
                 if (topPlace != null) ...[
                   const SizedBox(height: 12),
                   _InsightLine(

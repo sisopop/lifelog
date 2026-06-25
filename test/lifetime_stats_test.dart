@@ -352,6 +352,33 @@ void main() {
     });
   });
 
+  group('distinctMonthsRecorded', () {
+    test('counts distinct year-months of top-level entries', () {
+      // 2026-05 (one), 2026-06 (two records → still one month), 2025-06
+      // (different year → distinct) = 3 distinct months.
+      final n = distinctMonthsRecorded([
+        _entry(id: 'a', at: DateTime(2026, 5, 3)),
+        _entry(id: 'b', at: DateTime(2026, 6, 1)),
+        _entry(id: 'c', at: DateTime(2026, 6, 20)),
+        _entry(id: 'd', at: DateTime(2025, 6, 9)),
+      ]);
+      expect(n, 3);
+    });
+
+    test('excludes replies', () {
+      // top-level only in 2026-06; reply in 2026-05 ignored → 1 month.
+      final n = distinctMonthsRecorded([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'r', at: DateTime(2026, 5, 1), replyTo: 'a'),
+      ]);
+      expect(n, 1);
+    });
+
+    test('zero when empty', () {
+      expect(distinctMonthsRecorded(const []), 0);
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);
