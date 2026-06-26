@@ -11,6 +11,7 @@ import 'cover_corner.dart';
 import 'cover_palette.dart';
 import 'cover_pattern.dart';
 import 'cover_ribbon.dart';
+import 'cover_tab.dart';
 import 'journal_cover.dart';
 
 /// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기(v1: 표지 색).
@@ -46,6 +47,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _band = normalizeCoverBand(widget.journal.coverBand);
   late String _ribbon = normalizeCoverRibbon(widget.journal.coverRibbon);
   late String _clip = normalizeCoverClip(widget.journal.coverClip);
+  late String _tab = normalizeCoverTab(widget.journal.coverTab);
 
   void _pick(int c) {
     if (c == _color) return;
@@ -103,6 +105,14 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
         .edit(widget.journal.copyWith(coverClip: c));
   }
 
+  void _pickTab(String t) {
+    if (t == _tab) return;
+    setState(() => _tab = t);
+    ref
+        .read(journalsProvider.notifier)
+        .edit(widget.journal.copyWith(coverTab: t));
+  }
+
   @override
   Widget build(BuildContext context) {
     final j = widget.journal;
@@ -147,6 +157,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 band: _band,
                 ribbon: _ribbon,
                 clip: _clip,
+                tab: _tab,
                 title: j.title,
                 radius: 14,
                 iconSize: 30,
@@ -442,6 +453,54 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                     ),
                     const SizedBox(height: 4),
                     Text(coverClipLabel(c),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          const Text('인덱스 탭',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverTabPalette.map((t) {
+              final selected = t == _tab;
+              return GestureDetector(
+                onTap: () => _pickTab(t),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      // 인덱스 탭은 표지 우변 밖으로 삐져나오므로 자르지 않고,
+                      // 표지를 왼쪽으로 당겨 탭이 칩 안에 보이게 한다.
+                      padding: const EdgeInsets.fromLTRB(6, 8, 14, 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: selected
+                            ? Border.all(color: AppColors.primary, width: 2.5)
+                            : Border.all(color: AppColors.divider),
+                      ),
+                      child: JournalCover(
+                        color: _color,
+                        icon: '',
+                        tab: t,
+                        radius: 6,
+                        iconSize: 0,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(coverTabLabel(t),
                         style: TextStyle(
                             fontSize: 11,
                             color: selected

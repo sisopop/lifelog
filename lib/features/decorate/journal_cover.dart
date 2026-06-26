@@ -12,6 +12,8 @@ import 'cover_pattern.dart';
 import 'cover_pattern_painter.dart';
 import 'cover_ribbon.dart';
 import 'cover_ribbon_painter.dart';
+import 'cover_tab.dart';
+import 'cover_tab_painter.dart';
 
 /// 일기장 표지(책 모양)를 그리는 공용 렌더러.
 ///
@@ -35,6 +37,8 @@ class JournalCover extends StatelessWidget {
     this.ribbonScale = 1.0,
     this.clip = kDefaultCoverClip,
     this.clipScale = 1.0,
+    this.tab = kDefaultCoverTab,
+    this.tabScale = 1.0,
     this.title,
     this.entryCount,
     this.radius = 14,
@@ -83,6 +87,12 @@ class JournalCover extends StatelessWidget {
 
   /// 클립 크기 배율(작은 미리보기는 더 작게).
   final double clipScale;
+
+  /// 우측 인덱스 탭 id (cover_tab.dart). 'none'이면 탭 없음.
+  final String tab;
+
+  /// 탭 크기 배율(작은 미리보기는 더 작게).
+  final double tabScale;
 
   /// 표지 안에 흰 글씨로 넣을 제목. null이면 제목 없음(예: 앱아이콘 레이아웃).
   final String? title;
@@ -155,6 +165,13 @@ class JournalCover extends StatelessWidget {
             Positioned.fill(
               child: CustomPaint(
                 painter: CoverClipPainter(clip, scale: clipScale),
+              ),
+            ),
+          // 인덱스 탭: 속지에 끼워져 표지 우변 밖으로 삐져나오므로 자르지 않는다.
+          if (normalizeCoverTab(tab) != kDefaultCoverTab)
+            Positioned.fill(
+              child: CustomPaint(
+                painter: CoverTabPainter(tab, scale: tabScale),
               ),
             ),
           if (entryCount != null) _CoverCountBadge(count: entryCount!),
