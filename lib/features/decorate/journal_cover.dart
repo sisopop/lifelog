@@ -132,7 +132,7 @@ class JournalCover extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(radius),
                 child: CustomPaint(
-                  painter: CoverTexturePainter(texture, scale: textureScale),
+                  painter: CoverTexturePainter(texture, c, scale: textureScale),
                 ),
               ),
             ),

@@ -73,6 +73,10 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # 표지 재질(다꾸): 흑백 심리스 텍스처 타일(곱하기 블렌드용). CC0(ambientCG).
+  assets:
+    - assets/textures/
+
   # Pretendard is bundled so the web (CanvasKit) build has full Hangul
   # syllable + jamo glyph coverage. Without a bundled Korean font the engine
   # falls back lazily and the in-progress IME composition renders as a tofu
