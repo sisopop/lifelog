@@ -30,3 +30,16 @@ List<int> coverPaletteFor(int current) {
   if (coverColorPalette.contains(current)) return coverColorPalette;
   return [current, ...coverColorPalette];
 }
+
+/// 꾸미기 v1.5 표지 아이콘(이모지) 프리셋.
+const List<String> coverIconPalette = [
+  '📔', '📖', '📒', '✏️', '🌙', '⭐', '🌸', '🍀',
+  '☕', '🐱', '🎀', '🔥',
+];
+
+/// 편집기에 표시할 아이콘 팔레트를 돌려줍니다. 현재 아이콘이 프리셋에 없으면
+/// (예: 타입 기본 이모지) 맨 앞에 끼워 "선택됨"으로 보이게 합니다. 중복 없음.
+List<String> coverIconPaletteFor(String current) {
+  if (coverIconPalette.contains(current)) return coverIconPalette;
+  return [current, ...coverIconPalette];
+}

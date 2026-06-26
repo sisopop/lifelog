@@ -31,6 +31,7 @@ class _CoverDecorateSheet extends ConsumerStatefulWidget {
 
 class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late int _color = widget.journal.coverColor;
+  late String _icon = widget.journal.displayIcon;
 
   void _pick(int c) {
     if (c == _color) return;
@@ -40,17 +41,28 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
         .edit(widget.journal.copyWith(coverColor: c));
   }
 
+  void _pickIcon(String e) {
+    if (e == _icon) return;
+    setState(() => _icon = e);
+    ref
+        .read(journalsProvider.notifier)
+        .edit(widget.journal.copyWith(icon: e));
+  }
+
   @override
   Widget build(BuildContext context) {
     final j = widget.journal;
     final palette = coverPaletteFor(j.coverColor);
+    final icons = coverIconPaletteFor(j.displayIcon);
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      child: Column(
+      padding: EdgeInsets.fromLTRB(
+          20, 12, 20, 24 + MediaQuery.of(context).padding.bottom),
+      child: SingleChildScrollView(
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -68,7 +80,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
           const Text('표지 꾸미기',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 16),
-          _CoverPreview(color: _color, icon: j.displayIcon, title: j.title),
+          _CoverPreview(color: _color, icon: _icon, title: j.title),
           const SizedBox(height: 20),
           const Text('표지 색',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
@@ -97,7 +109,35 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
               );
             }).toList(),
           ),
+          const SizedBox(height: 20),
+          const Text('표지 아이콘',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: icons.map((e) {
+              final selected = e == _icon;
+              return GestureDetector(
+                onTap: () => _pickIcon(e),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: selected
+                        ? Border.all(color: AppColors.primary, width: 2.5)
+                        : Border.all(color: AppColors.divider),
+                  ),
+                  child: Text(e, style: const TextStyle(fontSize: 22)),
+                ),
+              );
+            }).toList(),
+          ),
         ],
+      ),
       ),
     );
   }

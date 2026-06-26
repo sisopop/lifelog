@@ -37,4 +37,24 @@ void main() {
       expect(result.toSet().length, result.length);
     });
   });
+
+  group('coverIconPalette', () {
+    test('중복이 없다', () {
+      expect(coverIconPalette.toSet().length, coverIconPalette.length);
+    });
+  });
+
+  group('coverIconPaletteFor', () {
+    test('현재 아이콘이 프리셋에 있으면 그대로 돌려준다', () {
+      expect(coverIconPaletteFor(coverIconPalette.first), coverIconPalette);
+    });
+
+    test('현재 아이콘이 프리셋에 없으면 맨 앞에 끼워 넣는다', () {
+      const custom = '🦄';
+      final result = coverIconPaletteFor(custom);
+      expect(result.first, custom);
+      expect(result.length, coverIconPalette.length + 1);
+      expect(result.toSet().length, result.length);
+    });
+  });
 }
