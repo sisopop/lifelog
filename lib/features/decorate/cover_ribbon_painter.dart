@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'cover_ribbon.dart';
 
-/// 표지 윗변에서 아래로 늘어진 책갈피 리본을 절차적으로 그리는 페인터.
-/// 'none'은 아무것도 그리지 않습니다. 리본은 가운데(아이콘/제목/밴드와
-/// 겹치지 않게)에서 내려옵니다. 끝은 제비꼬리(swallowtail)로 잘립니다.
+/// 속지에 끼워진 책갈피 끈이 표지 '아래로' 삐져나온 모습을 절차적으로 그리는
+/// 페인터. 표지 면 위에 그리지 않고, 표지 밑변 바로 아래에서 짧은 끈만 보이게
+/// 한다(끝은 제비꼬리 notch). 'none'은 아무것도 그리지 않습니다.
+/// 이 레이어는 ClipRRect 밖에서 그려지므로 표지 경계 아래로 넘어가 보인다.
 class CoverRibbonPainter extends CustomPainter {
   const CoverRibbonPainter(this.ribbon, {this.scale = 1.0});
 
@@ -21,45 +22,48 @@ class CoverRibbonPainter extends CustomPainter {
     if (argb == null) return; // none.
     final color = Color(argb);
 
-    final cx = size.width * 0.52;
-    final w = 11.0 * scale;
-    final len = size.height * 0.52;
-    final notch = 7.0 * scale;
+    // 표지 밑변 가운데-오른쪽(제목은 좌하단이라 안 겹침)에서 끈이 내려온다.
+    final cx = size.width * 0.62;
+    final w = (size.width * 0.1).clamp(7.0, 16.0);
+    final tail = (size.height * 0.11).clamp(9.0, 18.0); // 표지 아래로 나오는 길이.
+    final top = size.height - size.height * 0.015; // 밑변 살짝 위(밑에서 나오는 느낌).
+    final bottom = size.height + tail;
+    final notch = w * 0.5;
     final left = cx - w / 2;
     final right = cx + w / 2;
 
     Path body() => Path()
-      ..moveTo(left, -1)
-      ..lineTo(right, -1)
-      ..lineTo(right, len)
-      ..lineTo(cx, len - notch)
-      ..lineTo(left, len)
+      ..moveTo(left, top)
+      ..lineTo(right, top)
+      ..lineTo(right, bottom)
+      ..lineTo(cx, bottom - notch)
+      ..lineTo(left, bottom)
       ..close();
 
-    // 드롭 그림자.
+    // 드롭 그림자(표지 아래 바닥에 떨어지는 느낌).
     canvas.drawPath(
-      body().shift(Offset(1.2 * scale, 1.6 * scale)),
-      Paint()..color = Colors.black.withValues(alpha: 0.18),
+      body().shift(Offset(1.2, 2.0)),
+      Paint()..color = Colors.black.withValues(alpha: 0.2),
     );
-    // 리본 본체.
+    // 끈 본체.
     canvas.drawPath(body(), Paint()..color = color);
     // 오른쪽 절반 살짝 어둡게(접힘 음영).
     canvas.drawPath(
       Path()
-        ..moveTo(cx, -1)
-        ..lineTo(right, -1)
-        ..lineTo(right, len)
-        ..lineTo(cx, len - notch)
+        ..moveTo(cx, top)
+        ..lineTo(right, top)
+        ..lineTo(right, bottom)
+        ..lineTo(cx, bottom - notch)
         ..close(),
       Paint()..color = Colors.black.withValues(alpha: 0.1),
     );
     // 왼쪽 가장자리 하이라이트.
     canvas.drawLine(
-      Offset(left + 1, 0),
-      Offset(left + 1, len - notch * 0.3),
+      Offset(left + 1, top),
+      Offset(left + 1, bottom - notch),
       Paint()
-        ..color = Colors.white.withValues(alpha: 0.28)
-        ..strokeWidth = 1.0 * scale,
+        ..color = Colors.white.withValues(alpha: 0.3)
+        ..strokeWidth = 1.0,
     );
   }
 

@@ -103,6 +103,8 @@ class JournalCover extends StatelessWidget {
     return Container(
       decoration: coverBoxDecoration(c, radius),
       child: Stack(
+        // 책갈피 끈·클립은 표지 밖(아래·위)으로 삐져나와야 해서 잘라내지 않는다.
+        clipBehavior: Clip.none,
         children: [
           if (normalizeCoverPattern(pattern) != kNoCoverPattern)
             Positioned.fill(
@@ -141,22 +143,18 @@ class JournalCover extends StatelessWidget {
                 ),
               ),
             ),
+          // 책갈피 끈: 속지에 끼워져 표지 아래로 삐져나오므로 자르지 않는다.
           if (normalizeCoverRibbon(ribbon) != kDefaultCoverRibbon)
             Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(radius),
-                child: CustomPaint(
-                  painter: CoverRibbonPainter(ribbon, scale: ribbonScale),
-                ),
+              child: CustomPaint(
+                painter: CoverRibbonPainter(ribbon, scale: ribbonScale),
               ),
             ),
+          // 클립: 표지 윗변에 물려 위로 삐져나오므로 자르지 않는다.
           if (normalizeCoverClip(clip) != kDefaultCoverClip)
             Positioned.fill(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(radius),
-                child: CustomPaint(
-                  painter: CoverClipPainter(clip, scale: clipScale),
-                ),
+              child: CustomPaint(
+                painter: CoverClipPainter(clip, scale: clipScale),
               ),
             ),
           if (entryCount != null) _CoverCountBadge(count: entryCount!),

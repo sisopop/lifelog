@@ -375,22 +375,21 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                     Container(
                       width: 48,
                       height: 48,
+                      // 책갈피 끈은 표지 아래로 삐져나오므로 자르지 않고,
+                      // 표지를 살짝 띄워 끈이 칩 안에 보이게 한다.
+                      padding: const EdgeInsets.fromLTRB(8, 4, 8, 11),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         border: selected
                             ? Border.all(color: AppColors.primary, width: 2.5)
                             : Border.all(color: AppColors.divider),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: JournalCover(
-                          color: _color,
-                          icon: '',
-                          ribbon: r,
-                          ribbonScale: 0.7,
-                          radius: 8,
-                          iconSize: 0,
-                        ),
+                      child: JournalCover(
+                        color: _color,
+                        icon: '',
+                        ribbon: r,
+                        radius: 6,
+                        iconSize: 0,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -424,22 +423,21 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                     Container(
                       width: 48,
                       height: 48,
+                      // 클립은 표지 윗변 위로 삐져나오므로 자르지 않고,
+                      // 표지를 아래로 내려 클립이 칩 안에 보이게 한다.
+                      padding: const EdgeInsets.fromLTRB(8, 11, 8, 4),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                         border: selected
                             ? Border.all(color: AppColors.primary, width: 2.5)
                             : Border.all(color: AppColors.divider),
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: JournalCover(
-                          color: _color,
-                          icon: '',
-                          clip: c,
-                          clipScale: 0.7,
-                          radius: 8,
-                          iconSize: 0,
-                        ),
+                      child: JournalCover(
+                        color: _color,
+                        icon: '',
+                        clip: c,
+                        radius: 6,
+                        iconSize: 0,
                       ),
                     ),
                     const SizedBox(height: 4),

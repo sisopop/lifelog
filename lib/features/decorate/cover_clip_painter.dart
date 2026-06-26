@@ -27,8 +27,8 @@ class CoverClipPainter extends CustomPainter {
     // 작은 칩에서도 큰 책장에서도 '클립'으로 또렷이 읽히게 한다.
     final cx = size.width * 0.64;
     final w = size.width * 0.15; // 표지 폭에 비례한 클립 폭.
-    final topY = -size.height * 0.06; // 윗변 위로 살짝 솟음.
-    final botY = size.height * 0.34; // 길쭉한 몸체.
+    final topY = -size.height * 0.12; // 윗변 위로 또렷이 솟아(끼운 느낌).
+    final botY = size.height * 0.2; // 윗변을 무는 짧은 몸체.
     final stroke = (size.width * 0.028).clamp(2.4, 6.0);
     final r = Radius.circular(w / 2);
 
