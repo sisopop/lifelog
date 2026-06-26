@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/journal.dart';
 import '../journals/journals_provider.dart';
+import 'cover_binding.dart';
 import 'cover_palette.dart';
 import 'cover_pattern.dart';
 import 'journal_cover.dart';
@@ -36,6 +37,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _icon = widget.journal.displayIcon;
   late final String _pattern =
       normalizeCoverPattern(widget.journal.coverPattern);
+  late String _binding = normalizeCoverBinding(widget.journal.coverBinding);
 
   void _pick(int c) {
     if (c == _color) return;
@@ -51,6 +53,14 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
     ref
         .read(journalsProvider.notifier)
         .edit(widget.journal.copyWith(icon: e));
+  }
+
+  void _pickBinding(String b) {
+    if (b == _binding) return;
+    setState(() => _binding = b);
+    ref
+        .read(journalsProvider.notifier)
+        .edit(widget.journal.copyWith(coverBinding: b));
   }
 
   @override
@@ -92,6 +102,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 color: _color,
                 icon: _icon,
                 pattern: _pattern,
+                binding: _binding,
                 title: j.title,
                 radius: 14,
                 iconSize: 30,
@@ -155,8 +166,56 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             }).toList(),
           ),
           // 표지 패턴 섹션은 v1 패턴이 충분히 예쁘지 않아 숨김 처리.
-          // 모델/DB/페인터/_pickPattern은 그대로 두고, 더 나은 패턴이 준비되면
-          // 아래 _patternSection()을 다시 children에 넣어 되살린다.
+          // 모델/DB/페인터는 그대로 두고, 더 나은 패턴이 준비되면 되살린다.
+          const SizedBox(height: 20),
+          const Text('제본',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverBindingPalette.map((b) {
+              final selected = b == _binding;
+              return GestureDetector(
+                onTap: () => _pickBinding(b),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: selected
+                            ? Border.all(color: AppColors.primary, width: 2.5)
+                            : Border.all(color: AppColors.divider),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: JournalCover(
+                          color: _color,
+                          icon: '',
+                          binding: b,
+                          bindingScale: 0.8,
+                          radius: 8,
+                          iconSize: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(coverBindingLabel(b),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
         ],
       ),
       ),

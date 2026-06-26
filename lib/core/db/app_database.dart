@@ -33,6 +33,8 @@ class Journals extends Table {
   TextColumn get title => text()();
   IntColumn get coverColor => integer().withDefault(const Constant(0xFF7C6FF0))();
   TextColumn get coverPattern => text().withDefault(const Constant('none'))();
+  TextColumn get coverBinding =>
+      text().withDefault(const Constant('plain'))();
   TextColumn get icon => text().nullable()();
   TextColumn get status => textEnum<JournalStatus>()();
   TextColumn get spaceId => text().nullable()();
@@ -100,7 +102,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -126,6 +128,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 5) {
             // 다꾸 표지 패턴 — existing journals default to 'none' (단색).
             await m.addColumn(journals, journals.coverPattern);
+          }
+          if (from < 6) {
+            // 다꾸 제본 방식 — existing journals default to 'plain' (무선).
+            await m.addColumn(journals, journals.coverBinding);
           }
         },
       );
