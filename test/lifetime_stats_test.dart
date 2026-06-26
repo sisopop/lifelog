@@ -450,6 +450,27 @@ void main() {
     });
   });
 
+  group('favoriteCount', () {
+    test('counts starred top-level records, excludes replies', () {
+      final n = favoriteCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), favorite: true),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), favorite: true),
+        _entry(
+            id: 'd', at: DateTime(2026, 6, 4), replyTo: 'a', favorite: true),
+      ]);
+      expect(n, 2);
+    });
+
+    test('zero when none starred or empty', () {
+      expect(favoriteCount(const []), 0);
+      expect(
+        favoriteCount([_entry(id: 'a', at: DateTime(2026, 6, 1))]),
+        0,
+      );
+    });
+  });
+
   group('locationEntryShare', () {
     test('rounds the located share to a percent', () {
       // 1 located of 3 → 33%.

@@ -298,6 +298,17 @@ int favoriteCountOfMonth(List<DiaryEntry> entries, int year, int month) {
   return count;
 }
 
+/// Pure: how many top-level records are starred (favorite) across all time.
+/// Replies are excluded. Returns 0 when none.
+int favoriteCount(List<DiaryEntry> entries) {
+  var count = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.isFavorite) count++;
+  }
+  return count;
+}
+
 /// Pure: how many top-level records carry at least one photo (a non-empty
 /// [DiaryEntry.mediaUrls]). Replies are excluded. Returns 0 when none.
 int photoEntryCount(List<DiaryEntry> entries) {

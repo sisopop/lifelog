@@ -200,6 +200,17 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     ),
                   );
                 }),
+                Builder(builder: (context) {
+                  final favs = favoriteCount(entries);
+                  if (favs == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '⭐ 즐겨찾기한 기록이 $favs개예요',
+                      onTap: () => context.push('/favorites'),
+                    ),
+                  );
+                }),
                 if (avgGap != null) ...[
                   const SizedBox(height: 12),
                   _InsightLine(
