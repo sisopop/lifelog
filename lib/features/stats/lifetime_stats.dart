@@ -325,6 +325,15 @@ int? taggedEntryShare(List<DiaryEntry> entries) {
   return (tagged * 100 / total).round();
 }
 
+/// Pure: the tagged-record share (0–100) for one calendar month. Filters to the
+/// given [year]/[month], then reuses [taggedEntryShare]. Returns null when that
+/// month has no top-level records.
+int? taggedEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return taggedEntryShare(monthly.toList());
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.
