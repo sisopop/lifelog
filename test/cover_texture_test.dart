@@ -15,6 +15,8 @@ void main() {
       expect(normalizeCoverTexture('leather'), 'leather');
       expect(normalizeCoverTexture('kraft'), 'kraft');
       expect(normalizeCoverTexture('fabric'), 'fabric');
+      expect(normalizeCoverTexture('cork'), 'cork');
+      expect(normalizeCoverTexture('wood'), 'wood');
     });
   });
 
@@ -40,6 +42,8 @@ void main() {
       expect(coverTextureLabel('leather'), '가죽');
       expect(coverTextureLabel('kraft'), '크라프트');
       expect(coverTextureLabel('fabric'), '패브릭');
+      expect(coverTextureLabel('cork'), '코르크');
+      expect(coverTextureLabel('wood'), '우드');
     });
 
     test('알 수 없는 id는 id를 그대로 반환한다', () {

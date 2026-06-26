@@ -19,6 +19,8 @@ class CoverTextureImages extends ChangeNotifier {
     'leather': 'assets/textures/leather.jpg',
     'kraft': 'assets/textures/kraft.jpg',
     'fabric': 'assets/textures/fabric.jpg',
+    'cork': 'assets/textures/cork.jpg',
+    'wood': 'assets/textures/wood.jpg',
   };
 
   final Map<String, ui.Image> _cache = {};
