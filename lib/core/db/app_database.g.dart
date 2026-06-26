@@ -1122,6 +1122,18 @@ class $JournalsTable extends Journals
     requiredDuringInsert: false,
     defaultValue: const Constant('none'),
   );
+  static const VerificationMeta _coverBandMeta = const VerificationMeta(
+    'coverBand',
+  );
+  @override
+  late final GeneratedColumn<String> coverBand = GeneratedColumn<String>(
+    'cover_band',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('none'),
+  );
   static const VerificationMeta _iconMeta = const VerificationMeta('icon');
   @override
   late final GeneratedColumn<String> icon = GeneratedColumn<String>(
@@ -1172,6 +1184,7 @@ class $JournalsTable extends Journals
     coverPattern,
     coverBinding,
     coverCorner,
+    coverBand,
     icon,
     status,
     spaceId,
@@ -1246,6 +1259,12 @@ class $JournalsTable extends Journals
         ),
       );
     }
+    if (data.containsKey('cover_band')) {
+      context.handle(
+        _coverBandMeta,
+        coverBand.isAcceptableOrUnknown(data['cover_band']!, _coverBandMeta),
+      );
+    }
     if (data.containsKey('icon')) {
       context.handle(
         _iconMeta,
@@ -1309,6 +1328,10 @@ class $JournalsTable extends Journals
         DriftSqlType.string,
         data['${effectivePrefix}cover_corner'],
       )!,
+      coverBand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cover_band'],
+      )!,
       icon: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
@@ -1350,6 +1373,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
   final String coverPattern;
   final String coverBinding;
   final String coverCorner;
+  final String coverBand;
   final String? icon;
   final JournalStatus status;
   final String? spaceId;
@@ -1363,6 +1387,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     required this.coverPattern,
     required this.coverBinding,
     required this.coverCorner,
+    required this.coverBand,
     this.icon,
     required this.status,
     this.spaceId,
@@ -1381,6 +1406,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     map['cover_pattern'] = Variable<String>(coverPattern);
     map['cover_binding'] = Variable<String>(coverBinding);
     map['cover_corner'] = Variable<String>(coverCorner);
+    map['cover_band'] = Variable<String>(coverBand);
     if (!nullToAbsent || icon != null) {
       map['icon'] = Variable<String>(icon);
     }
@@ -1406,6 +1432,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       coverPattern: Value(coverPattern),
       coverBinding: Value(coverBinding),
       coverCorner: Value(coverCorner),
+      coverBand: Value(coverBand),
       icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
       status: Value(status),
       spaceId: spaceId == null && nullToAbsent
@@ -1431,6 +1458,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       coverPattern: serializer.fromJson<String>(json['coverPattern']),
       coverBinding: serializer.fromJson<String>(json['coverBinding']),
       coverCorner: serializer.fromJson<String>(json['coverCorner']),
+      coverBand: serializer.fromJson<String>(json['coverBand']),
       icon: serializer.fromJson<String?>(json['icon']),
       status: $JournalsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
@@ -1453,6 +1481,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       'coverPattern': serializer.toJson<String>(coverPattern),
       'coverBinding': serializer.toJson<String>(coverBinding),
       'coverCorner': serializer.toJson<String>(coverCorner),
+      'coverBand': serializer.toJson<String>(coverBand),
       'icon': serializer.toJson<String?>(icon),
       'status': serializer.toJson<String>(
         $JournalsTable.$converterstatus.toJson(status),
@@ -1471,6 +1500,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     String? coverPattern,
     String? coverBinding,
     String? coverCorner,
+    String? coverBand,
     Value<String?> icon = const Value.absent(),
     JournalStatus? status,
     Value<String?> spaceId = const Value.absent(),
@@ -1484,6 +1514,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     coverPattern: coverPattern ?? this.coverPattern,
     coverBinding: coverBinding ?? this.coverBinding,
     coverCorner: coverCorner ?? this.coverCorner,
+    coverBand: coverBand ?? this.coverBand,
     icon: icon.present ? icon.value : this.icon,
     status: status ?? this.status,
     spaceId: spaceId.present ? spaceId.value : this.spaceId,
@@ -1507,6 +1538,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       coverCorner: data.coverCorner.present
           ? data.coverCorner.value
           : this.coverCorner,
+      coverBand: data.coverBand.present ? data.coverBand.value : this.coverBand,
       icon: data.icon.present ? data.icon.value : this.icon,
       status: data.status.present ? data.status.value : this.status,
       spaceId: data.spaceId.present ? data.spaceId.value : this.spaceId,
@@ -1525,6 +1557,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
           ..write('coverPattern: $coverPattern, ')
           ..write('coverBinding: $coverBinding, ')
           ..write('coverCorner: $coverCorner, ')
+          ..write('coverBand: $coverBand, ')
           ..write('icon: $icon, ')
           ..write('status: $status, ')
           ..write('spaceId: $spaceId, ')
@@ -1543,6 +1576,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     coverPattern,
     coverBinding,
     coverCorner,
+    coverBand,
     icon,
     status,
     spaceId,
@@ -1560,6 +1594,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
           other.coverPattern == this.coverPattern &&
           other.coverBinding == this.coverBinding &&
           other.coverCorner == this.coverCorner &&
+          other.coverBand == this.coverBand &&
           other.icon == this.icon &&
           other.status == this.status &&
           other.spaceId == this.spaceId &&
@@ -1575,6 +1610,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
   final Value<String> coverPattern;
   final Value<String> coverBinding;
   final Value<String> coverCorner;
+  final Value<String> coverBand;
   final Value<String?> icon;
   final Value<JournalStatus> status;
   final Value<String?> spaceId;
@@ -1589,6 +1625,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     this.coverPattern = const Value.absent(),
     this.coverBinding = const Value.absent(),
     this.coverCorner = const Value.absent(),
+    this.coverBand = const Value.absent(),
     this.icon = const Value.absent(),
     this.status = const Value.absent(),
     this.spaceId = const Value.absent(),
@@ -1604,6 +1641,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     this.coverPattern = const Value.absent(),
     this.coverBinding = const Value.absent(),
     this.coverCorner = const Value.absent(),
+    this.coverBand = const Value.absent(),
     this.icon = const Value.absent(),
     required JournalStatus status,
     this.spaceId = const Value.absent(),
@@ -1624,6 +1662,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     Expression<String>? coverPattern,
     Expression<String>? coverBinding,
     Expression<String>? coverCorner,
+    Expression<String>? coverBand,
     Expression<String>? icon,
     Expression<String>? status,
     Expression<String>? spaceId,
@@ -1639,6 +1678,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
       if (coverPattern != null) 'cover_pattern': coverPattern,
       if (coverBinding != null) 'cover_binding': coverBinding,
       if (coverCorner != null) 'cover_corner': coverCorner,
+      if (coverBand != null) 'cover_band': coverBand,
       if (icon != null) 'icon': icon,
       if (status != null) 'status': status,
       if (spaceId != null) 'space_id': spaceId,
@@ -1656,6 +1696,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     Value<String>? coverPattern,
     Value<String>? coverBinding,
     Value<String>? coverCorner,
+    Value<String>? coverBand,
     Value<String?>? icon,
     Value<JournalStatus>? status,
     Value<String?>? spaceId,
@@ -1671,6 +1712,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
       coverPattern: coverPattern ?? this.coverPattern,
       coverBinding: coverBinding ?? this.coverBinding,
       coverCorner: coverCorner ?? this.coverCorner,
+      coverBand: coverBand ?? this.coverBand,
       icon: icon ?? this.icon,
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,
@@ -1708,6 +1750,9 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     if (coverCorner.present) {
       map['cover_corner'] = Variable<String>(coverCorner.value);
     }
+    if (coverBand.present) {
+      map['cover_band'] = Variable<String>(coverBand.value);
+    }
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
     }
@@ -1739,6 +1784,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
           ..write('coverPattern: $coverPattern, ')
           ..write('coverBinding: $coverBinding, ')
           ..write('coverCorner: $coverCorner, ')
+          ..write('coverBand: $coverBand, ')
           ..write('icon: $icon, ')
           ..write('status: $status, ')
           ..write('spaceId: $spaceId, ')
@@ -2716,6 +2762,7 @@ typedef $$JournalsTableCreateCompanionBuilder =
       Value<String> coverPattern,
       Value<String> coverBinding,
       Value<String> coverCorner,
+      Value<String> coverBand,
       Value<String?> icon,
       required JournalStatus status,
       Value<String?> spaceId,
@@ -2732,6 +2779,7 @@ typedef $$JournalsTableUpdateCompanionBuilder =
       Value<String> coverPattern,
       Value<String> coverBinding,
       Value<String> coverCorner,
+      Value<String> coverBand,
       Value<String?> icon,
       Value<JournalStatus> status,
       Value<String?> spaceId,
@@ -2786,6 +2834,11 @@ class $$JournalsTableFilterComposer
 
   ColumnFilters<String> get coverCorner => $composableBuilder(
     column: $table.coverCorner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get coverBand => $composableBuilder(
+    column: $table.coverBand,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2860,6 +2913,11 @@ class $$JournalsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get coverBand => $composableBuilder(
+    column: $table.coverBand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get icon => $composableBuilder(
     column: $table.icon,
     builder: (column) => ColumnOrderings(column),
@@ -2922,6 +2980,9 @@ class $$JournalsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get coverBand =>
+      $composableBuilder(column: $table.coverBand, builder: (column) => column);
+
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
 
@@ -2974,6 +3035,7 @@ class $$JournalsTableTableManager
                 Value<String> coverPattern = const Value.absent(),
                 Value<String> coverBinding = const Value.absent(),
                 Value<String> coverCorner = const Value.absent(),
+                Value<String> coverBand = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
                 Value<JournalStatus> status = const Value.absent(),
                 Value<String?> spaceId = const Value.absent(),
@@ -2988,6 +3050,7 @@ class $$JournalsTableTableManager
                 coverPattern: coverPattern,
                 coverBinding: coverBinding,
                 coverCorner: coverCorner,
+                coverBand: coverBand,
                 icon: icon,
                 status: status,
                 spaceId: spaceId,
@@ -3004,6 +3067,7 @@ class $$JournalsTableTableManager
                 Value<String> coverPattern = const Value.absent(),
                 Value<String> coverBinding = const Value.absent(),
                 Value<String> coverCorner = const Value.absent(),
+                Value<String> coverBand = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
                 required JournalStatus status,
                 Value<String?> spaceId = const Value.absent(),
@@ -3018,6 +3082,7 @@ class $$JournalsTableTableManager
                 coverPattern: coverPattern,
                 coverBinding: coverBinding,
                 coverCorner: coverCorner,
+                coverBand: coverBand,
                 icon: icon,
                 status: status,
                 spaceId: spaceId,

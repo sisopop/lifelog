@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/journal.dart';
 import '../journals/journals_provider.dart';
+import 'cover_band.dart';
 import 'cover_binding.dart';
 import 'cover_corner.dart';
 import 'cover_palette.dart';
@@ -40,6 +41,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
       normalizeCoverPattern(widget.journal.coverPattern);
   late String _binding = normalizeCoverBinding(widget.journal.coverBinding);
   late String _corner = normalizeCoverCorner(widget.journal.coverCorner);
+  late String _band = normalizeCoverBand(widget.journal.coverBand);
 
   void _pick(int c) {
     if (c == _color) return;
@@ -71,6 +73,14 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
     ref
         .read(journalsProvider.notifier)
         .edit(widget.journal.copyWith(coverCorner: c));
+  }
+
+  void _pickBand(String b) {
+    if (b == _band) return;
+    setState(() => _band = b);
+    ref
+        .read(journalsProvider.notifier)
+        .edit(widget.journal.copyWith(coverBand: b));
   }
 
   @override
@@ -114,6 +124,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 pattern: _pattern,
                 binding: _binding,
                 corner: _corner,
+                band: _band,
                 title: j.title,
                 radius: 14,
                 iconSize: 30,
@@ -264,6 +275,55 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                     ),
                     const SizedBox(height: 4),
                     Text(coverCornerLabel(c),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          const Text('밴드',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverBandPalette.map((b) {
+              final selected = b == _band;
+              return GestureDetector(
+                onTap: () => _pickBand(b),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: selected
+                            ? Border.all(color: AppColors.primary, width: 2.5)
+                            : Border.all(color: AppColors.divider),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: JournalCover(
+                          color: _color,
+                          icon: '',
+                          band: b,
+                          bandScale: 0.7,
+                          radius: 8,
+                          iconSize: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(coverBandLabel(b),
                         style: TextStyle(
                             fontSize: 11,
                             color: selected
