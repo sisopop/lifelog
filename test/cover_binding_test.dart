@@ -15,6 +15,8 @@ void main() {
       expect(normalizeCoverBinding('spiral'), 'spiral');
       expect(normalizeCoverBinding('ring'), 'ring');
       expect(normalizeCoverBinding('stitch'), 'stitch');
+      expect(normalizeCoverBinding('staple'), 'staple');
+      expect(normalizeCoverBinding('disc'), 'disc');
     });
   });
 

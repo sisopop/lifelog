@@ -13,6 +13,8 @@ const List<String> coverBindingPalette = [
   'spiral',
   'ring',
   'stitch',
+  'staple',
+  'disc',
 ];
 
 /// 제본 id → 한글 라벨(시트 칩 등에서 사용).
@@ -21,6 +23,8 @@ const Map<String, String> coverBindingLabels = {
   'spiral': '스프링',
   'ring': '링',
   'stitch': '실제본',
+  'staple': '중철',
+  'disc': '디스크',
 };
 
 /// 알 수 없는/null 제본은 'plain'으로 정규화.
