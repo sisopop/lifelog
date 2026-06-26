@@ -310,6 +310,21 @@ int photoEntryCount(List<DiaryEntry> entries) {
   return count;
 }
 
+/// Pure: what share of top-level records carry at least one tag, as a 0–100
+/// percent. Replies are excluded. Returns null when there are no top-level
+/// records.
+int? taggedEntryShare(List<DiaryEntry> entries) {
+  var total = 0;
+  var tagged = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    if (e.tags.isNotEmpty) tagged++;
+  }
+  if (total == 0) return null;
+  return (tagged * 100 / total).round();
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.

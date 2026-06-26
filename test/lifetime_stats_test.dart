@@ -404,6 +404,31 @@ void main() {
     });
   });
 
+  group('taggedEntryShare', () {
+    test('rounds the share of top-level entries that carry a tag', () {
+      // 2 of 3 tagged → 67%.
+      final pct = taggedEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['가족']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), tags: ['일상', '육아']),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)), // no tags
+      ]);
+      expect(pct, 67);
+    });
+
+    test('excludes replies from numerator and denominator', () {
+      // top-level: 1 tagged of 1 → 100%; reply ignored.
+      final pct = taggedEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['가족']),
+        _entry(id: 'r', at: DateTime(2026, 6, 2), replyTo: 'a', tags: ['x']),
+      ]);
+      expect(pct, 100);
+    });
+
+    test('null when no top-level entries', () {
+      expect(taggedEntryShare(const []), isNull);
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);
