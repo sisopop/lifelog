@@ -360,6 +360,15 @@ int? locationEntryShare(List<DiaryEntry> entries) {
   return (located * 100 / total).round();
 }
 
+/// Pure: the location-share (0–100) for one calendar month. Filters to the
+/// given [year]/[month], then reuses [locationEntryShare]. Returns null when
+/// that month has no top-level records.
+int? locationEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return locationEntryShare(monthly.toList());
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.

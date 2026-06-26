@@ -496,6 +496,25 @@ void main() {
     });
   });
 
+  group('locationEntryShareOfMonth', () {
+    test('filters to the month, then reuses locationEntryShare', () {
+      // June: 1 located of 2 → 50%. May entry is excluded.
+      final pct = locationEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), location: '제주'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 5, 9), location: '서울'),
+      ], 2026, 6);
+      expect(pct, 50);
+    });
+
+    test('null when that month has no top-level records', () {
+      final pct = locationEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 5, 1), location: '서울'),
+      ], 2026, 6);
+      expect(pct, isNull);
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);
