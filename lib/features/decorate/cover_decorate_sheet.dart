@@ -6,6 +6,7 @@ import '../../shared/models/journal.dart';
 import '../journals/journals_provider.dart';
 import 'cover_band.dart';
 import 'cover_binding.dart';
+import 'cover_clip.dart';
 import 'cover_corner.dart';
 import 'cover_palette.dart';
 import 'cover_pattern.dart';
@@ -44,6 +45,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _corner = normalizeCoverCorner(widget.journal.coverCorner);
   late String _band = normalizeCoverBand(widget.journal.coverBand);
   late String _ribbon = normalizeCoverRibbon(widget.journal.coverRibbon);
+  late String _clip = normalizeCoverClip(widget.journal.coverClip);
 
   void _pick(int c) {
     if (c == _color) return;
@@ -93,6 +95,14 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
         .edit(widget.journal.copyWith(coverRibbon: r));
   }
 
+  void _pickClip(String c) {
+    if (c == _clip) return;
+    setState(() => _clip = c);
+    ref
+        .read(journalsProvider.notifier)
+        .edit(widget.journal.copyWith(coverClip: c));
+  }
+
   @override
   Widget build(BuildContext context) {
     final j = widget.journal;
@@ -136,6 +146,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 corner: _corner,
                 band: _band,
                 ribbon: _ribbon,
+                clip: _clip,
                 title: j.title,
                 radius: 14,
                 iconSize: 30,
@@ -384,6 +395,55 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                     ),
                     const SizedBox(height: 4),
                     Text(coverRibbonLabel(r),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          const Text('클립',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverClipPalette.map((c) {
+              final selected = c == _clip;
+              return GestureDetector(
+                onTap: () => _pickClip(c),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: selected
+                            ? Border.all(color: AppColors.primary, width: 2.5)
+                            : Border.all(color: AppColors.divider),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: JournalCover(
+                          color: _color,
+                          icon: '',
+                          clip: c,
+                          clipScale: 0.7,
+                          radius: 8,
+                          iconSize: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(coverClipLabel(c),
                         style: TextStyle(
                             fontSize: 11,
                             color: selected

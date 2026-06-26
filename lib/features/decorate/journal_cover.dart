@@ -4,6 +4,8 @@ import 'cover_band.dart';
 import 'cover_band_painter.dart';
 import 'cover_binding.dart';
 import 'cover_binding_painter.dart';
+import 'cover_clip.dart';
+import 'cover_clip_painter.dart';
 import 'cover_corner.dart';
 import 'cover_corner_painter.dart';
 import 'cover_pattern.dart';
@@ -31,6 +33,8 @@ class JournalCover extends StatelessWidget {
     this.bandScale = 1.0,
     this.ribbon = kDefaultCoverRibbon,
     this.ribbonScale = 1.0,
+    this.clip = kDefaultCoverClip,
+    this.clipScale = 1.0,
     this.title,
     this.entryCount,
     this.radius = 14,
@@ -73,6 +77,12 @@ class JournalCover extends StatelessWidget {
 
   /// 리본 폭 배율(작은 미리보기는 더 작게).
   final double ribbonScale;
+
+  /// 클립(페이퍼클립) id (cover_clip.dart). 'none'이면 클립 없음.
+  final String clip;
+
+  /// 클립 크기 배율(작은 미리보기는 더 작게).
+  final double clipScale;
 
   /// 표지 안에 흰 글씨로 넣을 제목. null이면 제목 없음(예: 앱아이콘 레이아웃).
   final String? title;
@@ -137,6 +147,15 @@ class JournalCover extends StatelessWidget {
                 borderRadius: BorderRadius.circular(radius),
                 child: CustomPaint(
                   painter: CoverRibbonPainter(ribbon, scale: ribbonScale),
+                ),
+              ),
+            ),
+          if (normalizeCoverClip(clip) != kDefaultCoverClip)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child: CustomPaint(
+                  painter: CoverClipPainter(clip, scale: clipScale),
                 ),
               ),
             ),
