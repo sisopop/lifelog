@@ -9,6 +9,7 @@ class Journal {
     required this.type,
     required this.title,
     this.coverColor = 0xFF7C6FF0,
+    this.coverPattern = 'none',
     this.icon,
     this.status = JournalStatus.active,
     this.spaceId,
@@ -22,6 +23,9 @@ class Journal {
 
   /// ARGB int for the cover color.
   final int coverColor;
+
+  /// Procedural cover pattern id ('none' = 단색). See cover_pattern.dart.
+  final String coverPattern;
 
   /// Optional emoji icon; falls back to the type emoji when null.
   final String? icon;
@@ -37,6 +41,7 @@ class Journal {
   Journal copyWith({
     String? title,
     int? coverColor,
+    String? coverPattern,
     String? icon,
     JournalStatus? status,
     String? spaceId,
@@ -47,6 +52,7 @@ class Journal {
       type: type,
       title: title ?? this.title,
       coverColor: coverColor ?? this.coverColor,
+      coverPattern: coverPattern ?? this.coverPattern,
       icon: icon ?? this.icon,
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,

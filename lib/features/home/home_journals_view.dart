@@ -163,6 +163,7 @@ class _JournalBook extends StatelessWidget {
       child: JournalCover(
         color: journal.coverColor,
         icon: journal.displayIcon,
+        pattern: journal.coverPattern,
         title: journal.title,
         entryCount: entryCount,
         radius: 14,
@@ -199,6 +200,7 @@ class _JournalAppIcon extends StatelessWidget {
             child: JournalCover(
               color: journal.coverColor,
               icon: journal.displayIcon,
+              pattern: journal.coverPattern,
               entryCount: entryCount,
               radius: 16,
               iconSize: 28,

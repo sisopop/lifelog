@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'cover_pattern.dart';
+import 'cover_pattern_painter.dart';
+
 /// 일기장 표지(책 모양)를 그리는 공용 렌더러.
 ///
 /// 책장·꾸미기 시트 미리보기·(추후)꾸미기샵·상세 헤더가 모두 이 위젯을 써서
@@ -10,6 +13,8 @@ class JournalCover extends StatelessWidget {
     super.key,
     required this.color,
     required this.icon,
+    this.pattern = kNoCoverPattern,
+    this.patternScale = 1.0,
     this.title,
     this.entryCount,
     this.radius = 14,
@@ -22,6 +27,12 @@ class JournalCover extends StatelessWidget {
   /// ARGB int (Journal.coverColor).
   final int color;
   final String icon;
+
+  /// 절차적 표지 패턴 id (cover_pattern.dart). 'none'이면 단색.
+  final String pattern;
+
+  /// 패턴 밀도 배율(작은 미리보기는 더 작게).
+  final double patternScale;
 
   /// 표지 안에 흰 글씨로 넣을 제목. null이면 제목 없음(예: 앱아이콘 레이아웃).
   final String? title;
@@ -43,6 +54,15 @@ class JournalCover extends StatelessWidget {
       decoration: coverBoxDecoration(c, radius),
       child: Stack(
         children: [
+          if (normalizeCoverPattern(pattern) != kNoCoverPattern)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child: CustomPaint(
+                  painter: CoverPatternPainter(pattern, scale: patternScale),
+                ),
+              ),
+            ),
           _CoverSpine(radius: radius),
           if (entryCount != null) _CoverCountBadge(count: entryCount!),
           if (centerIcon)

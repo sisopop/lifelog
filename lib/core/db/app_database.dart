@@ -32,6 +32,7 @@ class Journals extends Table {
   TextColumn get type => textEnum<JournalType>()();
   TextColumn get title => text()();
   IntColumn get coverColor => integer().withDefault(const Constant(0xFF7C6FF0))();
+  TextColumn get coverPattern => text().withDefault(const Constant('none'))();
   TextColumn get icon => text().nullable()();
   TextColumn get status => textEnum<JournalStatus>()();
   TextColumn get spaceId => text().nullable()();
@@ -99,7 +100,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -121,6 +122,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             // 즐겨찾기 flag — existing rows default to false via the column default.
             await m.addColumn(diaryEntries, diaryEntries.isFavorite);
+          }
+          if (from < 5) {
+            // 다꾸 표지 패턴 — existing journals default to 'none' (단색).
+            await m.addColumn(journals, journals.coverPattern);
           }
         },
       );
