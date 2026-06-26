@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/models/journal.dart';
 import '../journals/journals_provider.dart';
 import 'cover_palette.dart';
+import 'journal_cover.dart';
 
 /// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기(v1: 표지 색).
 /// 책장에서 일기장을 길게 눌러 진입합니다. 색을 탭하면 즉시 저장·반영됩니다.
@@ -80,7 +81,20 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
           const Text('표지 꾸미기',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           const SizedBox(height: 16),
-          _CoverPreview(color: _color, icon: _icon, title: j.title),
+          Center(
+            child: SizedBox(
+              width: 110,
+              height: 140,
+              child: JournalCover(
+                color: _color,
+                icon: _icon,
+                title: j.title,
+                radius: 14,
+                iconSize: 30,
+                titleSize: 14,
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
           const Text('표지 색',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
@@ -138,79 +152,6 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
           ),
         ],
       ),
-      ),
-    );
-  }
-}
-
-/// Live mini book-cover preview that reflects the picked color immediately.
-class _CoverPreview extends StatelessWidget {
-  const _CoverPreview({
-    required this.color,
-    required this.icon,
-    required this.title,
-  });
-  final int color;
-  final String icon;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = Color(color);
-    return Center(
-      child: Container(
-        width: 110,
-        height: 140,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          gradient: LinearGradient(
-            colors: [c, c.withValues(alpha: 0.78)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: c.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: 6,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.16),
-                  borderRadius:
-                      const BorderRadius.horizontal(left: Radius.circular(14)),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(icon, style: const TextStyle(fontSize: 30)),
-                  Text(title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          height: 1.15)),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

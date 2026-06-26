@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/journal.dart';
 import '../decorate/cover_decorate_sheet.dart';
+import '../decorate/journal_cover.dart';
 import 'home_journal_layout.dart';
 
 /// Renders the home journal list in the layout the user picked: a full-width
@@ -85,53 +86,6 @@ class HomeJournalsView extends ConsumerWidget {
   }
 }
 
-/// Shared cover decoration (gradient + soft shadow) used by every cover style.
-BoxDecoration _coverDecoration(Color color, double radius) => BoxDecoration(
-      borderRadius: BorderRadius.circular(radius),
-      gradient: LinearGradient(
-        colors: [color, color.withValues(alpha: 0.78)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: color.withValues(alpha: 0.3),
-          blurRadius: 12,
-          offset: const Offset(0, 6),
-        ),
-      ],
-    );
-
-Widget _spine(double radius) => Positioned(
-      left: 0,
-      top: 0,
-      bottom: 0,
-      child: Container(
-        width: 6,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.16),
-          borderRadius: BorderRadius.horizontal(left: Radius.circular(radius)),
-        ),
-      ),
-    );
-
-Widget _countBadge(int count) => Positioned(
-      top: 7,
-      right: 7,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-        decoration: BoxDecoration(
-          color: Colors.white24,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text('$count',
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w700)),
-      ),
-    );
-
 /// Full-width horizontal card (icon · title · count · chevron).
 class _JournalCard extends StatelessWidget {
   const _JournalCard({
@@ -154,7 +108,7 @@ class _JournalCard extends StatelessWidget {
       onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.all(18),
-        decoration: _coverDecoration(color, 18),
+        decoration: coverBoxDecoration(color, 18),
         child: Row(
           children: [
             Text(journal.displayIcon, style: const TextStyle(fontSize: 30)),
@@ -202,38 +156,18 @@ class _JournalBook extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Color(journal.coverColor);
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       onLongPress: onLongPress,
-      child: Container(
-        decoration: _coverDecoration(color, 14),
-        child: Stack(
-          children: [
-            _spine(14),
-            _countBadge(entryCount),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 10, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(journal.displayIcon,
-                      style: TextStyle(fontSize: compact ? 26 : 34)),
-                  Text(journal.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontSize: compact ? 12 : 15,
-                          fontWeight: FontWeight.w800,
-                          height: 1.15)),
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: JournalCover(
+        color: journal.coverColor,
+        icon: journal.displayIcon,
+        title: journal.title,
+        entryCount: entryCount,
+        radius: 14,
+        iconSize: compact ? 26 : 34,
+        titleSize: compact ? 12 : 15,
       ),
     );
   }
@@ -254,7 +188,6 @@ class _JournalAppIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Color(journal.coverColor);
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
@@ -263,16 +196,13 @@ class _JournalAppIcon extends StatelessWidget {
         children: [
           AspectRatio(
             aspectRatio: 1,
-            child: Stack(
-              children: [
-                Container(decoration: _coverDecoration(color, 16)),
-                _spine(16),
-                _countBadge(entryCount),
-                Center(
-                  child: Text(journal.displayIcon,
-                      style: const TextStyle(fontSize: 28)),
-                ),
-              ],
+            child: JournalCover(
+              color: journal.coverColor,
+              icon: journal.displayIcon,
+              entryCount: entryCount,
+              radius: 16,
+              iconSize: 28,
+              centerIcon: true,
             ),
           ),
           const SizedBox(height: 6),
