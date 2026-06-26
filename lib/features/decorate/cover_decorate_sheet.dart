@@ -12,6 +12,7 @@ import 'cover_palette.dart';
 import 'cover_pattern.dart';
 import 'cover_ribbon.dart';
 import 'cover_tab.dart';
+import 'cover_texture.dart';
 import 'journal_cover.dart';
 
 /// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기(v1: 표지 색).
@@ -48,6 +49,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _ribbon = normalizeCoverRibbon(widget.journal.coverRibbon);
   late String _clip = normalizeCoverClip(widget.journal.coverClip);
   late String _tab = normalizeCoverTab(widget.journal.coverTab);
+  late String _texture = normalizeCoverTexture(widget.journal.coverTexture);
 
   void _pick(int c) {
     if (c == _color) return;
@@ -113,6 +115,14 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
         .edit(widget.journal.copyWith(coverTab: t));
   }
 
+  void _pickTexture(String t) {
+    if (t == _texture) return;
+    setState(() => _texture = t);
+    ref
+        .read(journalsProvider.notifier)
+        .edit(widget.journal.copyWith(coverTexture: t));
+  }
+
   @override
   Widget build(BuildContext context) {
     final j = widget.journal;
@@ -158,6 +168,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 ribbon: _ribbon,
                 clip: _clip,
                 tab: _tab,
+                texture: _texture,
                 title: j.title,
                 radius: 14,
                 iconSize: 30,
@@ -216,6 +227,55 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                         : Border.all(color: AppColors.divider),
                   ),
                   child: Text(e, style: const TextStyle(fontSize: 22)),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          const Text('재질',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverTexturePalette.map((t) {
+              final selected = t == _texture;
+              return GestureDetector(
+                onTap: () => _pickTexture(t),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: selected
+                            ? Border.all(color: AppColors.primary, width: 2.5)
+                            : Border.all(color: AppColors.divider),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: JournalCover(
+                          color: _color,
+                          icon: '',
+                          texture: t,
+                          textureScale: 0.7,
+                          radius: 8,
+                          iconSize: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(coverTextureLabel(t),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500)),
+                  ],
                 ),
               );
             }).toList(),

@@ -16,6 +16,7 @@ class Journal {
     this.coverRibbon = 'none',
     this.coverClip = 'none',
     this.coverTab = 'none',
+    this.coverTexture = 'none',
     this.icon,
     this.status = JournalStatus.active,
     this.spaceId,
@@ -51,6 +52,9 @@ class Journal {
   /// 우측 인덱스 탭 id ('none' = 없음). See cover_tab.dart.
   final String coverTab;
 
+  /// 표지 재질(질감) id ('none' = 매끈한 단색). See cover_texture.dart.
+  final String coverTexture;
+
   /// Optional emoji icon; falls back to the type emoji when null.
   final String? icon;
   final JournalStatus status;
@@ -72,6 +76,7 @@ class Journal {
     String? coverRibbon,
     String? coverClip,
     String? coverTab,
+    String? coverTexture,
     String? icon,
     JournalStatus? status,
     String? spaceId,
@@ -89,6 +94,7 @@ class Journal {
       coverRibbon: coverRibbon ?? this.coverRibbon,
       coverClip: coverClip ?? this.coverClip,
       coverTab: coverTab ?? this.coverTab,
+      coverTexture: coverTexture ?? this.coverTexture,
       icon: icon ?? this.icon,
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,

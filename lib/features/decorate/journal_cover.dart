@@ -14,6 +14,8 @@ import 'cover_ribbon.dart';
 import 'cover_ribbon_painter.dart';
 import 'cover_tab.dart';
 import 'cover_tab_painter.dart';
+import 'cover_texture.dart';
+import 'cover_texture_painter.dart';
 
 /// 일기장 표지(책 모양)를 그리는 공용 렌더러.
 ///
@@ -39,6 +41,8 @@ class JournalCover extends StatelessWidget {
     this.clipScale = 1.0,
     this.tab = kDefaultCoverTab,
     this.tabScale = 1.0,
+    this.texture = kDefaultCoverTexture,
+    this.textureScale = 1.0,
     this.title,
     this.entryCount,
     this.radius = 14,
@@ -94,6 +98,12 @@ class JournalCover extends StatelessWidget {
   /// 탭 크기 배율(작은 미리보기는 더 작게).
   final double tabScale;
 
+  /// 표지 재질(질감) id (cover_texture.dart). 'none'이면 매끈한 단색.
+  final String texture;
+
+  /// 재질 질감 밀도 배율(작은 미리보기는 더 작게).
+  final double textureScale;
+
   /// 표지 안에 흰 글씨로 넣을 제목. null이면 제목 없음(예: 앱아이콘 레이아웃).
   final String? title;
 
@@ -116,6 +126,16 @@ class JournalCover extends StatelessWidget {
         // 책갈피 끈·클립은 표지 밖(아래·위)으로 삐져나와야 해서 잘라내지 않는다.
         clipBehavior: Clip.none,
         children: [
+          // 표지 재질(질감): 면 전체에 깔리는 가장 아래 레이어.
+          if (normalizeCoverTexture(texture) != kDefaultCoverTexture)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child: CustomPaint(
+                  painter: CoverTexturePainter(texture, scale: textureScale),
+                ),
+              ),
+            ),
           if (normalizeCoverPattern(pattern) != kNoCoverPattern)
             Positioned.fill(
               child: ClipRRect(
