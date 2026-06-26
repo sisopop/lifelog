@@ -334,6 +334,21 @@ int? taggedEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
   return taggedEntryShare(monthly.toList());
 }
 
+/// Pure: what share of top-level records carry a (non-empty) location, as a
+/// 0–100 percent. Replies are excluded. Returns null when there are no
+/// top-level records.
+int? locationEntryShare(List<DiaryEntry> entries) {
+  var total = 0;
+  var located = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    if ((e.location ?? '').trim().isNotEmpty) located++;
+  }
+  if (total == 0) return null;
+  return (located * 100 / total).round();
+}
+
 /// Pure: count top-level entries by mood. Only moods that actually occur are
 /// present in the map; entries without a mood are ignored. Ordered by
 /// [Mood.values] for stable rendering.

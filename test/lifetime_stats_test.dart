@@ -12,6 +12,7 @@ DiaryEntry _entry({
   Mood? mood,
   bool favorite = false,
   List<String> media = const [],
+  String? location,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -22,6 +23,7 @@ DiaryEntry _entry({
       mood: mood,
       isFavorite: favorite,
       mediaUrls: media,
+      location: location,
       replyToEntryId: replyTo,
       createdAt: at,
       updatedAt: at,
@@ -445,6 +447,31 @@ void main() {
         _entry(id: 'a', at: DateTime(2026, 5, 1), tags: ['가족']),
       ], 2026, 6);
       expect(pct, isNull);
+    });
+  });
+
+  group('locationEntryShare', () {
+    test('rounds the located share to a percent', () {
+      // 1 located of 3 → 33%.
+      final pct = locationEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), location: '제주'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), location: '   '),
+      ]);
+      expect(pct, 33);
+    });
+
+    test('excludes replies', () {
+      final pct = locationEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), location: '제주'),
+        _entry(
+            id: 'b', at: DateTime(2026, 6, 2), replyTo: 'a', location: '서울'),
+      ]);
+      expect(pct, 100);
+    });
+
+    test('null when there are no top-level records', () {
+      expect(locationEntryShare(const []), isNull);
     });
   });
 
