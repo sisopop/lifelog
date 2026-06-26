@@ -321,6 +321,15 @@ int photoEntryCount(List<DiaryEntry> entries) {
   return count;
 }
 
+/// Pure: how many top-level records in the given [year]/[month] carry at least
+/// one photo, reusing [photoEntryCount] on that month's entries. Replies are
+/// excluded. Returns 0 when that month has no photo record.
+int photoEntryCountOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return photoEntryCount(monthly.toList());
+}
+
 /// Pure: what share of top-level records carry at least one tag, as a 0–100
 /// percent. Replies are excluded. Returns null when there are no top-level
 /// records.

@@ -406,6 +406,30 @@ void main() {
     });
   });
 
+  group('photoEntryCountOfMonth', () {
+    test('counts only the given month\'s top-level photo records', () {
+      final n = photoEntryCountOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), media: ['u1']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), media: ['u2']),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)), // no photo
+        _entry(id: 'd', at: DateTime(2026, 5, 9), media: ['u4']), // other month
+      ], 2026, 6);
+      expect(n, 2);
+    });
+
+    test('excludes replies even with photos', () {
+      final n = photoEntryCountOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), media: ['u1']),
+        _entry(id: 'r', at: DateTime(2026, 6, 2), replyTo: 'a', media: ['u2']),
+      ], 2026, 6);
+      expect(n, 1);
+    });
+
+    test('zero when month has no photo record', () {
+      expect(photoEntryCountOfMonth(const [], 2026, 6), 0);
+    });
+  });
+
   group('taggedEntryShare', () {
     test('rounds the share of top-level entries that carry a tag', () {
       // 2 of 3 tagged → 67%.
