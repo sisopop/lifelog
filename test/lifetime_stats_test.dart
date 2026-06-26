@@ -515,6 +515,33 @@ void main() {
     });
   });
 
+  group('moodEntryShare', () {
+    test('rounds the mood-carrying share to a percent', () {
+      // 2 of 5 carry a mood → 40%.
+      final pct = moodEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), mood: Mood.neutral),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+        _entry(id: 'e', at: DateTime(2026, 6, 5)),
+      ]);
+      expect(pct, 40);
+    });
+
+    test('excludes replies', () {
+      final pct = moodEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(
+            id: 'b', at: DateTime(2026, 6, 2), replyTo: 'a', mood: Mood.hard),
+      ]);
+      expect(pct, 100);
+    });
+
+    test('null when there are no top-level records', () {
+      expect(moodEntryShare(const []), isNull);
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);
