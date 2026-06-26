@@ -116167,7 +116167,7 @@ bk(a,b){var s,r,q,p,o,n,m,l,k,j,i,h,g=B.aaL.i(0,A.baG(this.b))
 if(g==null)return
 s=A.bv(g)
 r=b.a
-q=r*0.62
+q=r*0.22
 p=B.e.eS(r*0.1,7,16)
 r=b.b
 o=r-r*0.015
