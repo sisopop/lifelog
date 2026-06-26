@@ -34,7 +34,8 @@ class _CoverDecorateSheet extends ConsumerStatefulWidget {
 class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late int _color = widget.journal.coverColor;
   late String _icon = widget.journal.displayIcon;
-  late String _pattern = normalizeCoverPattern(widget.journal.coverPattern);
+  late final String _pattern =
+      normalizeCoverPattern(widget.journal.coverPattern);
 
   void _pick(int c) {
     if (c == _color) return;
@@ -50,14 +51,6 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
     ref
         .read(journalsProvider.notifier)
         .edit(widget.journal.copyWith(icon: e));
-  }
-
-  void _pickPattern(String p) {
-    if (p == _pattern) return;
-    setState(() => _pattern = p);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverPattern: p));
   }
 
   @override
@@ -161,55 +154,9 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
               );
             }).toList(),
           ),
-          const SizedBox(height: 20),
-          const Text('표지 패턴',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: coverPatternPalette.map((p) {
-              final selected = p == _pattern;
-              return GestureDetector(
-                onTap: () => _pickPattern(p),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: selected
-                            ? Border.all(color: AppColors.primary, width: 2.5)
-                            : Border.all(color: AppColors.divider),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: JournalCover(
-                          color: _color,
-                          icon: '',
-                          pattern: p,
-                          patternScale: 0.55,
-                          radius: 8,
-                          iconSize: 0,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(coverPatternLabel(p),
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: selected
-                                ? AppColors.primary
-                                : AppColors.textSecondary,
-                            fontWeight:
-                                selected ? FontWeight.w700 : FontWeight.w500)),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
+          // 표지 패턴 섹션은 v1 패턴이 충분히 예쁘지 않아 숨김 처리.
+          // 모델/DB/페인터/_pickPattern은 그대로 두고, 더 나은 패턴이 준비되면
+          // 아래 _patternSection()을 다시 children에 넣어 되살린다.
         ],
       ),
       ),
