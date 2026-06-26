@@ -129,6 +129,10 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   const SizedBox(height: 12),
                   _InsightLine(
                     text: '${domMood.emoji} 주로 ${domMood.label} 기분을 기록했어요',
+                    onTap: () => context.push(
+                      Uri(path: '/mood', queryParameters: {'m': domMood.name})
+                          .toString(),
+                    ),
                   ),
                 ],
                 if (dayParts.isNotEmpty) ...[
