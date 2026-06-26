@@ -406,6 +406,35 @@ void main() {
     });
   });
 
+  group('mostUsedTag', () {
+    test('returns the most frequent tag with its count', () {
+      final t = mostUsedTag([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['가족', '일상']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), tags: ['가족']),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), tags: ['일상']),
+      ]);
+      expect(t!.key, '가족');
+      expect(t.value, 2);
+    });
+
+    test('excludes replies', () {
+      final t = mostUsedTag([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행']),
+        _entry(id: 'r', at: DateTime(2026, 6, 2), replyTo: 'a', tags: ['여행', '여행']),
+      ]);
+      expect(t!.key, '여행');
+      expect(t.value, 1);
+    });
+
+    test('null when no tag exists', () {
+      expect(mostUsedTag(const []), isNull);
+      expect(
+        mostUsedTag([_entry(id: 'a', at: DateTime(2026, 6, 1))]),
+        isNull,
+      );
+    });
+  });
+
   group('photoEntryCountOfMonth', () {
     test('counts only the given month\'s top-level photo records', () {
       final n = photoEntryCountOfMonth([

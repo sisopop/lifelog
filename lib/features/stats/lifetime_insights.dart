@@ -400,6 +400,14 @@ List<MapEntry<String, int>> topTags(List<DiaryEntry> entries, {int limit = 12}) 
   return sorted;
 }
 
+/// Pure: the single most-used tag across top-level entries, as `(tag, count)`,
+/// reusing [topTags]. Ties resolve alphabetically (per [topTags]). Returns null
+/// when no top-level entry carries a tag.
+MapEntry<String, int>? mostUsedTag(List<DiaryEntry> entries) {
+  final tags = topTags(entries, limit: 1);
+  return tags.isEmpty ? null : tags.first;
+}
+
 /// One month's record count, used by the recent-months trend chart.
 class MonthCount {
   const MonthCount(this.year, this.month, this.count);

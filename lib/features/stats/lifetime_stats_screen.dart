@@ -274,6 +274,21 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
+                Builder(builder: (context) {
+                  final tag = mostUsedTag(entries);
+                  if (tag == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '🏷️ 가장 많이 쓴 태그는 #${tag.key} 예요 '
+                          '(${tag.value}개)',
+                      onTap: () => context.push(
+                        Uri(path: '/tag', queryParameters: {'t': tag.key})
+                            .toString(),
+                      ),
+                    ),
+                  );
+                }),
                 if (activeMonth != null && activeMonth.count >= 2) ...[
                   const SizedBox(height: 12),
                   _InsightLine(
