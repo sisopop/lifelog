@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/journal.dart';
+import '../decorate/cover_decorate_sheet.dart';
 import 'home_journal_layout.dart';
 
 /// Renders the home journal list in the layout the user picked: a full-width
 /// card list, or a 2/3/4-column grid of book covers. The cover widgets are
 /// structured so a future "skin" system can swap their decoration without
-/// changing the layout.
-class HomeJournalsView extends StatelessWidget {
+/// changing the layout. Long-pressing a cover opens the 꾸미기 (decorate) sheet.
+class HomeJournalsView extends ConsumerWidget {
   const HomeJournalsView({
     super.key,
     required this.journals,
@@ -26,8 +28,9 @@ class HomeJournalsView extends StatelessWidget {
   void _add(BuildContext context) => context.push('/journal/new');
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     int countOf(Journal j) => counts[j.journalId] ?? 0;
+    void decorate(Journal j) => showCoverDecorateSheet(context, ref, j);
 
     if (layout == HomeJournalLayout.card) {
       return Column(
@@ -39,6 +42,7 @@ class HomeJournalsView extends StatelessWidget {
                 journal: j,
                 entryCount: countOf(j),
                 onTap: () => _open(context, j),
+                onLongPress: () => decorate(j),
               ),
             ),
           _AddJournalCard(onTap: () => _add(context)),
@@ -62,6 +66,7 @@ class HomeJournalsView extends StatelessWidget {
               journal: j,
               entryCount: countOf(j),
               onTap: () => _open(context, j),
+              onLongPress: () => decorate(j),
             )
           else
             _JournalBook(
@@ -69,6 +74,7 @@ class HomeJournalsView extends StatelessWidget {
               entryCount: countOf(j),
               compact: cols >= 3,
               onTap: () => _open(context, j),
+              onLongPress: () => decorate(j),
             ),
         if (appIcon)
           _AddJournalAppIcon(onTap: () => _add(context))
@@ -132,10 +138,12 @@ class _JournalCard extends StatelessWidget {
     required this.journal,
     required this.entryCount,
     required this.onTap,
+    this.onLongPress,
   });
   final Journal journal;
   final int entryCount;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +151,7 @@ class _JournalCard extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: _coverDecoration(color, 18),
@@ -182,12 +191,14 @@ class _JournalBook extends StatelessWidget {
     required this.journal,
     required this.entryCount,
     required this.onTap,
+    this.onLongPress,
     this.compact = false,
   });
   final Journal journal;
   final int entryCount;
   final bool compact;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -195,6 +206,7 @@ class _JournalBook extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Container(
         decoration: _coverDecoration(color, 14),
         child: Stack(
@@ -233,10 +245,12 @@ class _JournalAppIcon extends StatelessWidget {
     required this.journal,
     required this.entryCount,
     required this.onTap,
+    this.onLongPress,
   });
   final Journal journal;
   final int entryCount;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +258,7 @@ class _JournalAppIcon extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
+      onLongPress: onLongPress,
       child: Column(
         children: [
           AspectRatio(
