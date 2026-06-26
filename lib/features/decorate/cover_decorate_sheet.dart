@@ -9,6 +9,7 @@ import 'cover_binding.dart';
 import 'cover_corner.dart';
 import 'cover_palette.dart';
 import 'cover_pattern.dart';
+import 'cover_ribbon.dart';
 import 'journal_cover.dart';
 
 /// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기(v1: 표지 색).
@@ -42,6 +43,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _binding = normalizeCoverBinding(widget.journal.coverBinding);
   late String _corner = normalizeCoverCorner(widget.journal.coverCorner);
   late String _band = normalizeCoverBand(widget.journal.coverBand);
+  late String _ribbon = normalizeCoverRibbon(widget.journal.coverRibbon);
 
   void _pick(int c) {
     if (c == _color) return;
@@ -81,6 +83,14 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
     ref
         .read(journalsProvider.notifier)
         .edit(widget.journal.copyWith(coverBand: b));
+  }
+
+  void _pickRibbon(String r) {
+    if (r == _ribbon) return;
+    setState(() => _ribbon = r);
+    ref
+        .read(journalsProvider.notifier)
+        .edit(widget.journal.copyWith(coverRibbon: r));
   }
 
   @override
@@ -125,6 +135,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 binding: _binding,
                 corner: _corner,
                 band: _band,
+                ribbon: _ribbon,
                 title: j.title,
                 radius: 14,
                 iconSize: 30,
@@ -324,6 +335,55 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                     ),
                     const SizedBox(height: 4),
                     Text(coverBandLabel(b),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                            fontWeight:
+                                selected ? FontWeight.w700 : FontWeight.w500)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          const Text('책갈피',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverRibbonPalette.map((r) {
+              final selected = r == _ribbon;
+              return GestureDetector(
+                onTap: () => _pickRibbon(r),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: selected
+                            ? Border.all(color: AppColors.primary, width: 2.5)
+                            : Border.all(color: AppColors.divider),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: JournalCover(
+                          color: _color,
+                          icon: '',
+                          ribbon: r,
+                          ribbonScale: 0.7,
+                          radius: 8,
+                          iconSize: 0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(coverRibbonLabel(r),
                         style: TextStyle(
                             fontSize: 11,
                             color: selected

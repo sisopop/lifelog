@@ -8,6 +8,8 @@ import 'cover_corner.dart';
 import 'cover_corner_painter.dart';
 import 'cover_pattern.dart';
 import 'cover_pattern_painter.dart';
+import 'cover_ribbon.dart';
+import 'cover_ribbon_painter.dart';
 
 /// 일기장 표지(책 모양)를 그리는 공용 렌더러.
 ///
@@ -27,6 +29,8 @@ class JournalCover extends StatelessWidget {
     this.cornerScale = 1.0,
     this.band = kDefaultCoverBand,
     this.bandScale = 1.0,
+    this.ribbon = kDefaultCoverRibbon,
+    this.ribbonScale = 1.0,
     this.title,
     this.entryCount,
     this.radius = 14,
@@ -63,6 +67,12 @@ class JournalCover extends StatelessWidget {
 
   /// 밴드 두께 배율(작은 미리보기는 더 작게).
   final double bandScale;
+
+  /// 책갈피 리본 id (cover_ribbon.dart). 'none'이면 리본 없음.
+  final String ribbon;
+
+  /// 리본 폭 배율(작은 미리보기는 더 작게).
+  final double ribbonScale;
 
   /// 표지 안에 흰 글씨로 넣을 제목. null이면 제목 없음(예: 앱아이콘 레이아웃).
   final String? title;
@@ -118,6 +128,15 @@ class JournalCover extends StatelessWidget {
                 borderRadius: BorderRadius.circular(radius),
                 child: CustomPaint(
                   painter: CoverBandPainter(band, scale: bandScale),
+                ),
+              ),
+            ),
+          if (normalizeCoverRibbon(ribbon) != kDefaultCoverRibbon)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child: CustomPaint(
+                  painter: CoverRibbonPainter(ribbon, scale: ribbonScale),
                 ),
               ),
             ),
