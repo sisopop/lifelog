@@ -22,8 +22,9 @@ class CoverRibbonPainter extends CustomPainter {
     if (argb == null) return; // none.
     final color = Color(argb);
 
-    // 표지 밑변 가운데-오른쪽(제목은 좌하단이라 안 겹침)에서 끈이 내려온다.
-    final cx = size.width * 0.62;
+    // 표지 밑변 왼쪽(책등 가까이)에서 끈이 내려온다 — 실제 책갈피처럼.
+    // 끈은 밑변 아래로만 보이므로 좌하단 제목 텍스트와는 겹치지 않는다.
+    final cx = size.width * 0.22;
     final w = (size.width * 0.1).clamp(7.0, 16.0);
     final tail = (size.height * 0.11).clamp(9.0, 18.0); // 표지 아래로 나오는 길이.
     final top = size.height - size.height * 0.015; // 밑변 살짝 위(밑에서 나오는 느낌).
