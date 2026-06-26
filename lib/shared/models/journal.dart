@@ -11,6 +11,7 @@ class Journal {
     this.coverColor = 0xFF7C6FF0,
     this.coverPattern = 'none',
     this.coverBinding = 'plain',
+    this.coverCorner = 'none',
     this.icon,
     this.status = JournalStatus.active,
     this.spaceId,
@@ -31,6 +32,9 @@ class Journal {
   /// 제본 방식 id ('plain' = 무선). See cover_binding.dart.
   final String coverBinding;
 
+  /// 모서리 장식 id ('none' = 없음). See cover_corner.dart.
+  final String coverCorner;
+
   /// Optional emoji icon; falls back to the type emoji when null.
   final String? icon;
   final JournalStatus status;
@@ -47,6 +51,7 @@ class Journal {
     int? coverColor,
     String? coverPattern,
     String? coverBinding,
+    String? coverCorner,
     String? icon,
     JournalStatus? status,
     String? spaceId,
@@ -59,6 +64,7 @@ class Journal {
       coverColor: coverColor ?? this.coverColor,
       coverPattern: coverPattern ?? this.coverPattern,
       coverBinding: coverBinding ?? this.coverBinding,
+      coverCorner: coverCorner ?? this.coverCorner,
       icon: icon ?? this.icon,
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,

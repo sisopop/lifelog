@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'cover_binding.dart';
 import 'cover_binding_painter.dart';
+import 'cover_corner.dart';
+import 'cover_corner_painter.dart';
 import 'cover_pattern.dart';
 import 'cover_pattern_painter.dart';
 
@@ -19,6 +21,8 @@ class JournalCover extends StatelessWidget {
     this.patternScale = 1.0,
     this.binding = kDefaultCoverBinding,
     this.bindingScale = 1.0,
+    this.corner = kDefaultCoverCorner,
+    this.cornerScale = 1.0,
     this.title,
     this.entryCount,
     this.radius = 14,
@@ -43,6 +47,12 @@ class JournalCover extends StatelessWidget {
 
   /// 제본 코일 크기 배율(작은 미리보기는 더 작게).
   final double bindingScale;
+
+  /// 모서리 장식 id (cover_corner.dart). 'none'이면 장식 없음.
+  final String corner;
+
+  /// 모서리 장식 크기 배율(작은 미리보기는 더 작게).
+  final double cornerScale;
 
   /// 표지 안에 흰 글씨로 넣을 제목. null이면 제목 없음(예: 앱아이콘 레이아웃).
   final String? title;
@@ -80,6 +90,15 @@ class JournalCover extends StatelessWidget {
                 borderRadius: BorderRadius.circular(radius),
                 child: CustomPaint(
                   painter: CoverBindingPainter(binding, scale: bindingScale),
+                ),
+              ),
+            ),
+          if (normalizeCoverCorner(corner) != kDefaultCoverCorner)
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(radius),
+                child: CustomPaint(
+                  painter: CoverCornerPainter(corner, scale: cornerScale),
                 ),
               ),
             ),

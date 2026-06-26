@@ -35,6 +35,8 @@ class Journals extends Table {
   TextColumn get coverPattern => text().withDefault(const Constant('none'))();
   TextColumn get coverBinding =>
       text().withDefault(const Constant('plain'))();
+  TextColumn get coverCorner =>
+      text().withDefault(const Constant('none'))();
   TextColumn get icon => text().nullable()();
   TextColumn get status => textEnum<JournalStatus>()();
   TextColumn get spaceId => text().nullable()();
@@ -102,7 +104,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -132,6 +134,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) {
             // 다꾸 제본 방식 — existing journals default to 'plain' (무선).
             await m.addColumn(journals, journals.coverBinding);
+          }
+          if (from < 7) {
+            // 다꾸 모서리 장식 — existing journals default to 'none' (없음).
+            await m.addColumn(journals, journals.coverCorner);
           }
         },
       );
