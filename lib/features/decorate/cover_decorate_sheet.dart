@@ -270,6 +270,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             runSpacing: 10,
             children: icons.map((e) {
               final selected = e == _icon;
+              final isNone = e == kNoCoverIcon;
               return GestureDetector(
                 onTap: () => _pickIcon(e),
                 child: Container(
@@ -283,7 +284,10 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                         ? Border.all(color: AppColors.primary, width: 2.5)
                         : Border.all(color: AppColors.divider),
                   ),
-                  child: Text(e, style: const TextStyle(fontSize: 22)),
+                  child: isNone
+                      ? const Icon(Icons.block,
+                          size: 20, color: AppColors.textHint)
+                      : Text(e, style: const TextStyle(fontSize: 22)),
                 ),
               );
             }).toList(),

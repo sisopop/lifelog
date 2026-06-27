@@ -31,15 +31,21 @@ List<int> coverPaletteFor(int current) {
   return [current, ...coverColorPalette];
 }
 
+/// "아이콘 없음" 센티넬. 빈 문자열을 저장하면 displayIcon이 빈 문자열을
+/// 돌려주므로(타입 기본 이모지로 폴백하지 않음) 표지에 아이콘이 안 보입니다.
+const String kNoCoverIcon = '';
+
 /// 꾸미기 v1.5 표지 아이콘(이모지) 프리셋.
 const List<String> coverIconPalette = [
   '📔', '📖', '📒', '✏️', '🌙', '⭐', '🌸', '🍀',
   '☕', '🐱', '🎀', '🔥',
 ];
 
-/// 편집기에 표시할 아이콘 팔레트를 돌려줍니다. 현재 아이콘이 프리셋에 없으면
-/// (예: 타입 기본 이모지) 맨 앞에 끼워 "선택됨"으로 보이게 합니다. 중복 없음.
+/// 편집기에 표시할 아이콘 팔레트를 돌려줍니다. 맨 앞에 "없음"(빈 문자열)을
+/// 항상 끼우고, 현재 아이콘이 프리셋에 없으면(예: 타입 기본 이모지) 그다음에
+/// 끼워 "선택됨"으로 보이게 합니다. 중복 없음.
 List<String> coverIconPaletteFor(String current) {
-  if (coverIconPalette.contains(current)) return coverIconPalette;
-  return [current, ...coverIconPalette];
+  final base = [kNoCoverIcon, ...coverIconPalette];
+  if (base.contains(current)) return base;
+  return [base.first, current, ...coverIconPalette];
 }

@@ -28,6 +28,16 @@ void main() {
       expect(find.byType(Text), findsOneWidget); // 아이콘 텍스트 1개뿐
     });
 
+    testWidgets('icon이 빈 문자열이면 아이콘이 안 보인다(없음)', (tester) async {
+      await tester.pumpWidget(_host(const JournalCover(
+        color: 0xFF7C6FF0,
+        icon: '',
+        title: '나의 일기장',
+      )));
+      expect(find.text('🌙'), findsNothing);
+      expect(find.text('나의 일기장'), findsOneWidget);
+    });
+
     testWidgets('entryCount가 있으면 배지를 표시한다', (tester) async {
       await tester.pumpWidget(_host(const JournalCover(
         color: 0xFF7C6FF0,
