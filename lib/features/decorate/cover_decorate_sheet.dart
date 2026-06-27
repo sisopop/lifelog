@@ -16,8 +16,9 @@ import 'cover_texture.dart';
 import 'cover_theme.dart';
 import 'journal_cover.dart';
 
-/// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기(v1: 표지 색).
-/// 책장에서 일기장을 길게 눌러 진입합니다. 색을 탭하면 즉시 저장·반영됩니다.
+/// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기.
+/// 책장에서 일기장을 길게 눌러 진입합니다. 칩을 탭하면 미리보기에 바로 보이고,
+/// 우측 상단 "저장"을 눌러야 실제로 반영·저장됩니다(안 누르고 내리면 취소).
 Future<void> showCoverDecorateSheet(
   BuildContext context,
   WidgetRef ref,
@@ -52,77 +53,18 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _tab = normalizeCoverTab(widget.journal.coverTab);
   late String _texture = normalizeCoverTexture(widget.journal.coverTexture);
 
-  void _pick(int c) {
-    if (c == _color) return;
-    setState(() => _color = c);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverColor: c));
-  }
-
-  void _pickIcon(String e) {
-    if (e == _icon) return;
-    setState(() => _icon = e);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(icon: e));
-  }
-
-  void _pickBinding(String b) {
-    if (b == _binding) return;
-    setState(() => _binding = b);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverBinding: b));
-  }
-
-  void _pickCorner(String c) {
-    if (c == _corner) return;
-    setState(() => _corner = c);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverCorner: c));
-  }
-
-  void _pickBand(String b) {
-    if (b == _band) return;
-    setState(() => _band = b);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverBand: b));
-  }
-
-  void _pickRibbon(String r) {
-    if (r == _ribbon) return;
-    setState(() => _ribbon = r);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverRibbon: r));
-  }
-
-  void _pickClip(String c) {
-    if (c == _clip) return;
-    setState(() => _clip = c);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverClip: c));
-  }
-
-  void _pickTab(String t) {
-    if (t == _tab) return;
-    setState(() => _tab = t);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverTab: t));
-  }
-
-  void _pickTexture(String t) {
-    if (t == _texture) return;
-    setState(() => _texture = t);
-    ref
-        .read(journalsProvider.notifier)
-        .edit(widget.journal.copyWith(coverTexture: t));
-  }
+  // Chip taps only update the live preview (local state). Nothing is written
+  // to the DB until "저장" is tapped — this batches every change into a single
+  // edit() and avoids per-tap async writes racing on web.
+  void _pick(int c) => setState(() => _color = c);
+  void _pickIcon(String e) => setState(() => _icon = e);
+  void _pickBinding(String b) => setState(() => _binding = b);
+  void _pickCorner(String c) => setState(() => _corner = c);
+  void _pickBand(String b) => setState(() => _band = b);
+  void _pickRibbon(String r) => setState(() => _ribbon = r);
+  void _pickClip(String c) => setState(() => _clip = c);
+  void _pickTab(String t) => setState(() => _tab = t);
+  void _pickTexture(String t) => setState(() => _texture = t);
 
   void _pickTheme(CoverTheme theme) {
     setState(() {
@@ -136,9 +78,31 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
       _clip = theme.clip;
       _tab = theme.tab;
     });
-    ref
-        .read(journalsProvider.notifier)
-        .edit(applyCoverTheme(widget.journal, theme));
+  }
+
+  /// Persist every layer at once, then close. Capturing the messenger before
+  /// popping avoids using a deactivated context.
+  void _save() {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+    ref.read(journalsProvider.notifier).edit(
+          widget.journal.copyWith(
+            coverColor: _color,
+            icon: _icon,
+            coverPattern: _pattern,
+            coverBinding: _binding,
+            coverCorner: _corner,
+            coverBand: _band,
+            coverRibbon: _ribbon,
+            coverClip: _clip,
+            coverTab: _tab,
+            coverTexture: _texture,
+          ),
+        );
+    navigator.pop();
+    messenger.showSnackBar(
+      const SnackBar(content: Text('표지를 저장했어요')),
+    );
   }
 
   @override
@@ -172,8 +136,23 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('표지 꾸미기',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Row(
+            children: [
+              const Text('표지 꾸미기',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const Spacer(),
+              FilledButton(
+                onPressed: _save,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  visualDensity: VisualDensity.compact,
+                ),
+                child: const Text('저장',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           Center(
             child: SizedBox(
