@@ -92,3 +92,18 @@ int? averageEntriesPerMonth(List<DiaryEntry> entries) {
   if (months < 2) return null;
   return (tops / months).round();
 }
+
+/// Pure: the most top-level records written on any single calendar day. Replies
+/// are excluded. Returns 0 when there are no records. Time is ignored — records
+/// are grouped by their [DateTime] year/month/day.
+int maxEntriesInOneDay(List<DiaryEntry> entries) {
+  final perDay = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final d = e.createdAt;
+    final key = '${d.year}-${d.month}-${d.day}';
+    perDay[key] = (perDay[key] ?? 0) + 1;
+  }
+  if (perDay.isEmpty) return 0;
+  return perDay.values.reduce((a, b) => a > b ? a : b);
+}

@@ -968,4 +968,30 @@ void main() {
       expect(averageEntriesPerMonth(const []), isNull);
     });
   });
+
+  group('maxEntriesInOneDay', () {
+    test('counts the busiest single day, excludes replies', () {
+      // June 2: 3 records; June 3: 1; replies on June 2 ignored.
+      final n = maxEntriesInOneDay([
+        _entry(id: 'a', at: DateTime(2026, 6, 2, 8)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2, 12)),
+        _entry(id: 'c', at: DateTime(2026, 6, 2, 20)),
+        _entry(id: 'd', at: DateTime(2026, 6, 3, 9)),
+        _entry(id: 'r', at: DateTime(2026, 6, 2, 21), replyTo: 'a'),
+      ]);
+      expect(n, 3);
+    });
+
+    test('1 when each day has a single record', () {
+      final n = maxEntriesInOneDay([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+      ]);
+      expect(n, 1);
+    });
+
+    test('0 when empty', () {
+      expect(maxEntriesInOneDay(const []), 0);
+    });
+  });
 }
