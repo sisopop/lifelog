@@ -917,4 +917,28 @@ void main() {
       expect(favoriteCountOfMonth(const [], 2026, 6), 0);
     });
   });
+
+  group('entriesThisYear', () {
+    final now = DateTime(2026, 6, 27);
+
+    test('counts only this year, excludes replies', () {
+      final n = entriesThisYear([
+        _entry(id: 'a', at: DateTime(2026, 1, 5)),
+        _entry(id: 'b', at: DateTime(2026, 6, 1)),
+        _entry(id: 'old', at: DateTime(2025, 12, 31)),
+        _entry(id: 'r', at: DateTime(2026, 3, 3), replyTo: 'a'),
+      ], now);
+      expect(n, 2);
+    });
+
+    test('zero when nothing this year', () {
+      final n = entriesThisYear(
+          [_entry(id: 'old', at: DateTime(2025, 6, 1))], now);
+      expect(n, 0);
+    });
+
+    test('zero when empty', () {
+      expect(entriesThisYear(const [], now), 0);
+    });
+  });
 }

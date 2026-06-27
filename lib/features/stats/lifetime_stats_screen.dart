@@ -263,6 +263,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     ),
                   );
                 }),
+                Builder(builder: (context) {
+                  final yearly = entriesThisYear(entries, DateTime.now());
+                  if (yearly == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '📅 올해 $yearly개 기록했어요',
+                    ),
+                  );
+                }),
                 if (topPlace != null) ...[
                   const SizedBox(height: 12),
                   _InsightLine(

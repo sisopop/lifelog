@@ -408,6 +408,17 @@ MapEntry<String, int>? mostUsedTag(List<DiaryEntry> entries) {
   return tags.isEmpty ? null : tags.first;
 }
 
+/// Pure: how many top-level records fall in [now]'s calendar year. Replies are
+/// excluded. Returns 0 when none were recorded this year.
+int entriesThisYear(List<DiaryEntry> entries, DateTime now) {
+  var count = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.createdAt.year == now.year) count++;
+  }
+  return count;
+}
+
 /// One month's record count, used by the recent-months trend chart.
 class MonthCount {
   const MonthCount(this.year, this.month, this.count);
