@@ -1,0 +1,416 @@
+part of 'cover_decorate_sheet.dart';
+
+/// 꾸미기 시트의 칩 목록(섹션 빌더). 분량이 커서 메인 파일에서 분리했다.
+/// 같은 라이브러리의 part라 _CoverDecorateSheetState의 private 멤버
+/// (_color/_icon/_pick* 등)에 그대로 접근한다.
+extension _DecorateSections on _CoverDecorateSheetState {
+  /// 스크롤 영역에 쌓이는 모든 섹션. 섹션 사이는 SizedBox(20)로 띄운다.
+  /// (첫 섹션은 스크롤 padding top:20이 여백을 대신해 앞에 SizedBox 없음.)
+  List<Widget> _sections(Journal j) {
+    final palette = coverPaletteFor(j.coverColor);
+    final icons = coverIconPaletteFor(j.displayIcon);
+    return [
+      _themeSection(),
+      const SizedBox(height: 20),
+      _colorSection(palette),
+      const SizedBox(height: 20),
+      _iconSection(icons),
+      const SizedBox(height: 20),
+      // 재질/제본/모서리/밴드: 표지 면 위 레이어 → ClipRRect로 둥글게 자른다.
+      _clippedLayerSection(
+        title: '재질',
+        ids: coverTexturePalette,
+        selectedId: _texture,
+        onPick: _pickTexture,
+        label: coverTextureLabel,
+        cover: (id) => JournalCover(
+          color: _color,
+          icon: '',
+          texture: id,
+          textureScale: 0.7,
+          radius: 8,
+          iconSize: 0,
+        ),
+      ),
+      const SizedBox(height: 20),
+      _fontSection(),
+      // 표지 패턴 섹션은 v1 패턴이 충분히 예쁘지 않아 숨김 처리.
+      // 모델/DB/페인터는 그대로 두고, 더 나은 패턴이 준비되면 되살린다.
+      const SizedBox(height: 20),
+      _clippedLayerSection(
+        title: '제본',
+        ids: coverBindingPalette,
+        selectedId: _binding,
+        onPick: _pickBinding,
+        label: coverBindingLabel,
+        cover: (id) => JournalCover(
+          color: _color,
+          icon: '',
+          binding: id,
+          bindingScale: 0.8,
+          radius: 8,
+          iconSize: 0,
+        ),
+      ),
+      const SizedBox(height: 20),
+      _clippedLayerSection(
+        title: '모서리',
+        ids: coverCornerPalette,
+        selectedId: _corner,
+        onPick: _pickCorner,
+        label: coverCornerLabel,
+        cover: (id) => JournalCover(
+          color: _color,
+          icon: '',
+          corner: id,
+          cornerScale: 0.7,
+          radius: 8,
+          iconSize: 0,
+        ),
+      ),
+      const SizedBox(height: 20),
+      _clippedLayerSection(
+        title: '밴드',
+        ids: coverBandPalette,
+        selectedId: _band,
+        onPick: _pickBand,
+        label: coverBandLabel,
+        cover: (id) => JournalCover(
+          color: _color,
+          icon: '',
+          band: id,
+          bandScale: 0.7,
+          radius: 8,
+          iconSize: 0,
+        ),
+      ),
+      const SizedBox(height: 20),
+      // 책갈피/클립/인덱스 탭: 표지 밖으로 삐져나오는 레이어 → ClipRRect 없이
+      // 표지를 칩 안쪽으로 띄워(padding) 삐져나온 부분이 보이게 한다.
+      _peekLayerSection(
+        title: '책갈피',
+        ids: coverRibbonPalette,
+        selectedId: _ribbon,
+        onPick: _pickRibbon,
+        label: coverRibbonLabel,
+        // 책갈피 끈은 표지 아래로 삐져나오므로 표지를 위로 띄운다.
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 11),
+        cover: (id) => JournalCover(
+          color: _color,
+          icon: '',
+          ribbon: id,
+          radius: 6,
+          iconSize: 0,
+        ),
+      ),
+      const SizedBox(height: 20),
+      _peekLayerSection(
+        title: '클립',
+        ids: coverClipPalette,
+        selectedId: _clip,
+        onPick: _pickClip,
+        label: coverClipLabel,
+        // 클립은 표지 윗변 위로 삐져나오므로 표지를 아래로 내린다.
+        padding: const EdgeInsets.fromLTRB(8, 11, 8, 4),
+        cover: (id) => JournalCover(
+          color: _color,
+          icon: '',
+          clip: id,
+          radius: 6,
+          iconSize: 0,
+        ),
+      ),
+      const SizedBox(height: 20),
+      _peekLayerSection(
+        title: '인덱스 탭',
+        ids: coverTabPalette,
+        selectedId: _tab,
+        onPick: _pickTab,
+        label: coverTabLabel,
+        // 인덱스 탭은 표지 우변 밖으로 삐져나오므로 표지를 왼쪽으로 당긴다.
+        padding: const EdgeInsets.fromLTRB(6, 8, 14, 8),
+        cover: (id) => JournalCover(
+          color: _color,
+          icon: '',
+          tab: id,
+          radius: 6,
+          iconSize: 0,
+        ),
+      ),
+    ];
+  }
+
+  /// 섹션 제목.
+  Widget _sectionTitle(String text) => Text(text,
+      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700));
+
+  /// 칩 라벨(선택 시 강조).
+  Widget _chipLabel(String text, bool selected) => Text(text,
+      style: TextStyle(
+          fontSize: 11,
+          color: selected ? AppColors.primary : AppColors.textSecondary,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500));
+
+  /// 48x48 표지 칩 테두리(선택 시 primary).
+  BoxDecoration _chipBorder(bool selected) => BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: selected
+            ? Border.all(color: AppColors.primary, width: 2.5)
+            : Border.all(color: AppColors.divider),
+      );
+
+  /// "한 번에 분위기를 바꾸는" 테마 프리셋.
+  Widget _themeSection() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _sectionTitle('테마'),
+          const SizedBox(height: 4),
+          const Text('한 번에 분위기를 바꿔요',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverThemes.map((t) {
+              return GestureDetector(
+                onTap: () => _pickTheme(t),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 56,
+                      height: 72,
+                      child: JournalCover(
+                        color: t.color,
+                        icon: t.icon,
+                        texture: t.texture,
+                        textureScale: 0.7,
+                        binding: t.binding,
+                        bindingScale: 0.8,
+                        corner: t.corner,
+                        cornerScale: 0.7,
+                        band: t.band,
+                        bandScale: 0.7,
+                        ribbon: t.ribbon,
+                        clip: t.clip,
+                        tab: t.tab,
+                        radius: 8,
+                        iconSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(t.label,
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+
+  /// 표지 색(원형 스와치).
+  Widget _colorSection(List<int> palette) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _sectionTitle('표지 색'),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: palette.map((c) {
+              final selected = c == _color;
+              return GestureDetector(
+                onTap: () => _pick(c),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Color(c),
+                    shape: BoxShape.circle,
+                    border: selected
+                        ? Border.all(color: Colors.black87, width: 3)
+                        : null,
+                  ),
+                  child: selected
+                      ? const Icon(Icons.check, color: Colors.white, size: 20)
+                      : null,
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+
+  /// 표지 아이콘(이모지 + "없음").
+  Widget _iconSection(List<String> icons) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _sectionTitle('표지 아이콘'),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: icons.map((e) {
+              final selected = e == _icon;
+              final isNone = e == kNoCoverIcon;
+              return GestureDetector(
+                onTap: () => _pickIcon(e),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: selected
+                        ? Border.all(color: AppColors.primary, width: 2.5)
+                        : Border.all(color: AppColors.divider),
+                  ),
+                  child: isNone
+                      ? const Icon(Icons.block,
+                          size: 20, color: AppColors.textHint)
+                      : Text(e, style: const TextStyle(fontSize: 22)),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+
+  /// 제목 글꼴(라벨을 그 글꼴로 렌더).
+  Widget _fontSection() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _sectionTitle('제목 글꼴'),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverFontPalette.map((f) {
+              final selected = f.id == _font;
+              return GestureDetector(
+                onTap: () => _pickFont(f.id),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: selected
+                        ? Border.all(color: AppColors.primary, width: 2.5)
+                        : Border.all(color: AppColors.divider),
+                  ),
+                  child: Text(
+                    f.label,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: f.family,
+                      fontWeight: FontWeight.w700,
+                      color:
+                          selected ? AppColors.primary : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+
+  /// 표지 면 위 레이어(재질·제본·모서리·밴드)용 칩 섹션.
+  /// 표지를 ClipRRect로 둥글게 자른다.
+  Widget _clippedLayerSection({
+    required String title,
+    required List<String> ids,
+    required String selectedId,
+    required void Function(String) onPick,
+    required String Function(String) label,
+    required JournalCover Function(String id) cover,
+  }) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _sectionTitle(title),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: ids.map((id) {
+              final selected = id == selectedId;
+              return GestureDetector(
+                onTap: () => onPick(id),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: _chipBorder(selected),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: cover(id),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    _chipLabel(label(id), selected),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+
+  /// 표지 밖으로 삐져나오는 레이어(책갈피·클립·인덱스 탭)용 칩 섹션.
+  /// ClipRRect 없이 표지를 padding으로 칩 안쪽에 띄워 삐져나온 부분이 보이게 한다.
+  Widget _peekLayerSection({
+    required String title,
+    required List<String> ids,
+    required String selectedId,
+    required void Function(String) onPick,
+    required String Function(String) label,
+    required EdgeInsets padding,
+    required JournalCover Function(String id) cover,
+  }) =>
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _sectionTitle(title),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: ids.map((id) {
+              final selected = id == selectedId;
+              return GestureDetector(
+                onTap: () => onPick(id),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      padding: padding,
+                      decoration: _chipBorder(selected),
+                      child: cover(id),
+                    ),
+                    const SizedBox(height: 4),
+                    _chipLabel(label(id), selected),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+}
