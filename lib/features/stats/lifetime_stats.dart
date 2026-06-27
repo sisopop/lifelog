@@ -80,3 +80,15 @@ LifetimeStats computeLifetimeStats(List<DiaryEntry> entries) {
     firstDate: DateTime(first.year, first.month, first.day),
   );
 }
+
+/// Pure: the average number of top-level records per month the user actually
+/// recorded in, rounded to the nearest whole number. Reuses
+/// [distinctMonthsRecorded]. Replies are excluded. Returns null when fewer than
+/// two distinct months carry a record (a single month's average is just its
+/// total, so it is not a meaningful pace).
+int? averageEntriesPerMonth(List<DiaryEntry> entries) {
+  final tops = entries.where((e) => e.replyToEntryId == null).length;
+  final months = distinctMonthsRecorded(entries);
+  if (months < 2) return null;
+  return (tops / months).round();
+}

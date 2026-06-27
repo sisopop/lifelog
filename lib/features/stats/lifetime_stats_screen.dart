@@ -273,6 +273,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     ),
                   );
                 }),
+                Builder(builder: (context) {
+                  final avg = averageEntriesPerMonth(entries);
+                  if (avg == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '📊 한 달에 평균 $avg개 기록해요',
+                    ),
+                  );
+                }),
                 if (topPlace != null) ...[
                   const SizedBox(height: 12),
                   _InsightLine(

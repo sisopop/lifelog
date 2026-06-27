@@ -941,4 +941,31 @@ void main() {
       expect(entriesThisYear(const [], now), 0);
     });
   });
+
+  group('averageEntriesPerMonth', () {
+    test('rounds total over distinct months, excludes replies', () {
+      // 5 top-level across 2 months (3 in June, 2 in May) -> 5/2 = 2.5 -> 3.
+      final n = averageEntriesPerMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'd', at: DateTime(2026, 5, 1)),
+        _entry(id: 'e', at: DateTime(2026, 5, 2)),
+        _entry(id: 'r', at: DateTime(2026, 6, 4), replyTo: 'a'),
+      ]);
+      expect(n, 3);
+    });
+
+    test('null when only one distinct month', () {
+      final n = averageEntriesPerMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 20)),
+      ]);
+      expect(n, isNull);
+    });
+
+    test('null when empty', () {
+      expect(averageEntriesPerMonth(const []), isNull);
+    });
+  });
 }
