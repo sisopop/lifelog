@@ -13,6 +13,7 @@ import 'cover_pattern.dart';
 import 'cover_ribbon.dart';
 import 'cover_tab.dart';
 import 'cover_texture.dart';
+import 'cover_theme.dart';
 import 'journal_cover.dart';
 
 /// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기(v1: 표지 색).
@@ -123,6 +124,23 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
         .edit(widget.journal.copyWith(coverTexture: t));
   }
 
+  void _pickTheme(CoverTheme theme) {
+    setState(() {
+      _color = theme.color;
+      _icon = theme.icon;
+      _texture = theme.texture;
+      _binding = theme.binding;
+      _corner = theme.corner;
+      _band = theme.band;
+      _ribbon = theme.ribbon;
+      _clip = theme.clip;
+      _tab = theme.tab;
+    });
+    ref
+        .read(journalsProvider.notifier)
+        .edit(applyCoverTheme(widget.journal, theme));
+  }
+
   @override
   Widget build(BuildContext context) {
     final j = widget.journal;
@@ -175,6 +193,54 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 titleSize: 14,
               ),
             ),
+          ),
+          const SizedBox(height: 20),
+          const Text('테마',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          const Text('한 번에 분위기를 바꿔요',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverThemes.map((t) {
+              return GestureDetector(
+                onTap: () => _pickTheme(t),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 56,
+                      height: 72,
+                      child: JournalCover(
+                        color: t.color,
+                        icon: t.icon,
+                        texture: t.texture,
+                        textureScale: 0.7,
+                        binding: t.binding,
+                        bindingScale: 0.8,
+                        corner: t.corner,
+                        cornerScale: 0.7,
+                        band: t.band,
+                        bandScale: 0.7,
+                        ribbon: t.ribbon,
+                        clip: t.clip,
+                        tab: t.tab,
+                        radius: 8,
+                        iconSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(t.label,
+                        style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              );
+            }).toList(),
           ),
           const SizedBox(height: 20),
           const Text('표지 색',
