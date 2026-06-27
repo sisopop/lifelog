@@ -16,9 +16,11 @@ class CoverPaper {
 }
 
 /// 선택 가능한 속지 목록. 첫 항목은 항상 기본(무지).
-/// ruled = 가로줄 + 왼쪽 세로 여백선 하나(줄노트), grid = 모눈, dot = 도트.
+/// lined = 가로줄만(여백선 없음), ruled = 가로줄 + 왼쪽 세로 여백선 하나(줄노트),
+/// grid = 모눈, dot = 도트.
 const List<CoverPaper> coverPaperPalette = [
   CoverPaper(kDefaultCoverPaper, '무지'),
+  CoverPaper('lined', '가로줄'),
   CoverPaper('ruled', '줄노트'),
   CoverPaper('grid', '모눈'),
   CoverPaper('dot', '도트'),

@@ -4,6 +4,7 @@ import 'cover_paper.dart';
 
 /// 속지(내지) 종이 무늬를 그리는 CustomPainter.
 ///
+/// - lined : 가로줄만(여백선 없음)
 /// - ruled : 가로줄 + 왼쪽 세로 여백선 하나(줄노트)
 /// - grid  : 가로·세로 모눈
 /// - dot   : 일정 간격 도트
@@ -32,6 +33,12 @@ class PaperPainter extends CustomPainter {
       ..isAntiAlias = true;
 
     switch (id) {
+      case 'lined':
+        // 가로줄만 — 여백선 없는 깔끔한 줄노트.
+        for (double y = spacing; y < size.height; y += spacing) {
+          canvas.drawLine(Offset(0, y), Offset(size.width, y), line);
+        }
+        break;
       case 'ruled':
         for (double y = spacing; y < size.height; y += spacing) {
           canvas.drawLine(Offset(0, y), Offset(size.width, y), line);
