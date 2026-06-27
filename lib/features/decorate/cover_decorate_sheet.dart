@@ -147,17 +147,20 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
     final palette = coverPaletteFor(j.coverColor);
     final icons = coverIconPaletteFor(j.displayIcon);
     return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(
-          20, 12, 20, 24 + MediaQuery.of(context).padding.bottom),
-      child: SingleChildScrollView(
-        child: Column(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 고정 헤더: 손잡이·제목·미리보기. 아래 칩만 스크롤되어 표지에
+          // 적용되는 모습을 스크롤하지 않고도 실시간으로 볼 수 있다.
           Center(
             child: Container(
               width: 40,
@@ -194,7 +197,16 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.divider),
+          Flexible(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                  top: 20, bottom: 24 + MediaQuery.of(context).padding.bottom),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
           const Text('테마',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
@@ -639,8 +651,11 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
               );
             }).toList(),
           ),
+                ],
+              ),
+            ),
+          ),
         ],
-      ),
       ),
     );
   }
