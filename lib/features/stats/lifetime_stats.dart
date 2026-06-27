@@ -107,3 +107,18 @@ int maxEntriesInOneDay(List<DiaryEntry> entries) {
   if (perDay.isEmpty) return 0;
   return perDay.values.reduce((a, b) => a > b ? a : b);
 }
+
+/// Pure: what share of top-level records carry a non-empty title, as a 0–100
+/// percent. Replies are excluded. A title counts only when it has non-whitespace
+/// text. Returns null when there are no top-level records.
+int? titleEntryShare(List<DiaryEntry> entries) {
+  var total = 0;
+  var titled = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    if ((e.title?.trim().isNotEmpty ?? false)) titled++;
+  }
+  if (total == 0) return null;
+  return (titled * 100 / total).round();
+}

@@ -13,11 +13,13 @@ DiaryEntry _entry({
   bool favorite = false,
   List<String> media = const [],
   String? location,
+  String? title,
 }) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
       journalId: 'jr_default',
+      title: title,
       content: content,
       tags: tags,
       mood: mood,
@@ -992,6 +994,38 @@ void main() {
 
     test('0 when empty', () {
       expect(maxEntriesInOneDay(const []), 0);
+    });
+  });
+
+  group('titleEntryShare', () {
+    test('rounds titled share, excludes replies and blank titles', () {
+      // 4 top-level: 2 titled (incl. one trimmed), 1 blank, 1 null -> 50%.
+      final n = titleEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), title: '제주도에서의 하루'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), title: '  봄 '),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), title: '   '),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+        _entry(id: 'r', at: DateTime(2026, 6, 5), replyTo: 'a', title: '답장'),
+      ]);
+      expect(n, 50);
+    });
+
+    test('null when no top-level records', () {
+      expect(titleEntryShare(const []), isNull);
+      expect(
+        titleEntryShare([
+          _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', title: 't'),
+        ]),
+        isNull,
+      );
+    });
+
+    test('0 when no record has a title', () {
+      final n = titleEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), title: ''),
+      ]);
+      expect(n, 0);
     });
   });
 }
