@@ -137,8 +137,56 @@ extension _DecorateSections on _CoverDecorateSheetState {
           iconSize: 0,
         ),
       ),
+      const SizedBox(height: 20),
+      _paperSection(),
     ];
   }
+
+  /// 속지(내지) — 읽기 화면 배경에 깔리는 종이 무늬. 칩에 작은 종이를 그려 보여준다.
+  Widget _paperSection() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _sectionTitle('속지'),
+          const SizedBox(height: 4),
+          const Text('일기를 읽을 때 배경에 깔려요',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverPaperPalette.map((p) {
+              final selected = p.id == _paper;
+              return GestureDetector(
+                onTap: () => _pickPaper(p.id),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: _chipBorder(selected),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: DecoratedBox(
+                          decoration:
+                              const BoxDecoration(color: Color(0xFFFFFDF7)),
+                          child: CustomPaint(
+                            painter: PaperPainter(p.id, spacing: 8),
+                            size: const Size.square(48),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    _chipLabel(p.label, selected),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
 
   /// 섹션 제목.
   Widget _sectionTitle(String text) => Text(text,

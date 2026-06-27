@@ -10,6 +10,8 @@ import 'cover_clip.dart';
 import 'cover_corner.dart';
 import 'cover_font.dart';
 import 'cover_palette.dart';
+import 'cover_paper.dart';
+import 'cover_paper_painter.dart';
 import 'cover_pattern.dart';
 import 'cover_ribbon.dart';
 import 'cover_tab.dart';
@@ -57,6 +59,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _tab = normalizeCoverTab(widget.journal.coverTab);
   late String _texture = normalizeCoverTexture(widget.journal.coverTexture);
   late String _font = normalizeCoverFont(widget.journal.coverFont);
+  late String _paper = normalizeCoverPaper(widget.journal.innerPaper);
 
   // Chip taps only update the live preview (local state). Nothing is written
   // to the DB until "저장" is tapped — this batches every change into a single
@@ -71,6 +74,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   void _pickTab(String t) => setState(() => _tab = t);
   void _pickTexture(String t) => setState(() => _texture = t);
   void _pickFont(String f) => setState(() => _font = f);
+  void _pickPaper(String p) => setState(() => _paper = p);
 
   void _pickTheme(CoverTheme theme) {
     setState(() {
@@ -104,6 +108,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             coverTab: _tab,
             coverTexture: _texture,
             coverFont: _font,
+            innerPaper: _paper,
           ),
         );
     navigator.pop();

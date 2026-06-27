@@ -6,6 +6,10 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/journal.dart';
+import '../decorate/cover_paper.dart';
+import '../decorate/cover_paper_painter.dart';
+import '../journals/journals_provider.dart';
 import 'entry_clipboard.dart';
 import 'entry_edited.dart';
 import 'reading_time.dart';
@@ -69,6 +73,15 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     final date = DateFormat.yMMMMEEEEd(locale).format(entry.createdAt);
     final scale = ref.watch(readingTextScaleProvider);
 
+    // 이 기록이 속한 일기장의 속지를 읽기 화면 배경에 깐다('plain'이면 변화 없음).
+    final journals =
+        ref.watch(journalsProvider).asData?.value ?? const <Journal>[];
+    final paper = normalizeCoverPaper(journals
+            .where((jr) => jr.journalId == entry.journalId)
+            .firstOrNull
+            ?.innerPaper ??
+        kDefaultCoverPaper);
+
     // Author label for shared journals (멤버가 2명 이상일 때만 표시).
     final members =
         ref.watch(journalMembersProvider(entry.journalId)).asData?.value ??
@@ -85,10 +98,12 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                _header(context, entry, date, authorName),
+            child: PaperBackground(
+              paper: paper,
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  _header(context, entry, date, authorName),
                 const SizedBox(height: 20),
                 if (entry.mediaUrls.isNotEmpty) ...[
                   _gallery(entry),
@@ -156,7 +171,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                         locale: locale,
                         journalId: entry.journalId,
                       )),
-              ],
+                ],
+              ),
             ),
           ),
           _composer(entry),

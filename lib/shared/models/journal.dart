@@ -18,6 +18,7 @@ class Journal {
     this.coverTab = 'none',
     this.coverTexture = 'none',
     this.coverFont = 'pretendard',
+    this.innerPaper = 'plain',
     this.icon,
     this.status = JournalStatus.active,
     this.spaceId,
@@ -59,6 +60,9 @@ class Journal {
   /// 제목 글꼴 id ('pretendard' = 앱 기본). See cover_font.dart.
   final String coverFont;
 
+  /// 속지(내지) 종류 id ('plain' = 무지). 읽기 화면 배경에 반영. See cover_paper.dart.
+  final String innerPaper;
+
   /// Optional emoji icon; falls back to the type emoji when null.
   final String? icon;
   final JournalStatus status;
@@ -82,6 +86,7 @@ class Journal {
     String? coverTab,
     String? coverTexture,
     String? coverFont,
+    String? innerPaper,
     String? icon,
     JournalStatus? status,
     String? spaceId,
@@ -101,6 +106,7 @@ class Journal {
       coverTab: coverTab ?? this.coverTab,
       coverTexture: coverTexture ?? this.coverTexture,
       coverFont: coverFont ?? this.coverFont,
+      innerPaper: innerPaper ?? this.innerPaper,
       icon: icon ?? this.icon,
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,
