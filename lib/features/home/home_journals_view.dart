@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/journal.dart';
 import '../decorate/cover_decorate_sheet.dart';
+import '../decorate/cover_font.dart';
 import '../decorate/journal_cover.dart';
 import 'home_journal_layout.dart';
 
@@ -171,6 +172,7 @@ class _JournalBook extends StatelessWidget {
         clip: journal.coverClip,
         tab: journal.coverTab,
         texture: journal.coverTexture,
+        titleFont: coverFontFamily(journal.coverFont),
         title: journal.title,
         entryCount: entryCount,
         radius: 14,

@@ -17,6 +17,7 @@ class Journal {
     this.coverClip = 'none',
     this.coverTab = 'none',
     this.coverTexture = 'none',
+    this.coverFont = 'pretendard',
     this.icon,
     this.status = JournalStatus.active,
     this.spaceId,
@@ -55,6 +56,9 @@ class Journal {
   /// 표지 재질(질감) id ('none' = 매끈한 단색). See cover_texture.dart.
   final String coverTexture;
 
+  /// 제목 글꼴 id ('pretendard' = 앱 기본). See cover_font.dart.
+  final String coverFont;
+
   /// Optional emoji icon; falls back to the type emoji when null.
   final String? icon;
   final JournalStatus status;
@@ -77,6 +81,7 @@ class Journal {
     String? coverClip,
     String? coverTab,
     String? coverTexture,
+    String? coverFont,
     String? icon,
     JournalStatus? status,
     String? spaceId,
@@ -95,6 +100,7 @@ class Journal {
       coverClip: coverClip ?? this.coverClip,
       coverTab: coverTab ?? this.coverTab,
       coverTexture: coverTexture ?? this.coverTexture,
+      coverFont: coverFont ?? this.coverFont,
       icon: icon ?? this.icon,
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,

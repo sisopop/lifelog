@@ -92,6 +92,16 @@ flutter:
           weight: 700
         - asset: assets/fonts/Pretendard-ExtraBold.otf
           weight: 800
+    # 표지 제목 글꼴 꾸미기용 한글 디스플레이 글꼴(OFL). cover_font.dart 참조.
+    - family: Jua
+      fonts:
+        - asset: assets/fonts/Jua-Regular.ttf
+    - family: DoHyeon
+      fonts:
+        - asset: assets/fonts/DoHyeon-Regular.ttf
+    - family: Gaegu
+      fonts:
+        - asset: assets/fonts/Gaegu-Regular.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

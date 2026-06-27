@@ -43,6 +43,7 @@ class JournalCover extends StatelessWidget {
     this.tabScale = 1.0,
     this.texture = kDefaultCoverTexture,
     this.textureScale = 1.0,
+    this.titleFont,
     this.title,
     this.entryCount,
     this.radius = 14,
@@ -103,6 +104,9 @@ class JournalCover extends StatelessWidget {
 
   /// 재질 질감 밀도 배율(작은 미리보기는 더 작게).
   final double textureScale;
+
+  /// 제목에 적용할 fontFamily (cover_font.dart). null이면 테마 기본(Pretendard).
+  final String? titleFont;
 
   /// 표지 안에 흰 글씨로 넣을 제목. null이면 제목 없음(예: 앱아이콘 레이아웃).
   final String? title;
@@ -212,6 +216,7 @@ class JournalCover extends StatelessWidget {
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: titleSize,
+                            fontFamily: titleFont,
                             fontWeight: FontWeight.w800,
                             height: 1.15)),
                 ],

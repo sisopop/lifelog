@@ -47,6 +47,8 @@ class Journals extends Table {
       text().withDefault(const Constant('none'))();
   TextColumn get coverTexture =>
       text().withDefault(const Constant('none'))();
+  TextColumn get coverFont =>
+      text().withDefault(const Constant('pretendard'))();
   TextColumn get icon => text().nullable()();
   TextColumn get status => textEnum<JournalStatus>()();
   TextColumn get spaceId => text().nullable()();
@@ -114,7 +116,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -168,6 +170,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 12) {
             // 다꾸 표지 재질(가죽/크라프트/패브릭) — default 'none' (매끈한 단색).
             await m.addColumn(journals, journals.coverTexture);
+          }
+          if (from < 13) {
+            // 다꾸 제목 글꼴 — existing journals default to 'pretendard' (앱 기본).
+            await m.addColumn(journals, journals.coverFont);
           }
         },
       );

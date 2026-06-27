@@ -8,6 +8,7 @@ import 'cover_band.dart';
 import 'cover_binding.dart';
 import 'cover_clip.dart';
 import 'cover_corner.dart';
+import 'cover_font.dart';
 import 'cover_palette.dart';
 import 'cover_pattern.dart';
 import 'cover_ribbon.dart';
@@ -52,6 +53,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _clip = normalizeCoverClip(widget.journal.coverClip);
   late String _tab = normalizeCoverTab(widget.journal.coverTab);
   late String _texture = normalizeCoverTexture(widget.journal.coverTexture);
+  late String _font = normalizeCoverFont(widget.journal.coverFont);
 
   // Chip taps only update the live preview (local state). Nothing is written
   // to the DB until "저장" is tapped — this batches every change into a single
@@ -65,6 +67,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   void _pickClip(String c) => setState(() => _clip = c);
   void _pickTab(String t) => setState(() => _tab = t);
   void _pickTexture(String t) => setState(() => _texture = t);
+  void _pickFont(String f) => setState(() => _font = f);
 
   void _pickTheme(CoverTheme theme) {
     setState(() {
@@ -97,6 +100,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             coverClip: _clip,
             coverTab: _tab,
             coverTexture: _texture,
+            coverFont: _font,
           ),
         );
     navigator.pop();
@@ -169,6 +173,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 clip: _clip,
                 tab: _tab,
                 texture: _texture,
+                titleFont: coverFontFamily(_font),
                 title: j.title,
                 radius: 14,
                 iconSize: 30,
@@ -337,6 +342,42 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                             fontWeight:
                                 selected ? FontWeight.w700 : FontWeight.w500)),
                   ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          const Text('제목 글꼴',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: coverFontPalette.map((f) {
+              final selected = f.id == _font;
+              return GestureDetector(
+                onTap: () => _pickFont(f.id),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: selected
+                        ? Border.all(color: AppColors.primary, width: 2.5)
+                        : Border.all(color: AppColors.divider),
+                  ),
+                  child: Text(
+                    f.label,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontFamily: f.family,
+                      fontWeight: FontWeight.w700,
+                      color: selected
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
+                    ),
+                  ),
                 ),
               );
             }).toList(),
