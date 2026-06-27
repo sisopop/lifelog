@@ -61,6 +61,16 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _font = normalizeCoverFont(widget.journal.coverFont);
   late String _paper = normalizeCoverPaper(widget.journal.innerPaper);
 
+  // 미리보기 캐러셀: 0=표지, 1=속지. 좌우로 드래그(또는 탭)해 전환한다.
+  final _previewCtrl = PageController();
+  int _previewPage = 0;
+
+  @override
+  void dispose() {
+    _previewCtrl.dispose();
+    super.dispose();
+  }
+
   // Chip taps only update the live preview (local state). Nothing is written
   // to the DB until "저장" is tapped — this batches every change into a single
   // edit() and avoids per-tap async writes racing on web.
@@ -164,30 +174,53 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          Center(
-            child: SizedBox(
-              width: 110,
-              height: 140,
-              child: JournalCover(
-                color: _color,
-                icon: _icon,
-                pattern: _pattern,
-                binding: _binding,
-                corner: _corner,
-                band: _band,
-                ribbon: _ribbon,
-                clip: _clip,
-                tab: _tab,
-                texture: _texture,
-                titleFont: coverFontFamily(_font),
-                title: j.title,
-                radius: 14,
-                iconSize: 30,
-                titleSize: 14,
-              ),
+          // 표지↔속지 미리보기 캐러셀: 좌우로 드래그하면 표지와 속지가
+          // 번갈아 가운데로 온다. 아래 "표지/속지" 탭으로도 전환할 수 있다.
+          SizedBox(
+            height: 148,
+            child: PageView(
+              controller: _previewCtrl,
+              onPageChanged: (i) => setState(() => _previewPage = i),
+              children: [
+                Center(
+                  child: SizedBox(
+                    width: 110,
+                    height: 140,
+                    child: JournalCover(
+                      color: _color,
+                      icon: _icon,
+                      pattern: _pattern,
+                      binding: _binding,
+                      corner: _corner,
+                      band: _band,
+                      ribbon: _ribbon,
+                      clip: _clip,
+                      tab: _tab,
+                      texture: _texture,
+                      titleFont: coverFontFamily(_font),
+                      title: j.title,
+                      radius: 14,
+                      iconSize: 30,
+                      titleSize: 14,
+                    ),
+                  ),
+                ),
+                Center(child: _paperPreview()),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _previewTab('표지', 0),
+                const SizedBox(width: 20),
+                _previewTab('속지', 1),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           const Divider(height: 1, color: AppColors.divider),
           Flexible(
             child: SingleChildScrollView(
@@ -198,6 +231,62 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: _sections(j),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 속지 미리보기: 크림색 종이 한 장 위에 선택한 속지 무늬를 그린다.
+  Widget _paperPreview() => Container(
+        width: 110,
+        height: 140,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFDF7),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.divider),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: CustomPaint(
+            painter: PaperPainter(_paper, spacing: 16),
+            child: const SizedBox.expand(),
+          ),
+        ),
+      );
+
+  /// 미리보기 전환 탭("표지"/"속지"). 탭하면 해당 페이지로 애니메이션.
+  Widget _previewTab(String label, int page) {
+    final selected = _previewPage == page;
+    return GestureDetector(
+      onTap: () => _previewCtrl.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: selected ? FontWeight.w800 : FontWeight.w500,
+                  color: selected ? AppColors.primary : AppColors.textHint)),
+          const SizedBox(height: 4),
+          Container(
+            width: 24,
+            height: 3,
+            decoration: BoxDecoration(
+              color: selected ? AppColors.primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
         ],
