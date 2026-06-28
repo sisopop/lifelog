@@ -188,7 +188,44 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(journals, journals.innerPaperColor);
           }
         },
+        // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
+        // can leave the stored schema version bumped while the column is still
+        // missing — so onUpgrade never re-runs and every journals SELECT throws
+        // (journals vanish while entries, a different table, survive). Running an
+        // idempotent column check on EVERY open recovers such a stuck DB without
+        // touching any data. Adds only columns that aren't already present.
+        beforeOpen: (details) async {
+          await _ensureJournalColumns();
+        },
       );
+
+  /// Adds any 다꾸/속지 columns missing from the `journals` table. Safe to run
+  /// repeatedly: it inspects PRAGMA table_info first and only adds gaps.
+  Future<void> _ensureJournalColumns() async {
+    final info = await customSelect(
+      'PRAGMA table_info(journals)',
+    ).get();
+    final present = info.map((r) => r.read<String>('name')).toSet();
+    final m = createMigrator();
+    final expected = <String, GeneratedColumn<String>>{
+      'cover_pattern': journals.coverPattern,
+      'cover_binding': journals.coverBinding,
+      'cover_corner': journals.coverCorner,
+      'cover_band': journals.coverBand,
+      'cover_ribbon': journals.coverRibbon,
+      'cover_clip': journals.coverClip,
+      'cover_tab': journals.coverTab,
+      'cover_texture': journals.coverTexture,
+      'cover_font': journals.coverFont,
+      'inner_paper': journals.innerPaper,
+      'inner_paper_color': journals.innerPaperColor,
+    };
+    for (final entry in expected.entries) {
+      if (!present.contains(entry.key)) {
+        await m.addColumn(journals, entry.value);
+      }
+    }
+  }
 
   Future<List<DiaryEntryRow>> getAllEntries() {
     return (select(diaryEntries)
