@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'cover_paper.dart';
+import 'cover_paper_color.dart';
 
 /// 속지(내지) 종이 무늬를 그리는 CustomPainter.
 ///
@@ -78,26 +79,41 @@ class PaperPainter extends CustomPainter {
       old.lineColor != lineColor;
 }
 
-/// 자식 위젯 뒤에 속지 무늬를 깔아주는 배경 위젯.
-/// 'plain'이면 무늬·종이색 없이 그대로 보여 기존 화면과 동일하다.
+/// 자식 위젯 뒤에 속지 무늬·바탕색을 깔아주는 배경 위젯.
+/// 무지+크림(둘 다 기본)이면 그대로 보여 기존 화면과 동일하다.
 class PaperBackground extends StatelessWidget {
   const PaperBackground({
     super.key,
     required this.paper,
+    this.paperColor = kDefaultPaperColor,
     required this.child,
     this.spacing = 30,
   });
 
   final String paper;
+
+  /// 종이 바탕색 id('cream' = 기본). See cover_paper_color.dart.
+  final String paperColor;
   final double spacing;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    if (normalizeCoverPaper(paper) == kDefaultCoverPaper) return child;
-    // 옅은 크림색 종이 바탕 위에 줄 무늬를 깐다.
+    final normPaper = normalizeCoverPaper(paper);
+    final normColor = normalizePaperColor(paperColor);
+    // 둘 다 기본이면 배경을 입히지 않고 원래 화면 그대로 둔다.
+    if (normPaper == kDefaultCoverPaper && normColor == kDefaultPaperColor) {
+      return child;
+    }
+    // 무지면 바탕색만, 무늬가 있으면 그 위에 줄/모눈/도트를 그린다.
+    if (normPaper == kDefaultCoverPaper) {
+      return DecoratedBox(
+        decoration: BoxDecoration(color: paperColorOf(normColor)),
+        child: child,
+      );
+    }
     return DecoratedBox(
-      decoration: const BoxDecoration(color: Color(0xFFFFFDF7)),
+      decoration: BoxDecoration(color: paperColorOf(normColor)),
       child: CustomPaint(
         painter: PaperPainter(paper, spacing: spacing),
         child: child,

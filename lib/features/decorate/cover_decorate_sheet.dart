@@ -11,6 +11,7 @@ import 'cover_corner.dart';
 import 'cover_font.dart';
 import 'cover_palette.dart';
 import 'cover_paper.dart';
+import 'cover_paper_color.dart';
 import 'cover_paper_painter.dart';
 import 'cover_pattern.dart';
 import 'cover_ribbon.dart';
@@ -60,6 +61,8 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _texture = normalizeCoverTexture(widget.journal.coverTexture);
   late String _font = normalizeCoverFont(widget.journal.coverFont);
   late String _paper = normalizeCoverPaper(widget.journal.innerPaper);
+  late String _paperColor =
+      normalizePaperColor(widget.journal.innerPaperColor);
 
   // 미리보기 캐러셀: 0=표지, 1=속지. 좌우로 드래그(또는 탭)해 전환한다.
   final _previewCtrl = PageController();
@@ -85,6 +88,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   void _pickTexture(String t) => setState(() => _texture = t);
   void _pickFont(String f) => setState(() => _font = f);
   void _pickPaper(String p) => setState(() => _paper = p);
+  void _pickPaperColor(String c) => setState(() => _paperColor = c);
 
   void _pickTheme(CoverTheme theme) {
     setState(() {
@@ -119,6 +123,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             coverTexture: _texture,
             coverFont: _font,
             innerPaper: _paper,
+            innerPaperColor: _paperColor,
           ),
         );
     navigator.pop();
@@ -243,7 +248,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
         width: 110,
         height: 140,
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFDF7),
+          color: paperColorOf(_paperColor),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.divider),
           boxShadow: [

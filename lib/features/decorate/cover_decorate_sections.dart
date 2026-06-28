@@ -169,8 +169,8 @@ extension _DecorateSections on _CoverDecorateSheetState {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: DecoratedBox(
-                          decoration:
-                              const BoxDecoration(color: Color(0xFFFFFDF7)),
+                          decoration: BoxDecoration(
+                              color: paperColorOf(_paperColor)),
                           child: CustomPaint(
                             painter: PaperPainter(p.id, spacing: 8),
                             size: const Size.square(48),
@@ -181,6 +181,34 @@ extension _DecorateSections on _CoverDecorateSheetState {
                     const SizedBox(height: 4),
                     _chipLabel(p.label, selected),
                   ],
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+          _sectionTitle('종이 색'),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: paperColorPalette.map((pc) {
+              final selected = pc.id == _paperColor;
+              return GestureDetector(
+                onTap: () => _pickPaperColor(pc.id),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: pc.color,
+                    shape: BoxShape.circle,
+                    border: selected
+                        ? Border.all(color: AppColors.primary, width: 3)
+                        : Border.all(color: AppColors.divider),
+                  ),
+                  child: selected
+                      ? const Icon(Icons.check,
+                          color: AppColors.primary, size: 20)
+                      : null,
                 ),
               );
             }).toList(),

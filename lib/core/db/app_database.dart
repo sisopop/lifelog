@@ -51,6 +51,8 @@ class Journals extends Table {
       text().withDefault(const Constant('pretendard'))();
   TextColumn get innerPaper =>
       text().withDefault(const Constant('plain'))();
+  TextColumn get innerPaperColor =>
+      text().withDefault(const Constant('cream'))();
   TextColumn get icon => text().nullable()();
   TextColumn get status => textEnum<JournalStatus>()();
   TextColumn get spaceId => text().nullable()();
@@ -118,7 +120,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 14;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -180,6 +182,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 14) {
             // 다꾸 속지(내지) — existing journals default to 'plain' (무지).
             await m.addColumn(journals, journals.innerPaper);
+          }
+          if (from < 15) {
+            // 속지 종이 바탕색 — existing journals default to 'cream' (크림).
+            await m.addColumn(journals, journals.innerPaperColor);
           }
         },
       );

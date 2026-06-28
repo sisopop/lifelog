@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/journal.dart';
 import '../decorate/cover_paper.dart';
+import '../decorate/cover_paper_color.dart';
 import '../decorate/cover_paper_painter.dart';
 import '../journals/journals_provider.dart';
 import 'entry_clipboard.dart';
@@ -73,14 +74,14 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     final date = DateFormat.yMMMMEEEEd(locale).format(entry.createdAt);
     final scale = ref.watch(readingTextScaleProvider);
 
-    // 이 기록이 속한 일기장의 속지를 읽기 화면 배경에 깐다('plain'이면 변화 없음).
+    // 이 기록이 속한 일기장의 속지를 읽기 화면 배경에 깐다(무지+크림이면 변화 없음).
     final journals =
         ref.watch(journalsProvider).asData?.value ?? const <Journal>[];
-    final paper = normalizeCoverPaper(journals
-            .where((jr) => jr.journalId == entry.journalId)
-            .firstOrNull
-            ?.innerPaper ??
-        kDefaultCoverPaper);
+    final journal =
+        journals.where((jr) => jr.journalId == entry.journalId).firstOrNull;
+    final paper = normalizeCoverPaper(journal?.innerPaper ?? kDefaultCoverPaper);
+    final paperColor =
+        normalizePaperColor(journal?.innerPaperColor ?? kDefaultPaperColor);
 
     // Author label for shared journals (멤버가 2명 이상일 때만 표시).
     final members =
@@ -100,6 +101,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
           Expanded(
             child: PaperBackground(
               paper: paper,
+              paperColor: paperColor,
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
