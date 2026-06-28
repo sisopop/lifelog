@@ -775,6 +775,31 @@ void main() {
     });
   });
 
+  group('aiSummaryShareOfMonth', () {
+    test('percent of that month\'s top-level records with an AI summary', () {
+      final entries = [
+        _entry(id: 'a', at: DateTime(2026, 6, 1), aiSummary: '요약'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), aiSummary: '또 요약'),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+        // other month — must be ignored
+        _entry(id: 'o', at: DateTime(2026, 5, 9), aiSummary: '지난달'),
+      ];
+      expect(aiSummaryShareOfMonth(entries, 2026, 6), 50);
+    });
+
+    test('replies are excluded; null when the month has no top-level records',
+        () {
+      final entries = [
+        _entry(id: 'a', at: DateTime(2026, 6, 1), aiSummary: '요약'),
+        _entry(
+            id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', aiSummary: '답장'),
+      ];
+      expect(aiSummaryShareOfMonth(entries, 2026, 6), 100);
+      expect(aiSummaryShareOfMonth(entries, 2026, 7), isNull);
+    });
+  });
+
   group('sharedEntryShare', () {
     test('percent of top-level records shared beyond private', () {
       // 2 of 4 top-level records are link/public (the rest stay private).

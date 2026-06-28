@@ -135,6 +135,15 @@ int? aiSummaryShare(List<DiaryEntry> entries) {
   return (summarized * 100 / total).round();
 }
 
+/// Pure: the AI-summary share (0–100) for one calendar month. Filters to the
+/// given [year]/[month], then reuses [aiSummaryShare]. Returns null when that
+/// month has no top-level records.
+int? aiSummaryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return aiSummaryShare(monthly.toList());
+}
+
 /// Pure: what share of top-level records were shared beyond private — i.e.
 /// [EntryVisibility.link] or [EntryVisibility.public] — as a 0–100 percent.
 /// Replies are excluded. Returns null when there are no top-level records — a
