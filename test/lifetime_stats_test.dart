@@ -682,6 +682,34 @@ void main() {
     });
   });
 
+  group('moodEntryShareOfMonth', () {
+    test('filters to the month, then reuses moodEntryShare', () {
+      // June: 1 mood of 2 → 50%. May entry is excluded.
+      final pct = moodEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 5, 9), mood: Mood.hard),
+      ], 2026, 6);
+      expect(pct, 50);
+    });
+
+    test('excludes replies', () {
+      final pct = moodEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(
+            id: 'r', at: DateTime(2026, 6, 2), replyTo: 'a', mood: Mood.hard),
+      ], 2026, 6);
+      expect(pct, 100);
+    });
+
+    test('null when that month has no top-level records', () {
+      final pct = moodEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 5, 1), mood: Mood.good),
+      ], 2026, 6);
+      expect(pct, isNull);
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);

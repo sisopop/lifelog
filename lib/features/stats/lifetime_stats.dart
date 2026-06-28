@@ -143,3 +143,13 @@ int distinctTagsOfMonth(List<DiaryEntry> entries, int year, int month) {
       (e) => e.createdAt.year == year && e.createdAt.month == month);
   return topTags(monthly.toList(), limit: 0).length;
 }
+
+/// Pure: what share of one calendar month's top-level records carry a mood, as
+/// a 0–100 percent. Filters [entries] to the given [year]/[month], then reuses
+/// [moodEntryShare] (replies excluded). Returns null when that month has no
+/// top-level records — the monthly sibling of [moodEntryShare].
+int? moodEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return moodEntryShare(monthly.toList());
+}
