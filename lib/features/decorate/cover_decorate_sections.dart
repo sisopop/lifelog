@@ -11,6 +11,8 @@ extension _DecorateSections on _CoverDecorateSheetState {
     final palette = coverPaletteFor(j.coverColor);
     final icons = coverIconPaletteFor(j.displayIcon);
     return [
+      _nameSection(),
+      const SizedBox(height: 20),
       _themeSection(),
       const SizedBox(height: 20),
       _colorSection(palette),
@@ -237,6 +239,47 @@ extension _DecorateSections on _CoverDecorateSheetState {
             : Border.all(color: AppColors.divider),
       );
 
+  /// 일기장 이름(제목) 변경 입력칸. 입력하면 미리보기 표지에 실시간 반영되고,
+  /// "저장"을 눌러야 실제로 반영된다(빈 값이면 원래 이름 유지).
+  Widget _nameSection() => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _sectionTitle('일기장 이름'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _titleCtrl,
+            onChanged: _onTitleChanged,
+            textInputAction: TextInputAction.done,
+            maxLength: 30,
+            style: const TextStyle(
+                fontSize: 15, fontWeight: FontWeight.w600),
+            decoration: InputDecoration(
+              hintText: '일기장 이름을 입력하세요',
+              counterText: '',
+              isDense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              filled: true,
+              fillColor: AppColors.background,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.divider),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.divider),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 2),
+              ),
+            ),
+          ),
+        ],
+      );
+
   /// "한 번에 분위기를 바꾸는" 테마 프리셋.
   Widget _themeSection() => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,92 +446,4 @@ extension _DecorateSections on _CoverDecorateSheetState {
         ],
       );
 
-  /// 표지 면 위 레이어(재질·제본·모서리·밴드)용 칩 섹션.
-  /// 표지를 ClipRRect로 둥글게 자른다.
-  Widget _clippedLayerSection({
-    required String title,
-    required List<String> ids,
-    required String selectedId,
-    required void Function(String) onPick,
-    required String Function(String) label,
-    required JournalCover Function(String id) cover,
-  }) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _sectionTitle(title),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: ids.map((id) {
-              final selected = id == selectedId;
-              return GestureDetector(
-                onTap: () => onPick(id),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: _chipBorder(selected),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: cover(id),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    _chipLabel(label(id), selected),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      );
-
-  /// 표지 밖으로 삐져나오는 레이어(책갈피·클립·인덱스 탭)용 칩 섹션.
-  /// ClipRRect 없이 표지를 padding으로 칩 안쪽에 띄워 삐져나온 부분이 보이게 한다.
-  Widget _peekLayerSection({
-    required String title,
-    required List<String> ids,
-    required String selectedId,
-    required void Function(String) onPick,
-    required String Function(String) label,
-    required EdgeInsets padding,
-    required JournalCover Function(String id) cover,
-  }) =>
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _sectionTitle(title),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: ids.map((id) {
-              final selected = id == selectedId;
-              return GestureDetector(
-                onTap: () => onPick(id),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      padding: padding,
-                      decoration: _chipBorder(selected),
-                      child: cover(id),
-                    ),
-                    const SizedBox(height: 4),
-                    _chipLabel(label(id), selected),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      );
 }

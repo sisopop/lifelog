@@ -21,6 +21,7 @@ import 'cover_theme.dart';
 import 'journal_cover.dart';
 
 part 'cover_decorate_sections.dart';
+part 'cover_decorate_layers.dart';
 
 /// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기.
 /// 책장에서 일기장을 길게 눌러 진입합니다. 칩을 탭하면 미리보기에 바로 보이고,
@@ -64,12 +65,19 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late String _paperColor =
       normalizePaperColor(widget.journal.innerPaperColor);
 
+  // 일기장 이름(제목). 표지 꾸미기 첫 섹션의 입력칸과 묶이고, 미리보기 표지에
+  // 실시간으로 반영된다. 빈 값으로 저장하면 원래 이름을 유지한다.
+  late final TextEditingController _titleCtrl =
+      TextEditingController(text: widget.journal.title);
+  late String _title = widget.journal.title;
+
   // 미리보기 캐러셀: 0=표지, 1=속지. 좌우로 드래그(또는 탭)해 전환한다.
   final _previewCtrl = PageController();
   int _previewPage = 0;
 
   @override
   void dispose() {
+    _titleCtrl.dispose();
     _previewCtrl.dispose();
     super.dispose();
   }
@@ -89,6 +97,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   void _pickFont(String f) => setState(() => _font = f);
   void _pickPaper(String p) => setState(() => _paper = p);
   void _pickPaperColor(String c) => setState(() => _paperColor = c);
+  void _onTitleChanged(String v) => setState(() => _title = v);
 
   void _pickTheme(CoverTheme theme) {
     setState(() {
@@ -109,8 +118,12 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   void _save() {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    // 이름은 공백을 다듬고, 비우면 원래 이름을 유지한다.
+    final trimmed = _title.trim();
+    final newTitle = trimmed.isEmpty ? widget.journal.title : trimmed;
     ref.read(journalsProvider.notifier).edit(
           widget.journal.copyWith(
+            title: newTitle,
             coverColor: _color,
             icon: _icon,
             coverPattern: _pattern,
@@ -204,7 +217,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                       tab: _tab,
                       texture: _texture,
                       titleFont: coverFontFamily(_font),
-                      title: j.title,
+                      title: _title.trim().isEmpty ? j.title : _title,
                       radius: 14,
                       iconSize: 30,
                       titleSize: 14,
