@@ -33,6 +33,8 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
   @override
   Future<List<DiaryEntry>> build() async {
     await _repo.seedIfEmpty();
+    // 30일 지난 휴지통 일기 자동 정리. 멱등.
+    await _repo.purgeExpiredTrash();
     return _repo.getAll();
   }
 
@@ -86,6 +88,18 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
 
   Future<void> delete(String entryId) async {
     await _repo.delete(entryId);
+    state = AsyncData(await _repo.getAll());
+  }
+
+  /// 휴지통에서 복원: 기록을 다시 살아있는 목록으로 되돌린다.
+  Future<void> restore(String entryId) async {
+    await _repo.restore(entryId);
+    state = AsyncData(await _repo.getAll());
+  }
+
+  /// 영구 삭제: 휴지통의 기록을 완전히 제거한다.
+  Future<void> deleteForever(String entryId) async {
+    await _repo.deleteForever(entryId);
     state = AsyncData(await _repo.getAll());
   }
 

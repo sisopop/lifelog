@@ -22,6 +22,8 @@ class JournalsNotifier extends AsyncNotifier<List<Journal>> {
   @override
   Future<List<Journal>> build() async {
     await _repo.seedIfEmpty();
+    // 30일 지난 휴지통 일기장(+소속 일기·멤버) 자동 정리. 멱등.
+    await _repo.purgeExpiredTrash();
     return _repo.getAll();
   }
 
@@ -37,6 +39,24 @@ class JournalsNotifier extends AsyncNotifier<List<Journal>> {
 
   Future<void> delete(String journalId) async {
     await _repo.delete(journalId);
+    // cascade로 소속 일기도 함께 휴지통으로 → 일기 목록·홈 배지도 갱신.
+    ref.invalidate(entriesProvider);
+    state = AsyncData(await _repo.getAll());
+  }
+
+  /// 휴지통에서 복원: 일기장과 같은 cascade로 버려진 일기를 함께 되살린다.
+  Future<void> restore(String journalId, DateTime when) async {
+    await _repo.restore(journalId, when);
+    // cascade로 일기도 함께 되살아나므로 일기 목록·홈 배지도 갱신.
+    ref.invalidate(entriesProvider);
+    state = AsyncData(await _repo.getAll());
+  }
+
+  /// 영구 삭제: 일기장과 소속 일기·멤버를 완전히 제거한다.
+  Future<void> deleteForever(String journalId) async {
+    await _repo.deleteForever(journalId);
+    // 소속 일기도 완전히 사라지므로 일기 목록도 갱신.
+    ref.invalidate(entriesProvider);
     state = AsyncData(await _repo.getAll());
   }
 }

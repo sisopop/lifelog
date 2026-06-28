@@ -16,6 +16,7 @@ import '../places/place_directory.dart';
 import '../stats/lifetime_stats.dart';
 import '../stats/mood_entries.dart';
 import 'reading_text_scale.dart';
+import 'trash_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -76,6 +77,7 @@ class SettingsScreen extends ConsumerWidget {
           _HomeLayoutTile(),
           _ReadingTextSizeTile(),
           _ExportTile(),
+          _TrashTile(),
           _SectionTile(
             icon: Icons.notifications_none,
             label: l.settingsNotifications,
@@ -365,6 +367,24 @@ class _HomeLayoutTile extends ConsumerWidget {
             await ref.read(homeJournalLayoutProvider.notifier).set(picked);
           }
         },
+      ),
+    );
+  }
+}
+
+/// 휴지통 진입점. 보관 중인 항목 수를 부제로 보여준다.
+class _TrashTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(trashProvider).asData?.value.total ?? 0;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: const Icon(Icons.delete_outline, color: AppColors.textSecondary),
+        title: const Text('휴지통'),
+        subtitle: Text(count == 0 ? '삭제한 항목 30일 보관' : '$count개 보관 중 · 30일 후 자동 삭제'),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        onTap: () => context.push('/trash'),
       ),
     );
   }

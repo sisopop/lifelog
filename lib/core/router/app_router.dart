@@ -21,6 +21,7 @@ import '../../features/review/day_entries_screen.dart';
 import '../../features/review/review_screen.dart';
 import '../../features/search/search_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/settings/trash_screen.dart';
 import '../../features/share/share_screen.dart';
 import '../../features/tags/tag_entries_screen.dart';
 import '../../features/tags/tag_manage_screen.dart';
@@ -81,6 +82,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/search',
         parentNavigatorKey: _rootKey,
         builder: (_, _) => const SearchScreen(),
+      ),
+      GoRoute(
+        path: '/trash',
+        parentNavigatorKey: _rootKey,
+        builder: (_, _) => const TrashScreen(),
       ),
       GoRoute(
         path: '/favorites',
