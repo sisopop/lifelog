@@ -10,6 +10,7 @@ import '../../shared/widgets/month_calendar.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../export/export_markdown.dart';
+import '../places/place_directory.dart';
 import '../stats/lifetime_stats.dart';
 import '../stats/stats_provider.dart';
 import '../stats/streak.dart';
@@ -218,6 +219,19 @@ class ReviewScreen extends ConsumerWidget {
                 onTap: () => context.push(
                   Uri(path: '/place', queryParameters: {'l': place.key})
                       .toString(),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
+              final places = distinctPlacesOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (places < 2) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '🧭 이번 달 $places곳을 다녀왔어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
                 ),
               );
             }),

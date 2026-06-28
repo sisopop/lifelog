@@ -27,6 +27,16 @@ List<MapEntry<String, int>> placeCountsSorted(List<DiaryEntry> entries) {
   return list;
 }
 
+/// Pure: how many distinct locations were visited in one calendar month.
+/// Filters [entries] to the given [year]/[month], then reuses
+/// [placeCountsSorted] (replies and blank locations excluded, grouped
+/// case-insensitively). Returns 0 when that month has no located records.
+int distinctPlacesOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return placeCountsSorted(monthly.toList()).length;
+}
+
 /// Pure: the most-recent top-level record date for each location, keyed by the
 /// location's display spelling (matching [placeCountsSorted]). Replies and
 /// blank locations are ignored. Locations are grouped case-insensitively.
