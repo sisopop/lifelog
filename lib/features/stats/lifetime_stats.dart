@@ -165,6 +165,17 @@ int? favoriteEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
   return favoriteEntryShare(monthly.toList());
 }
 
+/// Pure: what share of one calendar month's top-level records carry at least one
+/// photo, as a 0–100 percent. Filters [entries] to the given [year]/[month],
+/// then reuses [photoEntryShare] (replies excluded). Returns null when that
+/// month has no top-level records — the monthly sibling of [photoEntryShare]
+/// and the share companion of [photoEntryCountOfMonth].
+int? photoEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return photoEntryShare(monthly.toList());
+}
+
 /// Pure: how many distinct tags were ever used across all [entries]. Reuses
 /// [topTags] with no limit (replies excluded; tags compared exactly as stored).
 /// Returns 0 when nothing is tagged — the whole-history sibling of
