@@ -181,6 +181,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   );
                 }),
                 Builder(builder: (context) {
+                  final pct = photoEntryShare(entries);
+                  if (pct == null || pct == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '🖼️ 기록의 $pct%에 사진을 담았어요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final pct = taggedEntryShare(entries);
                   if (pct == null || pct == 0) return const SizedBox.shrink();
                   return Padding(

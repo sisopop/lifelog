@@ -617,6 +617,34 @@ void main() {
     });
   });
 
+  group('photoEntryShare', () {
+    test('percent of top-level records that carry a photo, rounded', () {
+      // 1 of 3 top-level records has media → 33%.
+      final pct = photoEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), media: ['u1']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+      ]);
+      expect(pct, 33);
+    });
+
+    test('replies are excluded from both numerator and denominator', () {
+      // Only the top-level 'a' (with photo) counts → 100%.
+      final pct = photoEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), media: ['u1']),
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', media: ['u2']),
+      ]);
+      expect(pct, 100);
+    });
+
+    test('null when there are no top-level records', () {
+      final pct = photoEntryShare([
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', media: ['u1']),
+      ]);
+      expect(pct, isNull);
+    });
+  });
+
   group('favoriteCount', () {
     test('counts starred top-level records, excludes replies', () {
       final n = favoriteCount([

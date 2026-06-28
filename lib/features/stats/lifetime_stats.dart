@@ -160,3 +160,21 @@ int? moodEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
 /// [distinctTagsOfMonth].
 int distinctTagsUsed(List<DiaryEntry> entries) =>
     topTags(entries, limit: 0).length;
+
+/// Pure: what share of top-level records carry at least one photo
+/// ([DiaryEntry.mediaUrls] non-empty), as a 0–100 percent. Replies are
+/// excluded. Returns null when there are no top-level records — the photo
+/// member of the share family ([taggedEntryShare]/[locationEntryShare]/
+/// [moodEntryShare]/[titleEntryShare]) and the share sibling of
+/// [photoEntryCount].
+int? photoEntryShare(List<DiaryEntry> entries) {
+  var total = 0;
+  var withPhoto = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    if (e.mediaUrls.isNotEmpty) withPhoto++;
+  }
+  if (total == 0) return null;
+  return (withPhoto * 100 / total).round();
+}
