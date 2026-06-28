@@ -4,9 +4,10 @@ part of 'cover_decorate_sheet.dart';
 /// 같은 라이브러리의 part라 _CoverDecorateSheetState의 private 멤버
 /// (_color/_icon/_pick* 등)에 그대로 접근한다.
 extension _DecorateSections on _CoverDecorateSheetState {
-  /// 스크롤 영역에 쌓이는 모든 섹션. 섹션 사이는 SizedBox(20)로 띄운다.
-  /// (첫 섹션은 스크롤 padding top:20이 여백을 대신해 앞에 SizedBox 없음.)
-  List<Widget> _sections(Journal j) {
+  /// 표지 탭에서 보이는 섹션(표지 관련 꾸미기만). 섹션 사이는 SizedBox(20)로
+  /// 띄운다. (첫 섹션은 스크롤 padding top:20이 여백을 대신해 앞에 SizedBox 없음.)
+  /// 속지 칩은 _paperSections()로 분리해 속지 탭에서만 보인다.
+  List<Widget> _coverSections(Journal j) {
     final palette = coverPaletteFor(j.coverColor);
     final icons = coverIconPaletteFor(j.displayIcon);
     return [
@@ -137,10 +138,11 @@ extension _DecorateSections on _CoverDecorateSheetState {
           iconSize: 0,
         ),
       ),
-      const SizedBox(height: 20),
-      _paperSection(),
     ];
   }
+
+  /// 속지 탭에서 보이는 섹션(속지 무늬 + 종이 색만).
+  List<Widget> _paperSections() => [_paperSection()];
 
   /// 속지(내지) — 읽기 화면 배경에 깔리는 종이 무늬. 칩에 작은 종이를 그려 보여준다.
   Widget _paperSection() => Column(

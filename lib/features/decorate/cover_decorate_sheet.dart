@@ -163,8 +163,9 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text('표지 꾸미기',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(_previewPage == 0 ? '표지 꾸미기' : '속지 꾸미기',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w800)),
               const Spacer(),
               FilledButton(
                 onPressed: _save,
@@ -234,7 +235,8 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: _sections(j),
+                // 표지 탭(0)이면 표지 꾸미기만, 속지 탭(1)이면 속지 꾸미기만 보인다.
+                children: _previewPage == 0 ? _coverSections(j) : _paperSections(),
               ),
             ),
           ),
