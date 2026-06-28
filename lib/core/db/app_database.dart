@@ -58,6 +58,8 @@ class Journals extends Table {
   TextColumn get status => textEnum<JournalStatus>()();
   TextColumn get spaceId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
+  // 휴지통: non-null = soft-deleted (kept 30 days, hidden from the home list).
+  DateTimeColumn get deletedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {journalId};
@@ -123,7 +125,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -194,6 +196,10 @@ class AppDatabase extends _$AppDatabase {
             // 휴지통: soft-delete column on entries (null = live).
             await m.addColumn(diaryEntries, diaryEntries.deletedAt);
           }
+          if (from < 17) {
+            // 휴지통: soft-delete column on journals (null = live).
+            await m.addColumn(journals, journals.deletedAt);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -217,7 +223,7 @@ class AppDatabase extends _$AppDatabase {
     ).get();
     final present = info.map((r) => r.read<String>('name')).toSet();
     final m = createMigrator();
-    final expected = <String, GeneratedColumn<String>>{
+    final expected = <String, GeneratedColumn<Object>>{
       'cover_pattern': journals.coverPattern,
       'cover_binding': journals.coverBinding,
       'cover_corner': journals.coverCorner,
@@ -229,6 +235,7 @@ class AppDatabase extends _$AppDatabase {
       'cover_font': journals.coverFont,
       'inner_paper': journals.innerPaper,
       'inner_paper_color': journals.innerPaperColor,
+      'deleted_at': journals.deletedAt,
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {
@@ -326,7 +333,16 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<JournalRow>> getAllJournals() {
     return (select(journals)
+          ..where((t) => t.deletedAt.isNull())
           ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+        .get();
+  }
+
+  /// Soft-deleted journals (휴지통), newest deletion first.
+  Future<List<JournalRow>> getTrashedJournals() {
+    return (select(journals)
+          ..where((t) => t.deletedAt.isNotNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.deletedAt)]))
         .get();
   }
 
@@ -334,8 +350,61 @@ class AppDatabase extends _$AppDatabase {
     return into(journals).insertOnConflictUpdate(journal);
   }
 
-  Future<void> deleteJournal(String journalId) {
-    return (delete(journals)..where((t) => t.journalId.equals(journalId))).go();
+  /// 휴지통으로 보내기 (cascade soft delete). Stamps [when] on the journal AND
+  /// every currently-live entry it owns, atomically — so the journal and its
+  /// records vanish together (no orphan records left behind) and a later
+  /// restore can revive exactly the entries this cascade trashed.
+  Future<void> softDeleteJournalCascade(String journalId, DateTime when) {
+    return transaction(() async {
+      await (update(journals)..where((t) => t.journalId.equals(journalId)))
+          .write(JournalsCompanion(deletedAt: Value(when)));
+      await (update(diaryEntries)
+            ..where((t) =>
+                t.journalId.equals(journalId) & t.deletedAt.isNull()))
+          .write(DiaryEntriesCompanion(deletedAt: Value(when)));
+    });
+  }
+
+  /// 복원: clears the journal's deletedAt and revives only the entries trashed
+  /// by the same cascade (deletedAt == [when]), so records the user had
+  /// individually trashed earlier stay in the bin.
+  Future<void> restoreJournalCascade(String journalId, DateTime when) {
+    return transaction(() async {
+      await (update(journals)..where((t) => t.journalId.equals(journalId)))
+          .write(const JournalsCompanion(deletedAt: Value(null)));
+      await (update(diaryEntries)
+            ..where((t) =>
+                t.journalId.equals(journalId) &
+                t.deletedAt.equals(when)))
+          .write(const DiaryEntriesCompanion(deletedAt: Value(null)));
+    });
+  }
+
+  /// 영구 삭제: hard-removes a journal and all of its entries + members.
+  Future<void> deleteJournalForever(String journalId) {
+    return transaction(() async {
+      await (delete(diaryEntries)..where((t) => t.journalId.equals(journalId)))
+          .go();
+      await (delete(journalMembers)
+            ..where((t) => t.journalId.equals(journalId)))
+          .go();
+      await (delete(journals)..where((t) => t.journalId.equals(journalId)))
+          .go();
+    });
+  }
+
+  /// Purges journals soft-deleted before [cutoff] together with their entries
+  /// and members (30-day auto-clean). Returns the number of journals purged.
+  Future<int> purgeJournalsDeletedBefore(DateTime cutoff) async {
+    final expired = await (select(journals)
+          ..where((t) =>
+              t.deletedAt.isNotNull() &
+              t.deletedAt.isSmallerThanValue(cutoff)))
+        .get();
+    for (final j in expired) {
+      await deleteJournalForever(j.journalId);
+    }
+    return expired.length;
   }
 
   Future<int> countJournals() async {

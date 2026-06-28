@@ -22,7 +22,30 @@ class JournalRepository {
     return _db.upsertJournal(_toCompanion(journal));
   }
 
-  Future<void> delete(String journalId) => _db.deleteJournal(journalId);
+  /// 휴지통으로 보내기 (cascade): the journal and all its currently-live
+  /// entries are stamped with the same timestamp, so they vanish together.
+  Future<void> delete(String journalId, [DateTime? when]) =>
+      _db.softDeleteJournalCascade(journalId, when ?? DateTime.now());
+
+  /// 복원: revives the journal and the entries trashed by the same cascade.
+  Future<void> restore(String journalId, DateTime when) =>
+      _db.restoreJournalCascade(journalId, when);
+
+  /// 영구 삭제: hard-removes the journal with its entries + members.
+  Future<void> deleteForever(String journalId) =>
+      _db.deleteJournalForever(journalId);
+
+  /// Soft-deleted journals (휴지통), newest deletion first.
+  Future<List<Journal>> getTrashed() async {
+    final rows = await _db.getTrashedJournals();
+    return rows.map(_toDomain).toList();
+  }
+
+  /// Permanently removes journals trashed more than 30 days ago.
+  Future<int> purgeExpiredTrash([DateTime? now]) {
+    final cutoff = (now ?? DateTime.now()).subtract(const Duration(days: 30));
+    return _db.purgeJournalsDeletedBefore(cutoff);
+  }
 
   Future<Map<String, int>> entryCounts() => _db.entryCountsByJournal();
 
@@ -66,6 +89,7 @@ class JournalRepository {
         status: r.status,
         spaceId: r.spaceId,
         createdAt: r.createdAt,
+        deletedAt: r.deletedAt,
       );
 
   JournalsCompanion _toCompanion(Journal j) => JournalsCompanion(
@@ -89,5 +113,6 @@ class JournalRepository {
         status: Value(j.status),
         spaceId: Value(j.spaceId),
         createdAt: Value(j.createdAt),
+        deletedAt: Value(j.deletedAt),
       );
 }

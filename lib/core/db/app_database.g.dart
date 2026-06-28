@@ -1307,6 +1307,17 @@ class $JournalsTable extends Journals
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     journalId,
@@ -1329,6 +1340,7 @@ class $JournalsTable extends Journals
     status,
     spaceId,
     createdAt,
+    deletedAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1476,6 +1488,12 @@ class $JournalsTable extends Journals
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
     return context;
   }
 
@@ -1569,6 +1587,10 @@ class $JournalsTable extends Journals
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
     );
   }
 
@@ -1604,6 +1626,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
   final JournalStatus status;
   final String? spaceId;
   final DateTime createdAt;
+  final DateTime? deletedAt;
   const JournalRow({
     required this.journalId,
     required this.ownerId,
@@ -1625,6 +1648,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     required this.status,
     this.spaceId,
     required this.createdAt,
+    this.deletedAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1659,6 +1683,9 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       map['space_id'] = Variable<String>(spaceId);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     return map;
   }
 
@@ -1686,6 +1713,9 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
           ? const Value.absent()
           : Value(spaceId),
       createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
     );
   }
 
@@ -1719,6 +1749,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       ),
       spaceId: serializer.fromJson<String?>(json['spaceId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
   }
   @override
@@ -1749,6 +1780,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       ),
       'spaceId': serializer.toJson<String?>(spaceId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
   }
 
@@ -1773,6 +1805,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     JournalStatus? status,
     Value<String?> spaceId = const Value.absent(),
     DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
   }) => JournalRow(
     journalId: journalId ?? this.journalId,
     ownerId: ownerId ?? this.ownerId,
@@ -1794,6 +1827,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     status: status ?? this.status,
     spaceId: spaceId.present ? spaceId.value : this.spaceId,
     createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
   JournalRow copyWithCompanion(JournalsCompanion data) {
     return JournalRow(
@@ -1833,6 +1867,7 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       status: data.status.present ? data.status.value : this.status,
       spaceId: data.spaceId.present ? data.spaceId.value : this.spaceId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
   }
 
@@ -1858,13 +1893,14 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
           ..write('icon: $icon, ')
           ..write('status: $status, ')
           ..write('spaceId: $spaceId, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     journalId,
     ownerId,
     type,
@@ -1885,7 +1921,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     status,
     spaceId,
     createdAt,
-  );
+    deletedAt,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1909,7 +1946,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
           other.icon == this.icon &&
           other.status == this.status &&
           other.spaceId == this.spaceId &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
 }
 
 class JournalsCompanion extends UpdateCompanion<JournalRow> {
@@ -1933,6 +1971,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
   final Value<JournalStatus> status;
   final Value<String?> spaceId;
   final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
   final Value<int> rowid;
   const JournalsCompanion({
     this.journalId = const Value.absent(),
@@ -1955,6 +1994,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     this.status = const Value.absent(),
     this.spaceId = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   JournalsCompanion.insert({
@@ -1978,6 +2018,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     required JournalStatus status,
     this.spaceId = const Value.absent(),
     required DateTime createdAt,
+    this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : journalId = Value(journalId),
        ownerId = Value(ownerId),
@@ -2006,6 +2047,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     Expression<String>? status,
     Expression<String>? spaceId,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2029,6 +2071,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
       if (status != null) 'status': status,
       if (spaceId != null) 'space_id': spaceId,
       if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2054,6 +2097,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     Value<JournalStatus>? status,
     Value<String?>? spaceId,
     Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
     Value<int>? rowid,
   }) {
     return JournalsCompanion(
@@ -2077,6 +2121,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,
       createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2148,6 +2193,9 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2177,6 +2225,7 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
           ..write('status: $status, ')
           ..write('spaceId: $spaceId, ')
           ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3181,6 +3230,7 @@ typedef $$JournalsTableCreateCompanionBuilder =
       required JournalStatus status,
       Value<String?> spaceId,
       required DateTime createdAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 typedef $$JournalsTableUpdateCompanionBuilder =
@@ -3205,6 +3255,7 @@ typedef $$JournalsTableUpdateCompanionBuilder =
       Value<JournalStatus> status,
       Value<String?> spaceId,
       Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
       Value<int> rowid,
     });
 
@@ -3318,6 +3369,11 @@ class $$JournalsTableFilterComposer
     column: $table.createdAt,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
 }
 
 class $$JournalsTableOrderingComposer
@@ -3428,6 +3484,11 @@ class $$JournalsTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$JournalsTableAnnotationComposer
@@ -3514,6 +3575,9 @@ class $$JournalsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
 }
 
 class $$JournalsTableTableManager
@@ -3567,6 +3631,7 @@ class $$JournalsTableTableManager
                 Value<JournalStatus> status = const Value.absent(),
                 Value<String?> spaceId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JournalsCompanion(
                 journalId: journalId,
@@ -3589,6 +3654,7 @@ class $$JournalsTableTableManager
                 status: status,
                 spaceId: spaceId,
                 createdAt: createdAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3613,6 +3679,7 @@ class $$JournalsTableTableManager
                 required JournalStatus status,
                 Value<String?> spaceId = const Value.absent(),
                 required DateTime createdAt,
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JournalsCompanion.insert(
                 journalId: journalId,
@@ -3635,6 +3702,7 @@ class $$JournalsTableTableManager
                 status: status,
                 spaceId: spaceId,
                 createdAt: createdAt,
+                deletedAt: deletedAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -24,6 +24,7 @@ class Journal {
     this.status = JournalStatus.active,
     this.spaceId,
     required this.createdAt,
+    this.deletedAt,
   });
 
   final String journalId;
@@ -75,6 +76,10 @@ class Journal {
   final String? spaceId;
   final DateTime createdAt;
 
+  /// 휴지통: non-null = soft-deleted (kept 30 days, hidden from the home list).
+  /// When set, the journal's entries are cascade-trashed with the same stamp.
+  final DateTime? deletedAt;
+
   String get displayIcon => icon ?? type.emoji;
   bool get isArchived => status == JournalStatus.ended;
 
@@ -95,6 +100,8 @@ class Journal {
     String? icon,
     JournalStatus? status,
     String? spaceId,
+    DateTime? deletedAt,
+    bool clearDeletedAt = false,
   }) {
     return Journal(
       journalId: journalId,
@@ -117,6 +124,7 @@ class Journal {
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,
       createdAt: createdAt,
+      deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
     );
   }
 }

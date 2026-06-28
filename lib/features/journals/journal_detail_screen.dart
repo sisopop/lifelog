@@ -459,8 +459,8 @@ class _JournalMenu extends ConsumerWidget {
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('일기장 삭제'),
-        content: const Text('일기장을 삭제할까요? 안의 기록은 사라지지 않지만\n목록에서 보이지 않게 돼요.'),
+        title: const Text('일기장을 휴지통으로'),
+        content: const Text('이 일기장을 휴지통으로 보낼까요?\n안의 기록도 함께 30일 동안 보관돼요.'),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(ctx, false),
