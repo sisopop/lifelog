@@ -310,6 +310,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final pct = favoriteEntryShareOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (pct == null || pct == 0) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '✨ 이번 달 기록의 $pct%를 즐겨찾기했어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final photos = photoEntryCountOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (photos == 0) return const SizedBox.shrink();

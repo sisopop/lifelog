@@ -154,6 +154,17 @@ int? moodEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
   return moodEntryShare(monthly.toList());
 }
 
+/// Pure: what share of one calendar month's top-level records are starred
+/// (favorite), as a 0–100 percent. Filters [entries] to the given
+/// [year]/[month], then reuses [favoriteEntryShare] (replies excluded). Returns
+/// null when that month has no top-level records — the monthly sibling of
+/// [favoriteEntryShare] and the share companion of [favoriteCountOfMonth].
+int? favoriteEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return favoriteEntryShare(monthly.toList());
+}
+
 /// Pure: how many distinct tags were ever used across all [entries]. Reuses
 /// [topTags] with no limit (replies excluded; tags compared exactly as stored).
 /// Returns 0 when nothing is tagged — the whole-history sibling of

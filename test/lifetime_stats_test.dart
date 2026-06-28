@@ -837,6 +837,34 @@ void main() {
     });
   });
 
+  group('favoriteEntryShareOfMonth', () {
+    test('filters to the month, then reuses favoriteEntryShare', () {
+      // June: 1 favorite of 2 → 50%. May entry is excluded.
+      final pct = favoriteEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), favorite: true),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 5, 9), favorite: true),
+      ], 2026, 6);
+      expect(pct, 50);
+    });
+
+    test('excludes replies', () {
+      final pct = favoriteEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), favorite: true),
+        _entry(
+            id: 'r', at: DateTime(2026, 6, 2), replyTo: 'a', favorite: true),
+      ], 2026, 6);
+      expect(pct, 100);
+    });
+
+    test('null when that month has no top-level records', () {
+      final pct = favoriteEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 5, 1), favorite: true),
+      ], 2026, 6);
+      expect(pct, isNull);
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);
