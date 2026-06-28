@@ -1671,4 +1671,30 @@ void main() {
       expect(n, 0);
     });
   });
+
+  group('titledEntryCount', () {
+    test('counts titled top-level records, excludes replies and blank titles',
+        () {
+      // 2 titled (incl. trimmed), 1 blank, 1 null, 1 titled reply -> 2.
+      final n = titledEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), title: '제주도에서의 하루'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), title: '  봄 '),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), title: '   '),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+        _entry(id: 'r', at: DateTime(2026, 6, 5), replyTo: 'a', title: '답장'),
+      ]);
+      expect(n, 2);
+    });
+
+    test('0 when empty or no record has a title', () {
+      expect(titledEntryCount(const []), 0);
+      expect(
+        titledEntryCount([
+          _entry(id: 'a', at: DateTime(2026, 6, 1)),
+          _entry(id: 'b', at: DateTime(2026, 6, 2), title: ''),
+        ]),
+        0,
+      );
+    });
+  });
 }

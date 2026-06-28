@@ -185,6 +185,19 @@ int? titleEntryShare(List<DiaryEntry> entries) {
   return (titled * 100 / total).round();
 }
 
+/// Pure: how many top-level records carry a non-empty title. Replies are
+/// excluded; a title counts only when it has non-whitespace text. Returns 0 when
+/// none do — the count companion to [titleEntryShare], mirroring how
+/// [photoEntryCount]/[favoriteCount] sit beside their share lines.
+int titledEntryCount(List<DiaryEntry> entries) {
+  var titled = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.title?.trim().isNotEmpty ?? false)) titled++;
+  }
+  return titled;
+}
+
 /// Pure: the longest consecutive-day recording run within one calendar month.
 /// Filters [entries] to the given [year]/[month], then reuses [recordedDates]
 /// and [longestStreak] (both replies-excluded). Returns 0 when that month has
