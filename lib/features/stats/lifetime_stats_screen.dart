@@ -329,6 +329,17 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     ),
                   );
                 }),
+                Builder(builder: (context) {
+                  // 단일 태그는 위 "가장 많이 쓴 태그" 라인과 겹쳐 자명하므로 숨긴다.
+                  final kinds = distinctTagsUsed(entries);
+                  if (kinds < 2) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '🔖 지금까지 $kinds종류의 태그를 사용했어요',
+                    ),
+                  );
+                }),
                 if (activeMonth != null && activeMonth.count >= 2) ...[
                   const SizedBox(height: 12),
                   _InsightLine(

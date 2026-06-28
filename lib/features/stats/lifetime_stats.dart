@@ -153,3 +153,10 @@ int? moodEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
       (e) => e.createdAt.year == year && e.createdAt.month == month);
   return moodEntryShare(monthly.toList());
 }
+
+/// Pure: how many distinct tags were ever used across all [entries]. Reuses
+/// [topTags] with no limit (replies excluded; tags compared exactly as stored).
+/// Returns 0 when nothing is tagged — the whole-history sibling of
+/// [distinctTagsOfMonth].
+int distinctTagsUsed(List<DiaryEntry> entries) =>
+    topTags(entries, limit: 0).length;
