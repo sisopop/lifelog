@@ -836,6 +836,34 @@ void main() {
     });
   });
 
+  group('sharedEntryShareOfMonth', () {
+    test('percent of that month\'s top-level records shared beyond private', () {
+      final entries = [
+        _entry(id: 'a', at: DateTime(2026, 6, 1), visibility: EntryVisibility.link),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), visibility: EntryVisibility.public),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+        // other month — must be ignored
+        _entry(id: 'o', at: DateTime(2026, 5, 9), visibility: EntryVisibility.public),
+      ];
+      expect(sharedEntryShareOfMonth(entries, 2026, 6), 50);
+    });
+
+    test('replies are excluded; null when the month has no top-level records',
+        () {
+      final entries = [
+        _entry(id: 'a', at: DateTime(2026, 6, 1), visibility: EntryVisibility.link),
+        _entry(
+            id: 'r',
+            at: DateTime(2026, 6, 1),
+            replyTo: 'a',
+            visibility: EntryVisibility.public),
+      ];
+      expect(sharedEntryShareOfMonth(entries, 2026, 6), 100);
+      expect(sharedEntryShareOfMonth(entries, 2026, 7), isNull);
+    });
+  });
+
   group('positiveMoodShare', () {
     test('share of "good" among records that carry a mood, rounded', () {
       // 1 good of 2 mood-bearing records → 50%. The 3rd record has no mood and

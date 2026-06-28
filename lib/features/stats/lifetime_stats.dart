@@ -161,6 +161,15 @@ int? sharedEntryShare(List<DiaryEntry> entries) {
   return (shared * 100 / total).round();
 }
 
+/// Pure: the shared-record share (0–100) for one calendar month. Filters to the
+/// given [year]/[month], then reuses [sharedEntryShare]. Returns null when that
+/// month has no top-level records.
+int? sharedEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return sharedEntryShare(monthly.toList());
+}
+
 /// Pure: what share of top-level records carry a non-empty title, as a 0–100
 /// percent. Replies are excluded. A title counts only when it has non-whitespace
 /// text. Returns null when there are no top-level records.
