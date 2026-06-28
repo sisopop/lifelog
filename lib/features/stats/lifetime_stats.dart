@@ -118,6 +118,23 @@ int maxEntriesInOneDayOfMonth(List<DiaryEntry> entries, int year, int month) {
   return maxEntriesInOneDay(monthly.toList());
 }
 
+/// Pure: what share of top-level records carry an AI summary (a non-empty
+/// [DiaryEntry.aiSummary]), as a 0–100 percent. Replies are excluded. A summary
+/// counts only when it has non-whitespace text. Returns null when there are no
+/// top-level records — a member of the share family ([titleEntryShare] etc.)
+/// surfacing how often the AI summary feature was used.
+int? aiSummaryShare(List<DiaryEntry> entries) {
+  var total = 0;
+  var summarized = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    if (e.aiSummary?.trim().isNotEmpty ?? false) summarized++;
+  }
+  if (total == 0) return null;
+  return (summarized * 100 / total).round();
+}
+
 /// Pure: what share of top-level records carry a non-empty title, as a 0–100
 /// percent. Replies are excluded. A title counts only when it has non-whitespace
 /// text. Returns null when there are no top-level records.

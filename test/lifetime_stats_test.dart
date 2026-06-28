@@ -14,6 +14,7 @@ DiaryEntry _entry({
   List<String> media = const [],
   String? location,
   String? title,
+  String? aiSummary,
   String journalId = 'jr_default',
 }) =>
     DiaryEntry(
@@ -22,6 +23,7 @@ DiaryEntry _entry({
       journalId: journalId,
       title: title,
       content: content,
+      aiSummary: aiSummary,
       tags: tags,
       mood: mood,
       isFavorite: favorite,
@@ -669,6 +671,35 @@ void main() {
     test('null when there are no top-level records', () {
       final pct = favoriteEntryShare([
         _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', favorite: true),
+      ]);
+      expect(pct, isNull);
+    });
+  });
+
+  group('aiSummaryShare', () {
+    test('percent of top-level records carrying a non-empty AI summary', () {
+      // 2 of 4 top-level records have a real summary (blank/whitespace ignored).
+      final pct = aiSummaryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), aiSummary: '요약'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), aiSummary: '   '),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), aiSummary: '두 번째'),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+      ]);
+      expect(pct, 50);
+    });
+
+    test('replies are excluded from both numerator and denominator', () {
+      final pct = aiSummaryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), aiSummary: '요약'),
+        _entry(
+            id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', aiSummary: '답장요약'),
+      ]);
+      expect(pct, 100);
+    });
+
+    test('null when there are no top-level records', () {
+      final pct = aiSummaryShare([
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', aiSummary: 'x'),
       ]);
       expect(pct, isNull);
     });
