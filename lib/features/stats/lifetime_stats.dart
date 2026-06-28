@@ -374,3 +374,18 @@ int? averageEntryLengthOfMonth(List<DiaryEntry> entries, int year, int month) {
       (e) => e.createdAt.year == year && e.createdAt.month == month);
   return averageEntryLength(monthly.toList());
 }
+
+/// Pure: how many distinct calendar days in [now]'s year carry a top-level
+/// record. Replies are excluded; multiple records on the same day count once.
+/// Returns 0 when nothing was recorded this year. The days-based companion to
+/// [entriesThisYear] (which counts records, not days).
+int recordedDaysThisYear(List<DiaryEntry> entries, DateTime now) {
+  final days = <String>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final d = e.createdAt;
+    if (d.year != now.year) continue;
+    days.add('${d.year}-${d.month}-${d.day}');
+  }
+  return days.length;
+}

@@ -154,6 +154,32 @@ void main() {
     });
   });
 
+  group('recordedDaysThisYear', () {
+    final now = DateTime(2026, 6, 28);
+
+    test('zero when nothing was recorded this year', () {
+      expect(recordedDaysThisYear(const [], now), 0);
+      expect(
+        recordedDaysThisYear([
+          _entry(id: 'old', at: DateTime(2025, 12, 31)),
+        ], now),
+        0,
+      );
+    });
+
+    test('counts distinct days this year, dedups same day, excludes replies', () {
+      final entries = [
+        _entry(id: 'a', at: DateTime(2026, 6, 1, 9)),
+        _entry(id: 'b', at: DateTime(2026, 6, 1, 22)), // same day as a
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'r', at: DateTime(2026, 6, 5), replyTo: 'a'), // reply ignored
+        _entry(id: 'p', at: DateTime(2025, 6, 10)), // last year ignored
+      ];
+      // distinct 2026 days: 6/1, 6/3 → 2
+      expect(recordedDaysThisYear(entries, now), 2);
+    });
+  });
+
   group('averageEntryLengthOfMonth', () {
     test('null when the month has no top-level records', () {
       final entries = [

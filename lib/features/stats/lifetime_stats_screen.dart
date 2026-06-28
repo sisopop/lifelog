@@ -359,6 +359,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   );
                 }),
                 Builder(builder: (context) {
+                  final days = recordedDaysThisYear(entries, DateTime.now());
+                  if (days < 2) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '📆 올해 $days일에 걸쳐 기록했어요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final avg = averageEntriesPerMonth(entries);
                   if (avg == null) return const SizedBox.shrink();
                   return Padding(
