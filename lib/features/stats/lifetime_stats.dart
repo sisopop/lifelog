@@ -133,3 +133,13 @@ int longestStreakOfMonth(List<DiaryEntry> entries, int year, int month) {
       (e) => e.createdAt.year == year && e.createdAt.month == month);
   return longestStreak(recordedDates(monthly.toList()));
 }
+
+/// Pure: how many distinct tags were used in one calendar month. Filters
+/// [entries] to the given [year]/[month], then reuses [topTags] (replies
+/// excluded; tags compared exactly as stored). Returns 0 when that month has no
+/// tagged top-level records.
+int distinctTagsOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return topTags(monthly.toList(), limit: 0).length;
+}

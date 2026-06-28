@@ -562,6 +562,34 @@ void main() {
     });
   });
 
+  group('distinctTagsOfMonth', () {
+    test('counts distinct in-month tags, ignoring other months', () {
+      // June: 가족, 여행, 가족(dup) → 2 distinct. May 운동 excluded.
+      final n = distinctTagsOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['가족']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행', '가족']),
+        _entry(id: 'c', at: DateTime(2026, 5, 9), tags: ['운동']),
+      ], 2026, 6);
+      expect(n, 2);
+    });
+
+    test('replies are excluded', () {
+      final n = distinctTagsOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['가족']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), replyTo: 'a', tags: ['여행']),
+      ], 2026, 6);
+      expect(n, 1);
+    });
+
+    test('0 when that month has no tagged records', () {
+      final n = distinctTagsOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 5, 1), tags: ['가족']),
+      ], 2026, 6);
+      expect(n, 0);
+    });
+  });
+
   group('favoriteCount', () {
     test('counts starred top-level records, excludes replies', () {
       final n = favoriteCount([

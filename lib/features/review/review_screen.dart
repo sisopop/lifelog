@@ -246,6 +246,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final tags = distinctTagsOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (tags < 2) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '🔖 이번 달 $tags종류의 태그를 사용했어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final weekday = ref.watch(busiestWeekdayProvider);
               if (weekday == null || weekday.value < 2) {
                 return const SizedBox.shrink();
