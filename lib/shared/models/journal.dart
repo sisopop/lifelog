@@ -21,6 +21,8 @@ class Journal {
     this.innerPaper = 'plain',
     this.innerPaperColor = 'cream',
     this.icon,
+    this.iconX = 0.0,
+    this.iconY = 0.0,
     this.status = JournalStatus.active,
     this.spaceId,
     required this.createdAt,
@@ -70,6 +72,11 @@ class Journal {
 
   /// Optional emoji icon; falls back to the type emoji when null.
   final String? icon;
+
+  /// 표지 아이콘의 자유 위치(0~1 비율). x=0 왼쪽/1 오른쪽, y=0 위/1 아래.
+  /// 기본 0/0 = 좌상단(종전 위치). 꾸미기 시트에서 끌어 옮긴다.
+  final double iconX;
+  final double iconY;
   final JournalStatus status;
 
   /// Shared space id for couple/exchange journals (null for personal).
@@ -98,6 +105,8 @@ class Journal {
     String? innerPaper,
     String? innerPaperColor,
     String? icon,
+    double? iconX,
+    double? iconY,
     JournalStatus? status,
     String? spaceId,
     DateTime? deletedAt,
@@ -121,6 +130,8 @@ class Journal {
       innerPaper: innerPaper ?? this.innerPaper,
       innerPaperColor: innerPaperColor ?? this.innerPaperColor,
       icon: icon ?? this.icon,
+      iconX: iconX ?? this.iconX,
+      iconY: iconY ?? this.iconY,
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,
       createdAt: createdAt,

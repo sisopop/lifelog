@@ -174,6 +174,8 @@ class _JournalBook extends StatelessWidget {
         texture: journal.coverTexture,
         titleFont: coverFontFamily(journal.coverFont),
         title: journal.title,
+        iconX: journal.iconX,
+        iconY: journal.iconY,
         entryCount: entryCount,
         radius: 14,
         iconSize: compact ? 26 : 34,

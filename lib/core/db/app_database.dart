@@ -55,6 +55,10 @@ class Journals extends Table {
   TextColumn get innerPaperColor =>
       text().withDefault(const Constant('cream'))();
   TextColumn get icon => text().nullable()();
+  // 표지 아이콘의 자유 위치(스티커처럼 끌어 배치). 0~1 비율: x=0 왼쪽/1 오른쪽,
+  // y=0 위/1 아래. 기존 일기장은 0/0(좌상단)으로 백필 — 종전 모습 유지.
+  RealColumn get iconX => real().withDefault(const Constant(0.0))();
+  RealColumn get iconY => real().withDefault(const Constant(0.0))();
   TextColumn get status => textEnum<JournalStatus>()();
   TextColumn get spaceId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
@@ -125,7 +129,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -200,6 +204,11 @@ class AppDatabase extends _$AppDatabase {
             // 휴지통: soft-delete column on journals (null = live).
             await m.addColumn(journals, journals.deletedAt);
           }
+          if (from < 18) {
+            // 표지 아이콘 자유 위치 — existing journals default to 0/0 (좌상단).
+            await m.addColumn(journals, journals.iconX);
+            await m.addColumn(journals, journals.iconY);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -236,6 +245,8 @@ class AppDatabase extends _$AppDatabase {
       'inner_paper': journals.innerPaper,
       'inner_paper_color': journals.innerPaperColor,
       'deleted_at': journals.deletedAt,
+      'icon_x': journals.iconX,
+      'icon_y': journals.iconY,
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {

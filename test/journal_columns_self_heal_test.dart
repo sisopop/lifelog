@@ -37,6 +37,26 @@ void main() {
     expect(rows.first.innerPaperColor, 'cream');
   });
 
+  test('ensureJournalColumns recovers missing icon position columns and '
+      'backfills 0/0 (top-left) for existing journals', () async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    await JournalRepository(db).seedIfEmpty();
+
+    // Simulate a stuck DB where the new icon-position columns never got added.
+    await db.customStatement('ALTER TABLE journals DROP COLUMN icon_x');
+    await db.customStatement('ALTER TABLE journals DROP COLUMN icon_y');
+    await expectLater(db.getAllJournals(), throwsA(anything));
+
+    await db.ensureJournalColumns();
+
+    final rows = await db.getAllJournals();
+    expect(rows.length, 1);
+    // Existing journals default to the top-left position (종전 모습 유지).
+    expect(rows.first.iconX, 0.0);
+    expect(rows.first.iconY, 0.0);
+  });
+
   test('ensureJournalColumns is a no-op on a healthy DB', () async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);

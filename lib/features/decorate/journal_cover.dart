@@ -50,6 +50,8 @@ class JournalCover extends StatelessWidget {
     this.iconSize = 34,
     this.titleSize = 15,
     this.centerIcon = false,
+    this.iconX = 0.0,
+    this.iconY = 0.0,
     this.padding = const EdgeInsets.fromLTRB(12, 12, 10, 12),
   });
 
@@ -119,6 +121,11 @@ class JournalCover extends StatelessWidget {
 
   /// true면 아이콘을 가운데 정렬(제목은 표지 밖에 둘 때).
   final bool centerIcon;
+
+  /// 표지 아이콘의 자유 위치(0~1 비율). x=0 왼쪽/1 오른쪽, y=0 위/1 아래.
+  /// 0/0이면 좌상단(종전 기본 위치). 제목은 항상 좌하단에 고정된다.
+  final double iconX;
+  final double iconY;
   final EdgeInsets padding;
 
   @override
@@ -204,21 +211,31 @@ class JournalCover extends StatelessWidget {
           else
             Padding(
               padding: padding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Stack(
                 children: [
-                  Text(icon, style: TextStyle(fontSize: iconSize)),
+                  // 아이콘: 0~1 비율 위치를 Alignment(-1~1)로 환산해 자유 배치.
+                  // 0/0이면 Alignment(-1,-1)=좌상단(종전 위치)과 동일.
+                  Align(
+                    alignment: Alignment(
+                      iconX.clamp(0.0, 1.0) * 2 - 1,
+                      iconY.clamp(0.0, 1.0) * 2 - 1,
+                    ),
+                    child: Text(icon, style: TextStyle(fontSize: iconSize)),
+                  ),
+                  // 제목은 일기장 이름이라 항상 좌하단에 고정.
                   if (title != null)
-                    Text(title!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: titleSize,
-                            fontFamily: titleFont,
-                            fontWeight: FontWeight.w800,
-                            height: 1.15)),
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Text(title!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: titleSize,
+                              fontFamily: titleFont,
+                              fontWeight: FontWeight.w800,
+                              height: 1.15)),
+                    ),
                 ],
               ),
             ),

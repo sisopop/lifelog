@@ -1276,6 +1276,26 @@ class $JournalsTable extends Journals
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _iconXMeta = const VerificationMeta('iconX');
+  @override
+  late final GeneratedColumn<double> iconX = GeneratedColumn<double>(
+    'icon_x',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _iconYMeta = const VerificationMeta('iconY');
+  @override
+  late final GeneratedColumn<double> iconY = GeneratedColumn<double>(
+    'icon_y',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<JournalStatus, String> status =
       GeneratedColumn<String>(
@@ -1337,6 +1357,8 @@ class $JournalsTable extends Journals
     innerPaper,
     innerPaperColor,
     icon,
+    iconX,
+    iconY,
     status,
     spaceId,
     createdAt,
@@ -1474,6 +1496,18 @@ class $JournalsTable extends Journals
         icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
       );
     }
+    if (data.containsKey('icon_x')) {
+      context.handle(
+        _iconXMeta,
+        iconX.isAcceptableOrUnknown(data['icon_x']!, _iconXMeta),
+      );
+    }
+    if (data.containsKey('icon_y')) {
+      context.handle(
+        _iconYMeta,
+        iconY.isAcceptableOrUnknown(data['icon_y']!, _iconYMeta),
+      );
+    }
     if (data.containsKey('space_id')) {
       context.handle(
         _spaceIdMeta,
@@ -1573,6 +1607,14 @@ class $JournalsTable extends Journals
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
       ),
+      iconX: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}icon_x'],
+      )!,
+      iconY: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}icon_y'],
+      )!,
       status: $JournalsTable.$converterstatus.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -1623,6 +1665,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
   final String innerPaper;
   final String innerPaperColor;
   final String? icon;
+  final double iconX;
+  final double iconY;
   final JournalStatus status;
   final String? spaceId;
   final DateTime createdAt;
@@ -1645,6 +1689,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     required this.innerPaper,
     required this.innerPaperColor,
     this.icon,
+    required this.iconX,
+    required this.iconY,
     required this.status,
     this.spaceId,
     required this.createdAt,
@@ -1674,6 +1720,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     if (!nullToAbsent || icon != null) {
       map['icon'] = Variable<String>(icon);
     }
+    map['icon_x'] = Variable<double>(iconX);
+    map['icon_y'] = Variable<double>(iconY);
     {
       map['status'] = Variable<String>(
         $JournalsTable.$converterstatus.toSql(status),
@@ -1708,6 +1756,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       innerPaper: Value(innerPaper),
       innerPaperColor: Value(innerPaperColor),
       icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      iconX: Value(iconX),
+      iconY: Value(iconY),
       status: Value(status),
       spaceId: spaceId == null && nullToAbsent
           ? const Value.absent()
@@ -1744,6 +1794,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       innerPaper: serializer.fromJson<String>(json['innerPaper']),
       innerPaperColor: serializer.fromJson<String>(json['innerPaperColor']),
       icon: serializer.fromJson<String?>(json['icon']),
+      iconX: serializer.fromJson<double>(json['iconX']),
+      iconY: serializer.fromJson<double>(json['iconY']),
       status: $JournalsTable.$converterstatus.fromJson(
         serializer.fromJson<String>(json['status']),
       ),
@@ -1775,6 +1827,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
       'innerPaper': serializer.toJson<String>(innerPaper),
       'innerPaperColor': serializer.toJson<String>(innerPaperColor),
       'icon': serializer.toJson<String?>(icon),
+      'iconX': serializer.toJson<double>(iconX),
+      'iconY': serializer.toJson<double>(iconY),
       'status': serializer.toJson<String>(
         $JournalsTable.$converterstatus.toJson(status),
       ),
@@ -1802,6 +1856,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     String? innerPaper,
     String? innerPaperColor,
     Value<String?> icon = const Value.absent(),
+    double? iconX,
+    double? iconY,
     JournalStatus? status,
     Value<String?> spaceId = const Value.absent(),
     DateTime? createdAt,
@@ -1824,6 +1880,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     innerPaper: innerPaper ?? this.innerPaper,
     innerPaperColor: innerPaperColor ?? this.innerPaperColor,
     icon: icon.present ? icon.value : this.icon,
+    iconX: iconX ?? this.iconX,
+    iconY: iconY ?? this.iconY,
     status: status ?? this.status,
     spaceId: spaceId.present ? spaceId.value : this.spaceId,
     createdAt: createdAt ?? this.createdAt,
@@ -1864,6 +1922,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
           ? data.innerPaperColor.value
           : this.innerPaperColor,
       icon: data.icon.present ? data.icon.value : this.icon,
+      iconX: data.iconX.present ? data.iconX.value : this.iconX,
+      iconY: data.iconY.present ? data.iconY.value : this.iconY,
       status: data.status.present ? data.status.value : this.status,
       spaceId: data.spaceId.present ? data.spaceId.value : this.spaceId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -1891,6 +1951,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
           ..write('innerPaper: $innerPaper, ')
           ..write('innerPaperColor: $innerPaperColor, ')
           ..write('icon: $icon, ')
+          ..write('iconX: $iconX, ')
+          ..write('iconY: $iconY, ')
           ..write('status: $status, ')
           ..write('spaceId: $spaceId, ')
           ..write('createdAt: $createdAt, ')
@@ -1918,6 +1980,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
     innerPaper,
     innerPaperColor,
     icon,
+    iconX,
+    iconY,
     status,
     spaceId,
     createdAt,
@@ -1944,6 +2008,8 @@ class JournalRow extends DataClass implements Insertable<JournalRow> {
           other.innerPaper == this.innerPaper &&
           other.innerPaperColor == this.innerPaperColor &&
           other.icon == this.icon &&
+          other.iconX == this.iconX &&
+          other.iconY == this.iconY &&
           other.status == this.status &&
           other.spaceId == this.spaceId &&
           other.createdAt == this.createdAt &&
@@ -1968,6 +2034,8 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
   final Value<String> innerPaper;
   final Value<String> innerPaperColor;
   final Value<String?> icon;
+  final Value<double> iconX;
+  final Value<double> iconY;
   final Value<JournalStatus> status;
   final Value<String?> spaceId;
   final Value<DateTime> createdAt;
@@ -1991,6 +2059,8 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     this.innerPaper = const Value.absent(),
     this.innerPaperColor = const Value.absent(),
     this.icon = const Value.absent(),
+    this.iconX = const Value.absent(),
+    this.iconY = const Value.absent(),
     this.status = const Value.absent(),
     this.spaceId = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -2015,6 +2085,8 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     this.innerPaper = const Value.absent(),
     this.innerPaperColor = const Value.absent(),
     this.icon = const Value.absent(),
+    this.iconX = const Value.absent(),
+    this.iconY = const Value.absent(),
     required JournalStatus status,
     this.spaceId = const Value.absent(),
     required DateTime createdAt,
@@ -2044,6 +2116,8 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     Expression<String>? innerPaper,
     Expression<String>? innerPaperColor,
     Expression<String>? icon,
+    Expression<double>? iconX,
+    Expression<double>? iconY,
     Expression<String>? status,
     Expression<String>? spaceId,
     Expression<DateTime>? createdAt,
@@ -2068,6 +2142,8 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
       if (innerPaper != null) 'inner_paper': innerPaper,
       if (innerPaperColor != null) 'inner_paper_color': innerPaperColor,
       if (icon != null) 'icon': icon,
+      if (iconX != null) 'icon_x': iconX,
+      if (iconY != null) 'icon_y': iconY,
       if (status != null) 'status': status,
       if (spaceId != null) 'space_id': spaceId,
       if (createdAt != null) 'created_at': createdAt,
@@ -2094,6 +2170,8 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     Value<String>? innerPaper,
     Value<String>? innerPaperColor,
     Value<String?>? icon,
+    Value<double>? iconX,
+    Value<double>? iconY,
     Value<JournalStatus>? status,
     Value<String?>? spaceId,
     Value<DateTime>? createdAt,
@@ -2118,6 +2196,8 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
       innerPaper: innerPaper ?? this.innerPaper,
       innerPaperColor: innerPaperColor ?? this.innerPaperColor,
       icon: icon ?? this.icon,
+      iconX: iconX ?? this.iconX,
+      iconY: iconY ?? this.iconY,
       status: status ?? this.status,
       spaceId: spaceId ?? this.spaceId,
       createdAt: createdAt ?? this.createdAt,
@@ -2182,6 +2262,12 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
     }
+    if (iconX.present) {
+      map['icon_x'] = Variable<double>(iconX.value);
+    }
+    if (iconY.present) {
+      map['icon_y'] = Variable<double>(iconY.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(
         $JournalsTable.$converterstatus.toSql(status.value),
@@ -2222,6 +2308,8 @@ class JournalsCompanion extends UpdateCompanion<JournalRow> {
           ..write('innerPaper: $innerPaper, ')
           ..write('innerPaperColor: $innerPaperColor, ')
           ..write('icon: $icon, ')
+          ..write('iconX: $iconX, ')
+          ..write('iconY: $iconY, ')
           ..write('status: $status, ')
           ..write('spaceId: $spaceId, ')
           ..write('createdAt: $createdAt, ')
@@ -3227,6 +3315,8 @@ typedef $$JournalsTableCreateCompanionBuilder =
       Value<String> innerPaper,
       Value<String> innerPaperColor,
       Value<String?> icon,
+      Value<double> iconX,
+      Value<double> iconY,
       required JournalStatus status,
       Value<String?> spaceId,
       required DateTime createdAt,
@@ -3252,6 +3342,8 @@ typedef $$JournalsTableUpdateCompanionBuilder =
       Value<String> innerPaper,
       Value<String> innerPaperColor,
       Value<String?> icon,
+      Value<double> iconX,
+      Value<double> iconY,
       Value<JournalStatus> status,
       Value<String?> spaceId,
       Value<DateTime> createdAt,
@@ -3351,6 +3443,16 @@ class $$JournalsTableFilterComposer
 
   ColumnFilters<String> get icon => $composableBuilder(
     column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get iconX => $composableBuilder(
+    column: $table.iconX,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get iconY => $composableBuilder(
+    column: $table.iconY,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3470,6 +3572,16 @@ class $$JournalsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get iconX => $composableBuilder(
+    column: $table.iconX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get iconY => $composableBuilder(
+    column: $table.iconY,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get status => $composableBuilder(
     column: $table.status,
     builder: (column) => ColumnOrderings(column),
@@ -3567,6 +3679,12 @@ class $$JournalsTableAnnotationComposer
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
 
+  GeneratedColumn<double> get iconX =>
+      $composableBuilder(column: $table.iconX, builder: (column) => column);
+
+  GeneratedColumn<double> get iconY =>
+      $composableBuilder(column: $table.iconY, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<JournalStatus, String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
 
@@ -3628,6 +3746,8 @@ class $$JournalsTableTableManager
                 Value<String> innerPaper = const Value.absent(),
                 Value<String> innerPaperColor = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
+                Value<double> iconX = const Value.absent(),
+                Value<double> iconY = const Value.absent(),
                 Value<JournalStatus> status = const Value.absent(),
                 Value<String?> spaceId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -3651,6 +3771,8 @@ class $$JournalsTableTableManager
                 innerPaper: innerPaper,
                 innerPaperColor: innerPaperColor,
                 icon: icon,
+                iconX: iconX,
+                iconY: iconY,
                 status: status,
                 spaceId: spaceId,
                 createdAt: createdAt,
@@ -3676,6 +3798,8 @@ class $$JournalsTableTableManager
                 Value<String> innerPaper = const Value.absent(),
                 Value<String> innerPaperColor = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
+                Value<double> iconX = const Value.absent(),
+                Value<double> iconY = const Value.absent(),
                 required JournalStatus status,
                 Value<String?> spaceId = const Value.absent(),
                 required DateTime createdAt,
@@ -3699,6 +3823,8 @@ class $$JournalsTableTableManager
                 innerPaper: innerPaper,
                 innerPaperColor: innerPaperColor,
                 icon: icon,
+                iconX: iconX,
+                iconY: iconY,
                 status: status,
                 spaceId: spaceId,
                 createdAt: createdAt,

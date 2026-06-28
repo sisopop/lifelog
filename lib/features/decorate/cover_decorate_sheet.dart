@@ -23,6 +23,10 @@ import 'journal_cover.dart';
 part 'cover_decorate_sections.dart';
 part 'cover_decorate_layers.dart';
 
+/// 미리보기 표지 크기. 드래그 좌표를 0~1 비율로 환산할 때 분모로 쓴다.
+const double _kPreviewW = 110;
+const double _kPreviewH = 140;
+
 /// "꾸미기" 바텀시트를 엽니다 — 일기장 표지 꾸미기.
 /// 책장에서 일기장을 길게 눌러 진입합니다. 칩을 탭하면 미리보기에 바로 보이고,
 /// 우측 상단 "저장"을 눌러야 실제로 반영·저장됩니다(안 누르고 내리면 취소).
@@ -51,6 +55,9 @@ class _CoverDecorateSheet extends ConsumerStatefulWidget {
 class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   late int _color = widget.journal.coverColor;
   late String _icon = widget.journal.displayIcon;
+  // 표지 아이콘 자유 위치(0~1 비율). 미리보기를 끌어 옮긴다.
+  late double _iconX = widget.journal.iconX;
+  late double _iconY = widget.journal.iconY;
   late final String _pattern =
       normalizeCoverPattern(widget.journal.coverPattern);
   late String _binding = normalizeCoverBinding(widget.journal.coverBinding);
@@ -99,6 +106,16 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   void _pickPaperColor(String c) => setState(() => _paperColor = c);
   void _onTitleChanged(String v) => setState(() => _title = v);
 
+  // 미리보기 표지 위에서 끌거나 탭한 지점으로 아이콘을 옮긴다(스티커처럼).
+  // local은 표지 박스(_kPreviewW×_kPreviewH) 기준 좌표 → 0~1 비율로 환산·clamp.
+  void _moveIcon(Offset local) {
+    if (_icon == kNoCoverIcon) return; // '없음' 아이콘이면 옮길 게 없다.
+    setState(() {
+      _iconX = (local.dx / _kPreviewW).clamp(0.0, 1.0);
+      _iconY = (local.dy / _kPreviewH).clamp(0.0, 1.0);
+    });
+  }
+
   void _pickTheme(CoverTheme theme) {
     setState(() {
       _color = theme.color;
@@ -137,6 +154,8 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             coverFont: _font,
             innerPaper: _paper,
             innerPaperColor: _paperColor,
+            iconX: _iconX,
+            iconY: _iconY,
           ),
         );
     navigator.pop();
@@ -203,24 +222,32 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
               children: [
                 Center(
                   child: SizedBox(
-                    width: 110,
-                    height: 140,
-                    child: JournalCover(
-                      color: _color,
-                      icon: _icon,
-                      pattern: _pattern,
-                      binding: _binding,
-                      corner: _corner,
-                      band: _band,
-                      ribbon: _ribbon,
-                      clip: _clip,
-                      tab: _tab,
-                      texture: _texture,
-                      titleFont: coverFontFamily(_font),
-                      title: _title.trim().isEmpty ? j.title : _title,
-                      radius: 14,
-                      iconSize: 30,
-                      titleSize: 14,
+                    width: _kPreviewW,
+                    height: _kPreviewH,
+                    // 표지 위를 끌거나 탭하면 아이콘이 그 자리로 이동(스티커처럼).
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onPanDown: (d) => _moveIcon(d.localPosition),
+                      onPanUpdate: (d) => _moveIcon(d.localPosition),
+                      child: JournalCover(
+                        color: _color,
+                        icon: _icon,
+                        pattern: _pattern,
+                        binding: _binding,
+                        corner: _corner,
+                        band: _band,
+                        ribbon: _ribbon,
+                        clip: _clip,
+                        tab: _tab,
+                        texture: _texture,
+                        titleFont: coverFontFamily(_font),
+                        title: _title.trim().isEmpty ? j.title : _title,
+                        iconX: _iconX,
+                        iconY: _iconY,
+                        radius: 14,
+                        iconSize: 30,
+                        titleSize: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -228,6 +255,16 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
               ],
             ),
           ),
+          // 표지 페이지에서만: 아이콘을 끌어 옮길 수 있다는 안내.
+          if (_previewPage == 0 && _icon != kNoCoverIcon)
+            const Padding(
+              padding: EdgeInsets.only(top: 6),
+              child: Center(
+                child: Text('표지를 끌어 아이콘 위치를 옮겨보세요',
+                    style: TextStyle(
+                        fontSize: 11, color: AppColors.textHint)),
+              ),
+            ),
           const SizedBox(height: 10),
           Center(
             child: Row(
