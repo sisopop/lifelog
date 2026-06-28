@@ -244,6 +244,16 @@ int replyCount(List<DiaryEntry> entries) {
   return count;
 }
 
+/// Pure: how many 답장(reply) records fall in [year]/[month]. Filters [entries]
+/// to the month, then reuses [replyCount] — the monthly sibling of [replyCount]
+/// and the one monthly figure that counts replies instead of excluding them.
+/// Returns 0 when that month has none.
+int replyCountOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return replyCount(monthly.toList());
+}
+
 /// Pure: what share of top-level records are starred (favorite), as a 0–100
 /// percent. Replies are excluded. Returns null when there are no top-level
 /// records — the favorite member of the share family ([taggedEntryShare]/

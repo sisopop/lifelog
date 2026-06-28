@@ -740,6 +740,27 @@ void main() {
     });
   });
 
+  group('replyCountOfMonth', () {
+    test('filters to the month, then reuses replyCount', () {
+      // June: 2 replies. The May reply is excluded.
+      final n = replyCountOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'r1', at: DateTime(2026, 6, 1), replyTo: 'a'),
+        _entry(id: 'r2', at: DateTime(2026, 6, 2), replyTo: 'a'),
+        _entry(id: 'r3', at: DateTime(2026, 5, 9), replyTo: 'a'),
+      ], 2026, 6);
+      expect(n, 2);
+    });
+
+    test('zero when that month has no replies', () {
+      final n = replyCountOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'r', at: DateTime(2026, 5, 1), replyTo: 'a'),
+      ], 2026, 6);
+      expect(n, 0);
+    });
+  });
+
   group('favoriteCount', () {
     test('counts starred top-level records, excludes replies', () {
       final n = favoriteCount([
