@@ -222,6 +222,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   );
                 }),
                 Builder(builder: (context) {
+                  final pct = favoriteEntryShare(entries);
+                  if (pct == null || pct == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '✨ 기록의 $pct%를 즐겨찾기했어요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final pct = moodEntryShare(entries);
                   if (pct == null || pct == 0) return const SizedBox.shrink();
                   return Padding(

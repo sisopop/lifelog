@@ -645,6 +645,34 @@ void main() {
     });
   });
 
+  group('favoriteEntryShare', () {
+    test('percent of top-level records that are starred, rounded', () {
+      // 1 of 3 top-level records is favorite → 33%.
+      final pct = favoriteEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), favorite: true),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+      ]);
+      expect(pct, 33);
+    });
+
+    test('replies are excluded from both numerator and denominator', () {
+      // Only the top-level 'a' (starred) counts → 100%.
+      final pct = favoriteEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), favorite: true),
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', favorite: true),
+      ]);
+      expect(pct, 100);
+    });
+
+    test('null when there are no top-level records', () {
+      final pct = favoriteEntryShare([
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', favorite: true),
+      ]);
+      expect(pct, isNull);
+    });
+  });
+
   group('favoriteCount', () {
     test('counts starred top-level records, excludes replies', () {
       final n = favoriteCount([

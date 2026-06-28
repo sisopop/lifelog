@@ -178,3 +178,20 @@ int? photoEntryShare(List<DiaryEntry> entries) {
   if (total == 0) return null;
   return (withPhoto * 100 / total).round();
 }
+
+/// Pure: what share of top-level records are starred (favorite), as a 0–100
+/// percent. Replies are excluded. Returns null when there are no top-level
+/// records — the favorite member of the share family ([taggedEntryShare]/
+/// [locationEntryShare]/[moodEntryShare]/[titleEntryShare]/[photoEntryShare])
+/// and the share sibling of [favoriteCount].
+int? favoriteEntryShare(List<DiaryEntry> entries) {
+  var total = 0;
+  var starred = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    if (e.isFavorite) starred++;
+  }
+  if (total == 0) return null;
+  return (starred * 100 / total).round();
+}
