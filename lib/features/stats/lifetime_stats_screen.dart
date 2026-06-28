@@ -315,6 +315,17 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   ),
                 ],
                 Builder(builder: (context) {
+                  // 단일 장소는 위 "가장 많이 다녀온 곳" 라인과 겹쳐 자명하므로 숨긴다.
+                  final places = distinctPlacesVisited(entries);
+                  if (places < 2) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '🧭 지금까지 $places곳을 다녀왔어요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final tag = mostUsedTag(entries);
                   if (tag == null) return const SizedBox.shrink();
                   return Padding(

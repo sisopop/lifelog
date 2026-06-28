@@ -110,4 +110,34 @@ void main() {
       expect(n, 0);
     });
   });
+
+  group('distinctPlacesVisited', () {
+    test('counts distinct locations across all months (case-insensitive)', () {
+      // 제주, 서울, 제주(dup), 부산(May) → 3 distinct over the whole history.
+      final n = distinctPlacesVisited([
+        _entry(id: '1', month: 6, day: 3, location: '제주'),
+        _entry(id: '2', month: 6, day: 10, location: '서울'),
+        _entry(id: '3', month: 6, day: 12, location: '  제주  '),
+        _entry(id: '4', month: 5, day: 9, location: '부산'),
+      ]);
+      expect(n, 3);
+    });
+
+    test('excludes replies and blank/null locations', () {
+      final n = distinctPlacesVisited([
+        _entry(id: 'a', month: 6, day: 3, location: '제주'),
+        _entry(id: 'r', month: 6, day: 3, location: '서울', replyTo: 'a'),
+        _entry(id: 'b', month: 6, day: 4, location: '   '),
+        _entry(id: 'c', month: 6, day: 5, location: null),
+      ]);
+      expect(n, 1);
+    });
+
+    test('0 when nothing is located', () {
+      final n = distinctPlacesVisited([
+        _entry(id: '1', month: 6, day: 3, location: null),
+      ]);
+      expect(n, 0);
+    });
+  });
 }

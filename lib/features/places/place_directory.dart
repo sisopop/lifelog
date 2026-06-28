@@ -37,6 +37,13 @@ int distinctPlacesOfMonth(List<DiaryEntry> entries, int year, int month) {
   return placeCountsSorted(monthly.toList()).length;
 }
 
+/// Pure: how many distinct locations were ever visited across all [entries].
+/// Reuses [placeCountsSorted] (replies and blank locations excluded, grouped
+/// case-insensitively). Returns 0 when nothing is located — the whole-history
+/// sibling of [distinctPlacesOfMonth].
+int distinctPlacesVisited(List<DiaryEntry> entries) =>
+    placeCountsSorted(entries).length;
+
 /// Pure: the most-recent top-level record date for each location, keyed by the
 /// location's display spelling (matching [placeCountsSorted]). Replies and
 /// blank locations are ignored. Locations are grouped case-insensitively.
