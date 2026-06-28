@@ -122,3 +122,14 @@ int? titleEntryShare(List<DiaryEntry> entries) {
   if (total == 0) return null;
   return (titled * 100 / total).round();
 }
+
+/// Pure: the longest consecutive-day recording run within one calendar month.
+/// Filters [entries] to the given [year]/[month], then reuses [recordedDates]
+/// and [longestStreak] (both replies-excluded). Returns 0 when that month has
+/// no top-level records. A run is counted only within the month — a streak
+/// spanning the month boundary is clipped to its in-month days.
+int longestStreakOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return longestStreak(recordedDates(monthly.toList()));
+}

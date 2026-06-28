@@ -532,6 +532,36 @@ void main() {
     });
   });
 
+  group('longestStreakOfMonth', () {
+    test('longest consecutive in-month run, clipped to the month', () {
+      // June: 1,2,3 consecutive (=3), then gap, then 10. May 31 ignored.
+      final n = longestStreakOfMonth([
+        _entry(id: 'm', at: DateTime(2026, 5, 31)),
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'd', at: DateTime(2026, 6, 10)),
+      ], 2026, 6);
+      expect(n, 3);
+    });
+
+    test('replies are excluded', () {
+      // Only day 1 has a top-level record; the day-2 reply does not extend it.
+      final n = longestStreakOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), replyTo: 'a'),
+      ], 2026, 6);
+      expect(n, 1);
+    });
+
+    test('0 when that month has no records', () {
+      final n = longestStreakOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 5, 1)),
+      ], 2026, 6);
+      expect(n, 0);
+    });
+  });
+
   group('favoriteCount', () {
     test('counts starred top-level records, excludes replies', () {
       final n = favoriteCount([

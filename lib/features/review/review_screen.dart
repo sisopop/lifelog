@@ -142,6 +142,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final streak = longestStreakOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (streak < 2) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '🔗 이번 달 최장 $streak일 연속 기록했어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final rate = monthlyRecordingRate(
                   stats.daysRecorded, stats.year, stats.month, DateTime.now());
               if (rate == null) return const SizedBox.shrink();
