@@ -176,6 +176,18 @@ int? photoEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
   return photoEntryShare(monthly.toList());
 }
 
+/// Pure: which journal holds the most top-level records in [year]/[month], as a
+/// `MapEntry(journalId, count)`. Filters [entries] to the month, then reuses
+/// [busiestJournal] (replies excluded; null when fewer than two distinct
+/// journals carry a record that month; ties → first-appearing journalId). The
+/// monthly sibling of [busiestJournal].
+MapEntry<String, int>? busiestJournalOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return busiestJournal(monthly.toList());
+}
+
 /// Pure: how many distinct tags were ever used across all [entries]. Reuses
 /// [topTags] with no limit (replies excluded; tags compared exactly as stored).
 /// Returns 0 when nothing is tagged — the whole-history sibling of

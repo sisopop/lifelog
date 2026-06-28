@@ -893,6 +893,39 @@ void main() {
     });
   });
 
+  group('busiestJournalOfMonth', () {
+    test('filters to the month, then reuses busiestJournal', () {
+      // June: j2 has 2, j1 has 1 → j2. May entries are excluded.
+      final busy = busiestJournalOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j2'),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), journalId: 'j2'),
+        _entry(id: 'd', at: DateTime(2026, 5, 9), journalId: 'j1'),
+      ], 2026, 6);
+      expect(busy?.key, 'j2');
+      expect(busy?.value, 2);
+    });
+
+    test('null when the month has fewer than two distinct journals', () {
+      final busy = busiestJournalOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+      ], 2026, 6);
+      expect(busy, isNull);
+    });
+
+    test('excludes replies from the per-journal counts', () {
+      final busy = busiestJournalOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), journalId: 'j2'),
+        _entry(id: 'r', at: DateTime(2026, 6, 3), replyTo: 'c', journalId: 'j2'),
+      ], 2026, 6);
+      expect(busy?.key, 'j1');
+      expect(busy?.value, 2);
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);

@@ -349,6 +349,24 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final busy = busiestJournalOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (busy == null) return const SizedBox.shrink();
+              final journals =
+                  ref.watch(journalsProvider).asData?.value ?? const [];
+              final j =
+                  journals.where((j) => j.journalId == busy.key).firstOrNull;
+              if (j == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '📚 이번 달 가장 많이 쓴 일기장은 ${j.title}이에요 (${busy.value}개)',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final pct = taggedEntryShareOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (pct == null || pct == 0) return const SizedBox.shrink();
