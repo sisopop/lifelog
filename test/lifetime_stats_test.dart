@@ -505,6 +505,33 @@ void main() {
     });
   });
 
+  group('titleEntryShareOfMonth', () {
+    test('filters to the month, then reuses titleEntryShare', () {
+      // June: 1 titled of 2 → 50%. May entry (titled) is excluded.
+      final pct = titleEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), title: '제목'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 5, 9), title: 'x'),
+      ], 2026, 6);
+      expect(pct, 50);
+    });
+
+    test('replies are excluded from the month share', () {
+      final pct = titleEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), title: '제목'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), replyTo: 'a', title: '답'),
+      ], 2026, 6);
+      expect(pct, 100);
+    });
+
+    test('null when that month has no top-level records', () {
+      final pct = titleEntryShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 5, 1), title: '제목'),
+      ], 2026, 6);
+      expect(pct, isNull);
+    });
+  });
+
   group('favoriteCount', () {
     test('counts starred top-level records, excludes replies', () {
       final n = favoriteCount([

@@ -296,6 +296,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final pct = titleEntryShareOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (pct == null || pct == 0) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '📝 이번 달 기록의 $pct%에 제목을 달았어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final pct = locationEntryShareOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (pct == null || pct == 0) return const SizedBox.shrink();

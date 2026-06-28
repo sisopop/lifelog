@@ -307,6 +307,15 @@ int? taggedEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
   return taggedEntryShare(monthly.toList());
 }
 
+/// Pure: the titled-record share (0–100) for one calendar month. Filters to the
+/// given [year]/[month], then reuses [titleEntryShare]. Returns null when that
+/// month has no top-level records.
+int? titleEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return titleEntryShare(monthly.toList());
+}
+
 /// Pure: what share of top-level records carry a (non-empty) location, as a
 /// 0–100 percent. Replies are excluded. Returns null when there are no
 /// top-level records.
