@@ -108,6 +108,16 @@ int maxEntriesInOneDay(List<DiaryEntry> entries) {
   return perDay.values.reduce((a, b) => a > b ? a : b);
 }
 
+/// Pure: the most top-level records written on any single calendar day within
+/// [year]/[month]. Filters [entries] to the month, then reuses
+/// [maxEntriesInOneDay] (replies excluded). Returns 0 when that month has no
+/// top-level records — the monthly sibling of [maxEntriesInOneDay].
+int maxEntriesInOneDayOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return maxEntriesInOneDay(monthly.toList());
+}
+
 /// Pure: what share of top-level records carry a non-empty title, as a 0–100
 /// percent. Replies are excluded. A title counts only when it has non-whitespace
 /// text. Returns null when there are no top-level records.

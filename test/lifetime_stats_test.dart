@@ -1427,6 +1427,29 @@ void main() {
     });
   });
 
+  group('maxEntriesInOneDayOfMonth', () {
+    test('busiest day within the month only, excludes replies', () {
+      // June 12: 2 records (busiest in June); July 1: 3 records are outside.
+      final n = maxEntriesInOneDayOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 12, 8)),
+        _entry(id: 'b', at: DateTime(2026, 6, 12, 20)),
+        _entry(id: 'c', at: DateTime(2026, 6, 17)),
+        _entry(id: 'r', at: DateTime(2026, 6, 12, 21), replyTo: 'a'),
+        _entry(id: 'x', at: DateTime(2026, 7, 1, 1)),
+        _entry(id: 'y', at: DateTime(2026, 7, 1, 2)),
+        _entry(id: 'z', at: DateTime(2026, 7, 1, 3)),
+      ], 2026, 6);
+      expect(n, 2);
+    });
+
+    test('0 when the month has no top-level records', () {
+      final n = maxEntriesInOneDayOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 5, 1)),
+      ], 2026, 6);
+      expect(n, 0);
+    });
+  });
+
   group('titleEntryShare', () {
     test('rounds titled share, excludes replies and blank titles', () {
       // 4 top-level: 2 titled (incl. one trimmed), 1 blank, 1 null -> 50%.

@@ -156,6 +156,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final maxDay = maxEntriesInOneDayOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (maxDay < 2) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '🏆 이번 달 하루에 가장 많이 쓴 날엔 $maxDay개를 기록했어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final rate = monthlyRecordingRate(
                   stats.daysRecorded, stats.year, stats.month, DateTime.now());
               if (rate == null) return const SizedBox.shrink();
