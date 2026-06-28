@@ -247,6 +247,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   );
                 }),
                 Builder(builder: (context) {
+                  final replies = replyCount(entries);
+                  if (replies == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '💬 답장을 $replies번 주고받았어요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final pct = moodEntryShare(entries);
                   if (pct == null || pct == 0) return const SizedBox.shrink();
                   return Padding(

@@ -232,6 +232,18 @@ MapEntry<String, int>? busiestJournal(List<DiaryEntry> entries) {
   return best;
 }
 
+/// Pure: how many 답장(reply) records exist across all [entries] — records
+/// whose [DiaryEntry.replyToEntryId] is non-null. This is the one figure that
+/// COUNTS replies instead of excluding them (every other stat drops them).
+/// Returns 0 when there are none.
+int replyCount(List<DiaryEntry> entries) {
+  var count = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) count++;
+  }
+  return count;
+}
+
 /// Pure: what share of top-level records are starred (favorite), as a 0–100
 /// percent. Replies are excluded. Returns null when there are no top-level
 /// records — the favorite member of the share family ([taggedEntryShare]/

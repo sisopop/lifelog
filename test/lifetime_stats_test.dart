@@ -717,6 +717,29 @@ void main() {
     });
   });
 
+  group('replyCount', () {
+    test('counts only reply records, ignoring top-level ones', () {
+      final n = replyCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'r1', at: DateTime(2026, 6, 1), replyTo: 'a'),
+        _entry(id: 'r2', at: DateTime(2026, 6, 2), replyTo: 'a'),
+      ]);
+      expect(n, 2);
+    });
+
+    test('zero when there are no replies', () {
+      final n = replyCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+      ]);
+      expect(n, 0);
+    });
+
+    test('zero for an empty list', () {
+      expect(replyCount(const []), 0);
+    });
+  });
+
   group('favoriteCount', () {
     test('counts starred top-level records, excludes replies', () {
       final n = favoriteCount([
