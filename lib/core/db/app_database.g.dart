@@ -164,6 +164,17 @@ class $DiaryEntriesTable extends DiaryEntries
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -212,6 +223,7 @@ class $DiaryEntriesTable extends DiaryEntries
     tags,
     mediaUrls,
     isFavorite,
+    deletedAt,
     createdAt,
     updatedAt,
     syncStatus,
@@ -295,6 +307,12 @@ class $DiaryEntriesTable extends DiaryEntries
       context.handle(
         _isFavoriteMeta,
         isFavorite.isAcceptableOrUnknown(data['is_favorite']!, _isFavoriteMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
     if (data.containsKey('created_at')) {
@@ -392,6 +410,10 @@ class $DiaryEntriesTable extends DiaryEntries
         DriftSqlType.bool,
         data['${effectivePrefix}is_favorite'],
       )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -448,6 +470,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
   final List<String> tags;
   final List<String> mediaUrls;
   final bool isFavorite;
+  final DateTime? deletedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
   final SyncStatus syncStatus;
@@ -467,6 +490,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     required this.tags,
     required this.mediaUrls,
     required this.isFavorite,
+    this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
     required this.syncStatus,
@@ -517,6 +541,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       );
     }
     map['is_favorite'] = Variable<bool>(isFavorite);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     {
@@ -552,6 +579,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       tags: Value(tags),
       mediaUrls: Value(mediaUrls),
       isFavorite: Value(isFavorite),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       syncStatus: Value(syncStatus),
@@ -585,6 +615,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       tags: serializer.fromJson<List<String>>(json['tags']),
       mediaUrls: serializer.fromJson<List<String>>(json['mediaUrls']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       syncStatus: $DiaryEntriesTable.$convertersyncStatus.fromJson(
@@ -617,6 +648,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       'tags': serializer.toJson<List<String>>(tags),
       'mediaUrls': serializer.toJson<List<String>>(mediaUrls),
       'isFavorite': serializer.toJson<bool>(isFavorite),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'syncStatus': serializer.toJson<String>(
@@ -641,6 +673,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     List<String>? tags,
     List<String>? mediaUrls,
     bool? isFavorite,
+    Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     SyncStatus? syncStatus,
@@ -662,6 +695,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     tags: tags ?? this.tags,
     mediaUrls: mediaUrls ?? this.mediaUrls,
     isFavorite: isFavorite ?? this.isFavorite,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     syncStatus: syncStatus ?? this.syncStatus,
@@ -689,6 +723,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       isFavorite: data.isFavorite.present
           ? data.isFavorite.value
           : this.isFavorite,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       syncStatus: data.syncStatus.present
@@ -715,6 +750,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           ..write('tags: $tags, ')
           ..write('mediaUrls: $mediaUrls, ')
           ..write('isFavorite: $isFavorite, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncStatus: $syncStatus')
@@ -739,6 +775,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     tags,
     mediaUrls,
     isFavorite,
+    deletedAt,
     createdAt,
     updatedAt,
     syncStatus,
@@ -762,6 +799,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           other.tags == this.tags &&
           other.mediaUrls == this.mediaUrls &&
           other.isFavorite == this.isFavorite &&
+          other.deletedAt == this.deletedAt &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.syncStatus == this.syncStatus);
@@ -783,6 +821,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
   final Value<List<String>> tags;
   final Value<List<String>> mediaUrls;
   final Value<bool> isFavorite;
+  final Value<DateTime?> deletedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<SyncStatus> syncStatus;
@@ -803,6 +842,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.tags = const Value.absent(),
     this.mediaUrls = const Value.absent(),
     this.isFavorite = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.syncStatus = const Value.absent(),
@@ -824,6 +864,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     required List<String> tags,
     required List<String> mediaUrls,
     this.isFavorite = const Value.absent(),
+    this.deletedAt = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     required SyncStatus syncStatus,
@@ -854,6 +895,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Expression<String>? tags,
     Expression<String>? mediaUrls,
     Expression<bool>? isFavorite,
+    Expression<DateTime>? deletedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? syncStatus,
@@ -875,6 +917,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       if (tags != null) 'tags': tags,
       if (mediaUrls != null) 'media_urls': mediaUrls,
       if (isFavorite != null) 'is_favorite': isFavorite,
+      if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (syncStatus != null) 'sync_status': syncStatus,
@@ -898,6 +941,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Value<List<String>>? tags,
     Value<List<String>>? mediaUrls,
     Value<bool>? isFavorite,
+    Value<DateTime?>? deletedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<SyncStatus>? syncStatus,
@@ -919,6 +963,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       tags: tags ?? this.tags,
       mediaUrls: mediaUrls ?? this.mediaUrls,
       isFavorite: isFavorite ?? this.isFavorite,
+      deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       syncStatus: syncStatus ?? this.syncStatus,
@@ -984,6 +1029,9 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1019,6 +1067,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
           ..write('tags: $tags, ')
           ..write('mediaUrls: $mediaUrls, ')
           ..write('isFavorite: $isFavorite, ')
+          ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncStatus: $syncStatus, ')
@@ -2645,6 +2694,7 @@ typedef $$DiaryEntriesTableCreateCompanionBuilder =
       required List<String> tags,
       required List<String> mediaUrls,
       Value<bool> isFavorite,
+      Value<DateTime?> deletedAt,
       required DateTime createdAt,
       required DateTime updatedAt,
       required SyncStatus syncStatus,
@@ -2667,6 +2717,7 @@ typedef $$DiaryEntriesTableUpdateCompanionBuilder =
       Value<List<String>> tags,
       Value<List<String>> mediaUrls,
       Value<bool> isFavorite,
+      Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<SyncStatus> syncStatus,
@@ -2759,6 +2810,11 @@ class $$DiaryEntriesTableFilterComposer
 
   ColumnFilters<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2863,6 +2919,11 @@ class $$DiaryEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -2940,6 +3001,9 @@ class $$DiaryEntriesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -2999,6 +3063,7 @@ class $$DiaryEntriesTableTableManager
                 Value<List<String>> tags = const Value.absent(),
                 Value<List<String>> mediaUrls = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<SyncStatus> syncStatus = const Value.absent(),
@@ -3019,6 +3084,7 @@ class $$DiaryEntriesTableTableManager
                 tags: tags,
                 mediaUrls: mediaUrls,
                 isFavorite: isFavorite,
+                deletedAt: deletedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 syncStatus: syncStatus,
@@ -3041,6 +3107,7 @@ class $$DiaryEntriesTableTableManager
                 required List<String> tags,
                 required List<String> mediaUrls,
                 Value<bool> isFavorite = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 required SyncStatus syncStatus,
@@ -3061,6 +3128,7 @@ class $$DiaryEntriesTableTableManager
                 tags: tags,
                 mediaUrls: mediaUrls,
                 isFavorite: isFavorite,
+                deletedAt: deletedAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 syncStatus: syncStatus,

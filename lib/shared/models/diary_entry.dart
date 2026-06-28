@@ -21,6 +21,7 @@ class DiaryEntry {
     this.mediaUrls = const [],
     this.tags = const [],
     this.isFavorite = false,
+    this.deletedAt,
     this.syncStatus = SyncStatus.synced,
   });
 
@@ -50,6 +51,10 @@ class DiaryEntry {
 
   /// User-starred record (즐겨찾기). Independent of journal/sync.
   final bool isFavorite;
+
+  /// 휴지통: when non-null, the entry is soft-deleted (kept 30 days, hidden
+  /// from every normal list). Restoring clears it back to null.
+  final DateTime? deletedAt;
   final SyncStatus syncStatus;
 
   DiaryEntry copyWith({
@@ -68,8 +73,10 @@ class DiaryEntry {
     List<String>? mediaUrls,
     List<String>? tags,
     bool? isFavorite,
+    DateTime? deletedAt,
     SyncStatus? syncStatus,
     bool clearMood = false,
+    bool clearDeletedAt = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -89,6 +96,7 @@ class DiaryEntry {
       mediaUrls: mediaUrls ?? this.mediaUrls,
       tags: tags ?? this.tags,
       isFavorite: isFavorite ?? this.isFavorite,
+      deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
       syncStatus: syncStatus ?? this.syncStatus,
     );
   }

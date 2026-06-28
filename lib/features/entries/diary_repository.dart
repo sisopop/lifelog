@@ -26,8 +26,31 @@ class DiaryRepository {
     return _db.upsertEntry(_toCompanion(entry));
   }
 
+  /// 휴지통으로 보내기 (soft delete) — kept 30 days, hidden from lists.
   Future<void> delete(String entryId) {
+    return _db.softDeleteEntry(entryId, DateTime.now());
+  }
+
+  /// 복원: brings a trashed entry back to the live list.
+  Future<void> restore(String entryId) {
+    return _db.restoreEntry(entryId);
+  }
+
+  /// 영구 삭제: removes a trashed entry for good.
+  Future<void> deleteForever(String entryId) {
     return _db.deleteEntry(entryId);
+  }
+
+  /// Trashed entries (휴지통), newest deletion first.
+  Future<List<DiaryEntry>> getTrashed() async {
+    final rows = await _db.getTrashedEntries();
+    return rows.map(_toDomain).toList();
+  }
+
+  /// Drops entries trashed more than 30 days ago. Returns purged count.
+  Future<int> purgeExpiredTrash([DateTime? now]) {
+    final cutoff = (now ?? DateTime.now()).subtract(const Duration(days: 30));
+    return _db.purgeEntriesDeletedBefore(cutoff);
   }
 
   /// Seeds demo data on first launch so the UI isn't empty.
@@ -58,6 +81,7 @@ class DiaryRepository {
         mediaUrls: r.mediaUrls,
         tags: r.tags,
         isFavorite: r.isFavorite,
+        deletedAt: r.deletedAt,
         syncStatus: r.syncStatus,
       );
 
@@ -77,6 +101,7 @@ class DiaryRepository {
         tags: Value(e.tags),
         mediaUrls: Value(e.mediaUrls),
         isFavorite: Value(e.isFavorite),
+        deletedAt: Value(e.deletedAt),
         createdAt: Value(e.createdAt),
         updatedAt: Value(e.updatedAt),
         syncStatus: Value(e.syncStatus),

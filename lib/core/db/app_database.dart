@@ -99,6 +99,8 @@ class DiaryEntries extends Table {
   TextColumn get mediaUrls => text().map(const StringListConverter())();
   // 즐겨찾기. Default lets the v3→v4 migration backfill existing rows.
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
+  // 휴지통: non-null = soft-deleted (kept 30 days, hidden from normal lists).
+  DateTimeColumn get deletedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get syncStatus => textEnum<SyncStatus>()();
@@ -121,7 +123,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -188,6 +190,10 @@ class AppDatabase extends _$AppDatabase {
             // 속지 종이 바탕색 — existing journals default to 'cream' (크림).
             await m.addColumn(journals, journals.innerPaperColor);
           }
+          if (from < 16) {
+            // 휴지통: soft-delete column on entries (null = live).
+            await m.addColumn(diaryEntries, diaryEntries.deletedAt);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -197,6 +203,7 @@ class AppDatabase extends _$AppDatabase {
         // touching any data. Adds only columns that aren't already present.
         beforeOpen: (details) async {
           await ensureJournalColumns();
+          await ensureEntryColumns();
         },
       );
 
@@ -225,21 +232,57 @@ class AppDatabase extends _$AppDatabase {
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {
-        await m.addColumn(journals, entry.value);
+        // Defensive: a concurrent open (web worker) may add it first — a
+        // "duplicate column" error here must not abort the whole open.
+        try {
+          await m.addColumn(journals, entry.value);
+        } catch (_) {}
+      }
+    }
+  }
+
+  /// Adds any 휴지통/sync columns missing from the `diary_entries` table. Same
+  /// idempotent self-heal as [ensureJournalColumns] — recovers a web (drift
+  /// WASM) DB whose stored schema version got bumped while a column add failed
+  /// mid-upgrade, so entries would otherwise vanish on every SELECT.
+  @visibleForTesting
+  Future<void> ensureEntryColumns() async {
+    final info = await customSelect(
+      'PRAGMA table_info(diary_entries)',
+    ).get();
+    final present = info.map((r) => r.read<String>('name')).toSet();
+    final m = createMigrator();
+    final expected = <String, GeneratedColumn<Object>>{
+      'deleted_at': diaryEntries.deletedAt,
+    };
+    for (final entry in expected.entries) {
+      if (!present.contains(entry.key)) {
+        try {
+          await m.addColumn(diaryEntries, entry.value);
+        } catch (_) {}
       }
     }
   }
 
   Future<List<DiaryEntryRow>> getAllEntries() {
     return (select(diaryEntries)
+          ..where((t) => t.deletedAt.isNull())
           ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
         .get();
   }
 
   Future<List<DiaryEntryRow>> getEntriesByJournal(String journalId) {
     return (select(diaryEntries)
-          ..where((t) => t.journalId.equals(journalId))
+          ..where((t) => t.journalId.equals(journalId) & t.deletedAt.isNull())
           ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+  }
+
+  /// Soft-deleted entries (휴지통), newest deletion first.
+  Future<List<DiaryEntryRow>> getTrashedEntries() {
+    return (select(diaryEntries)
+          ..where((t) => t.deletedAt.isNotNull())
+          ..orderBy([(t) => OrderingTerm.desc(t.deletedAt)]))
         .get();
   }
 
@@ -247,8 +290,29 @@ class AppDatabase extends _$AppDatabase {
     return into(diaryEntries).insertOnConflictUpdate(entry);
   }
 
+  /// 휴지통으로 보내기: marks the entry soft-deleted instead of removing it.
+  Future<void> softDeleteEntry(String entryId, DateTime when) {
+    return (update(diaryEntries)..where((t) => t.entryId.equals(entryId)))
+        .write(DiaryEntriesCompanion(deletedAt: Value(when)));
+  }
+
+  /// 복원: clears the soft-delete flag.
+  Future<void> restoreEntry(String entryId) {
+    return (update(diaryEntries)..where((t) => t.entryId.equals(entryId)))
+        .write(const DiaryEntriesCompanion(deletedAt: Value(null)));
+  }
+
+  /// Permanently removes an entry (used by trash purge / "영구 삭제").
   Future<void> deleteEntry(String entryId) {
     return (delete(diaryEntries)..where((t) => t.entryId.equals(entryId))).go();
+  }
+
+  /// Purges entries soft-deleted before [cutoff] (30-day auto-clean).
+  Future<int> purgeEntriesDeletedBefore(DateTime cutoff) {
+    return (delete(diaryEntries)
+          ..where((t) =>
+              t.deletedAt.isNotNull() & t.deletedAt.isSmallerThanValue(cutoff)))
+        .go();
   }
 
   Future<int> countEntries() async {
@@ -286,6 +350,7 @@ class AppDatabase extends _$AppDatabase {
     final c = countAll();
     final q = selectOnly(diaryEntries)
       ..addColumns([diaryEntries.journalId, c])
+      ..where(diaryEntries.deletedAt.isNull())
       ..groupBy([diaryEntries.journalId]);
     final rows = await q.get();
     return {

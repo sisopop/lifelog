@@ -252,7 +252,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
             context: context,
             builder: (ctx) => AlertDialog(
               title: const Text('기록 삭제'),
-              content: const Text('이 기록을 삭제할까요? 되돌릴 수 없어요.'),
+              content: const Text('이 기록을 휴지통으로 보낼까요? 30일 동안 보관돼요.'),
               actions: [
                 TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
