@@ -296,6 +296,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     ),
                   );
                 }),
+                Builder(builder: (context) {
+                  final pct = sharedEntryShare(entries);
+                  if (pct == null || pct == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '🔗 기록의 $pct%를 공유했어요',
+                    ),
+                  );
+                }),
                 if (avgGap != null) ...[
                   const SizedBox(height: 12),
                   _InsightLine(

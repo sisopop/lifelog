@@ -135,6 +135,23 @@ int? aiSummaryShare(List<DiaryEntry> entries) {
   return (summarized * 100 / total).round();
 }
 
+/// Pure: what share of top-level records were shared beyond private — i.e.
+/// [EntryVisibility.link] or [EntryVisibility.public] — as a 0–100 percent.
+/// Replies are excluded. Returns null when there are no top-level records — a
+/// member of the share family ([aiSummaryShare] etc.) surfacing how often
+/// records were opened up rather than kept "나만 보기".
+int? sharedEntryShare(List<DiaryEntry> entries) {
+  var total = 0;
+  var shared = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    if (e.visibility != EntryVisibility.private) shared++;
+  }
+  if (total == 0) return null;
+  return (shared * 100 / total).round();
+}
+
 /// Pure: what share of top-level records carry a non-empty title, as a 0–100
 /// percent. Replies are excluded. A title counts only when it has non-whitespace
 /// text. Returns null when there are no top-level records.

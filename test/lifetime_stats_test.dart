@@ -15,6 +15,7 @@ DiaryEntry _entry({
   String? location,
   String? title,
   String? aiSummary,
+  EntryVisibility visibility = EntryVisibility.private,
   String journalId = 'jr_default',
 }) =>
     DiaryEntry(
@@ -24,6 +25,7 @@ DiaryEntry _entry({
       title: title,
       content: content,
       aiSummary: aiSummary,
+      visibility: visibility,
       tags: tags,
       mood: mood,
       isFavorite: favorite,
@@ -700,6 +702,42 @@ void main() {
     test('null when there are no top-level records', () {
       final pct = aiSummaryShare([
         _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', aiSummary: 'x'),
+      ]);
+      expect(pct, isNull);
+    });
+  });
+
+  group('sharedEntryShare', () {
+    test('percent of top-level records shared beyond private', () {
+      // 2 of 4 top-level records are link/public (the rest stay private).
+      final pct = sharedEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), visibility: EntryVisibility.link),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), visibility: EntryVisibility.public),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+      ]);
+      expect(pct, 50);
+    });
+
+    test('replies are excluded from both numerator and denominator', () {
+      final pct = sharedEntryShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), visibility: EntryVisibility.link),
+        _entry(
+            id: 'r',
+            at: DateTime(2026, 6, 1),
+            replyTo: 'a',
+            visibility: EntryVisibility.public),
+      ]);
+      expect(pct, 100);
+    });
+
+    test('null when there are no top-level records', () {
+      final pct = sharedEntryShare([
+        _entry(
+            id: 'r',
+            at: DateTime(2026, 6, 1),
+            replyTo: 'a',
+            visibility: EntryVisibility.link),
       ]);
       expect(pct, isNull);
     });
