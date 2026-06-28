@@ -26,7 +26,11 @@ class HomeScreen extends ConsumerWidget {
     final now = DateTime.now();
     final todayLabel = DateFormat.yMMMMEEEEd(locale).format(now);
     final greeting = greetingForHour(now.hour);
-    final rawJournals = ref.watch(journalsProvider).asData?.value ?? const [];
+    final journalsAsync = ref.watch(journalsProvider);
+    final rawJournals = journalsAsync.asData?.value ?? const [];
+    // A read failure (e.g. a stuck schema) must NOT look like "no journals" —
+    // show a recoverable error instead of the empty "새 일기장" tile.
+    final journalsFailed = journalsAsync.hasError && rawJournals.isEmpty;
     final counts =
         ref.watch(journalEntryCountsProvider).asData?.value ?? const {};
     final allEntries = ref.watch(entriesProvider).asData?.value ?? const [];
@@ -101,7 +105,11 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 20),
             // The journals are the hero: a bookshelf grid right under the
             // header, with "새 일기장" as the trailing tile.
-            if (journals.isEmpty)
+            if (journalsFailed)
+              _JournalLoadError(
+                onRetry: () => ref.invalidate(journalsProvider),
+              )
+            else if (journals.isEmpty)
               _NewJournalCard(onTap: () => context.push('/journal/new'))
             else
               HomeJournalsView(
@@ -115,7 +123,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             const OnThisDaySection(),
             const RandomMemorySection(),
-            if (journals.isEmpty)
+            if (journals.isEmpty && !journalsFailed)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 36),
                 child: Center(
@@ -126,6 +134,55 @@ class HomeScreen extends ConsumerWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Shown when journals fail to load (vs. genuinely having none). Reassures the
+/// user their data is safe and offers a retry that re-reads the DB.
+class _JournalLoadError extends StatelessWidget {
+  const _JournalLoadError({required this.onRetry});
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.moodHard, width: 1.2),
+        color: AppColors.moodHard.withValues(alpha: 0.08),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.cloud_off_outlined, color: AppColors.moodHard),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text('일기장을 불러오지 못했어요',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('기록은 안전하게 보관되어 있어요. 잠시 후 다시 시도해 주세요.',
+              style: TextStyle(color: AppColors.textSecondary, height: 1.5)),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.icon(
+              onPressed: onRetry,
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('다시 시도'),
+            ),
+          ),
+        ],
       ),
     );
   }

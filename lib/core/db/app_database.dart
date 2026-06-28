@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../shared/models/enums.dart';
 
@@ -195,13 +196,15 @@ class AppDatabase extends _$AppDatabase {
         // idempotent column check on EVERY open recovers such a stuck DB without
         // touching any data. Adds only columns that aren't already present.
         beforeOpen: (details) async {
-          await _ensureJournalColumns();
+          await ensureJournalColumns();
         },
       );
 
   /// Adds any 다꾸/속지 columns missing from the `journals` table. Safe to run
   /// repeatedly: it inspects PRAGMA table_info first and only adds gaps.
-  Future<void> _ensureJournalColumns() async {
+  /// Public so the self-heal can be unit-tested against a simulated stuck DB.
+  @visibleForTesting
+  Future<void> ensureJournalColumns() async {
     final info = await customSelect(
       'PRAGMA table_info(journals)',
     ).get();
