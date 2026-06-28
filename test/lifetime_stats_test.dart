@@ -674,6 +674,36 @@ void main() {
     });
   });
 
+  group('positiveMoodShare', () {
+    test('share of "good" among records that carry a mood, rounded', () {
+      // 1 good of 2 mood-bearing records → 50%. The 3rd record has no mood and
+      // is excluded from the denominator.
+      final pct = positiveMoodShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), mood: Mood.neutral),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+      ]);
+      expect(pct, 50);
+    });
+
+    test('replies are excluded from the denominator', () {
+      // Only the top-level good mood counts → 100%.
+      final pct = positiveMoodShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', mood: Mood.hard),
+      ]);
+      expect(pct, 100);
+    });
+
+    test('null when no top-level record carries a mood', () {
+      final pct = positiveMoodShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', mood: Mood.good),
+      ]);
+      expect(pct, isNull);
+    });
+  });
+
   group('busiestJournal', () {
     test('returns the journalId with the most top-level records', () {
       final busy = busiestJournal([

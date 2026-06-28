@@ -270,3 +270,22 @@ int? favoriteEntryShare(List<DiaryEntry> entries) {
   if (total == 0) return null;
   return (starred * 100 / total).round();
 }
+
+/// Pure: among top-level records that carry a mood, what share are the "good"
+/// mood, as a 0–100 percent. Replies and mood-less records are excluded from the
+/// denominator (so this measures positivity *within* the moods that were
+/// recorded, not across all records). Returns null when no top-level record
+/// carries a mood. The positivity companion to [moodEntryShare] (how many
+/// records carry ANY mood) and to dominantMood (which mood is most common).
+int? positiveMoodShare(List<DiaryEntry> entries) {
+  var withMood = 0;
+  var good = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.mood == null) continue;
+    withMood++;
+    if (e.mood == Mood.good) good++;
+  }
+  if (withMood == 0) return null;
+  return (good * 100 / withMood).round();
+}
