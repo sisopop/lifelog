@@ -106,15 +106,43 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
   void _pickPaperColor(String c) => setState(() => _paperColor = c);
   void _onTitleChanged(String v) => setState(() => _title = v);
 
-  // 미리보기 표지 위에서 끌거나 탭한 지점으로 아이콘을 옮긴다(스티커처럼).
-  // local은 표지 박스(_kPreviewW×_kPreviewH) 기준 좌표 → 0~1 비율로 환산·clamp.
-  void _moveIcon(Offset local) {
-    if (_icon == kNoCoverIcon) return; // '없음' 아이콘이면 옮길 게 없다.
+  // 진짜 스티커처럼: 아이콘을 '집어서' 손가락 이동량만큼만 옮긴다(점프 없음).
+  // 아이콘에서 먼 곳을 누르면 무시 → 잘못 눌러 순간이동하는 일이 없다.
+  bool _draggingIcon = false;
+
+  // 미리보기 표지 패딩(JournalCover 기본값과 동일) + 아이콘 글리프 추정 크기.
+  // 아이콘이 움직일 수 있는 실제 영역(travel)과 현재 중심 계산에 쓴다.
+  static const double _kPad = 12; // L/T/B (R은 10이지만 계산엔 영향 미미)
+  static const double _kIconBox = 34; // iconSize 30 글리프 박스 근사
+
+  double get _iconTravelX => _kPreviewW - _kPad - 10 - _kIconBox; // ≈54
+  double get _iconTravelY => _kPreviewH - _kPad - _kPad - _kIconBox; // ≈82
+
+  // 현재 아이콘 중심(미리보기 박스 local 좌표). grab 판정에 쓴다.
+  Offset _iconCenterLocal() => Offset(
+        _kPad + _iconX.clamp(0.0, 1.0) * _iconTravelX + _kIconBox / 2,
+        _kPad + _iconY.clamp(0.0, 1.0) * _iconTravelY + _kIconBox / 2,
+      );
+
+  void _onIconPanStart(DragStartDetails d) {
+    if (_icon == kNoCoverIcon) {
+      _draggingIcon = false;
+      return;
+    }
+    // 누른 지점이 아이콘 근처(넉넉한 반경)일 때만 잡기 시작.
+    _draggingIcon =
+        (d.localPosition - _iconCenterLocal()).distance <= _kIconBox;
+  }
+
+  void _onIconPanUpdate(DragUpdateDetails d) {
+    if (!_draggingIcon) return;
     setState(() {
-      _iconX = (local.dx / _kPreviewW).clamp(0.0, 1.0);
-      _iconY = (local.dy / _kPreviewH).clamp(0.0, 1.0);
+      _iconX = (_iconX + d.delta.dx / _iconTravelX).clamp(0.0, 1.0);
+      _iconY = (_iconY + d.delta.dy / _iconTravelY).clamp(0.0, 1.0);
     });
   }
+
+  void _onIconPanEnd(DragEndDetails d) => _draggingIcon = false;
 
   void _pickTheme(CoverTheme theme) {
     setState(() {
@@ -212,12 +240,14 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          // 표지↔속지 미리보기 캐러셀: 좌우로 드래그하면 표지와 속지가
-          // 번갈아 가운데로 온다. 아래 "표지/속지" 탭으로도 전환할 수 있다.
+          // 표지↔속지 미리보기 캐러셀: 아래 "표지/속지" 탭으로 전환한다.
+          // 좌우 스와이프는 막아 둔다(표지 위 아이콘을 좌우로 끌 때 페이지가
+          // 같이 넘어가 버리는 충돌을 피하려고). 전환은 탭 버튼이 담당.
           SizedBox(
             height: 148,
             child: PageView(
               controller: _previewCtrl,
+              physics: const NeverScrollableScrollPhysics(),
               onPageChanged: (i) => setState(() => _previewPage = i),
               children: [
                 Center(
@@ -227,8 +257,9 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
                     // 표지 위를 끌거나 탭하면 아이콘이 그 자리로 이동(스티커처럼).
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onPanDown: (d) => _moveIcon(d.localPosition),
-                      onPanUpdate: (d) => _moveIcon(d.localPosition),
+                      onPanStart: _onIconPanStart,
+                      onPanUpdate: _onIconPanUpdate,
+                      onPanEnd: _onIconPanEnd,
                       child: JournalCover(
                         color: _color,
                         icon: _icon,
@@ -260,7 +291,7 @@ class _CoverDecorateSheetState extends ConsumerState<_CoverDecorateSheet> {
             const Padding(
               padding: EdgeInsets.only(top: 6),
               child: Center(
-                child: Text('표지를 끌어 아이콘 위치를 옮겨보세요',
+                child: Text('아이콘을 집어서 끌어 옮겨보세요',
                     style: TextStyle(
                         fontSize: 11, color: AppColors.textHint)),
               ),
