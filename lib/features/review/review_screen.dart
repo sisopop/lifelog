@@ -169,6 +169,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final avgLen = averageEntryLengthOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (avgLen == null || avgLen == 0) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '✍️ 이번 달 한 번에 평균 $avgLen자씩 기록했어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final rate = monthlyRecordingRate(
                   stats.daysRecorded, stats.year, stats.month, DateTime.now());
               if (rate == null) return const SizedBox.shrink();

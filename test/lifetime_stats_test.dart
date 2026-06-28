@@ -132,6 +132,48 @@ void main() {
     });
   });
 
+  group('averageEntryLength', () {
+    test('null when there are no top-level records', () {
+      expect(averageEntryLength(const []), isNull);
+      expect(
+        averageEntryLength([
+          _entry(id: 'r', content: 'reply', at: DateTime(2026, 6, 1), replyTo: 'a'),
+        ]),
+        isNull,
+      );
+    });
+
+    test('rounds the grapheme mean and excludes replies', () {
+      final v = averageEntryLength([
+        _entry(id: 'a', content: '제주도', at: DateTime(2026, 6, 1)), // 3
+        _entry(id: 'b', content: '1234', at: DateTime(2026, 6, 2)), // 4
+        _entry(id: 'r', content: 'xxxxxx', at: DateTime(2026, 6, 3), replyTo: 'a'),
+      ]);
+      // (3 + 4) / 2 = 3.5 → rounds to 4
+      expect(v, 4);
+    });
+  });
+
+  group('averageEntryLengthOfMonth', () {
+    test('null when the month has no top-level records', () {
+      final entries = [
+        _entry(id: 'a', content: '12345', at: DateTime(2026, 5, 10)),
+      ];
+      expect(averageEntryLengthOfMonth(entries, 2026, 6), isNull);
+    });
+
+    test('averages only that month, excluding replies', () {
+      final entries = [
+        _entry(id: 'a', content: '12', at: DateTime(2026, 6, 1)), // 2
+        _entry(id: 'b', content: '1234', at: DateTime(2026, 6, 2)), // 4
+        _entry(id: 'r', content: 'xx', at: DateTime(2026, 6, 3), replyTo: 'a'),
+        _entry(id: 'c', content: '999999', at: DateTime(2026, 5, 9)), // other month
+      ];
+      // (2 + 4) / 2 = 3
+      expect(averageEntryLengthOfMonth(entries, 2026, 6), 3);
+    });
+  });
+
   group('topTags', () {
     test('empty when no tags', () {
       expect(topTags(const []), isEmpty);

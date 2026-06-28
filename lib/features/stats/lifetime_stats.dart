@@ -345,3 +345,32 @@ int? positiveMoodShareOfMonth(List<DiaryEntry> entries, int year, int month) {
       (e) => e.createdAt.year == year && e.createdAt.month == month);
   return positiveMoodShare(monthly.toList());
 }
+
+/// Pure: the average grapheme-aware body length across top-level records,
+/// rounded to a whole number. Replies are excluded. Uses the same trimmed,
+/// grapheme-counted measure as [totalChars] (Korean syllables and emoji count
+/// as one) but divided by the record count — a typical-length companion to
+/// [totalChars] (the running total) and to longestEntry (the single longest).
+/// Returns null when there are no top-level records.
+int? averageEntryLength(List<DiaryEntry> entries) {
+  var total = 0;
+  var chars = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+    chars += e.content.trim().characters.length;
+  }
+  if (total == 0) return null;
+  return (chars / total).round();
+}
+
+/// Pure: the average grapheme-aware body length across one calendar month's
+/// top-level records, rounded. Filters [entries] to the given [year]/[month],
+/// then reuses [averageEntryLength] (replies excluded). Returns null when that
+/// month has no top-level record — the monthly sibling of [averageEntryLength]
+/// (and the 회고 counterpart of the summary's avgCharsPerEntry).
+int? averageEntryLengthOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return averageEntryLength(monthly.toList());
+}
