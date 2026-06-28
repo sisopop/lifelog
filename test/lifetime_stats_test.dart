@@ -704,6 +704,33 @@ void main() {
     });
   });
 
+  group('positiveMoodShareOfMonth', () {
+    test('good-mood share among that month\'s mood-bearing records', () {
+      // June: good + neutral → 50%. The May good mood is outside the month.
+      final pct = positiveMoodShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), mood: Mood.neutral),
+        _entry(id: 'c', at: DateTime(2026, 5, 30), mood: Mood.good),
+      ], 2026, 6);
+      expect(pct, 50);
+    });
+
+    test('replies are excluded from the month denominator', () {
+      final pct = positiveMoodShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', mood: Mood.hard),
+      ], 2026, 6);
+      expect(pct, 100);
+    });
+
+    test('null when the month has no mood-bearing record', () {
+      final pct = positiveMoodShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+      ], 2026, 6);
+      expect(pct, isNull);
+    });
+  });
+
   group('busiestJournal', () {
     test('returns the journalId with the most top-level records', () {
       final busy = busiestJournal([

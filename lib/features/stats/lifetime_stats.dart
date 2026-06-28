@@ -289,3 +289,15 @@ int? positiveMoodShare(List<DiaryEntry> entries) {
   if (withMood == 0) return null;
   return (good * 100 / withMood).round();
 }
+
+/// Pure: the "good"-mood share (0–100) among one calendar month's mood-bearing
+/// top-level records. Filters [entries] to the given [year]/[month], then reuses
+/// [positiveMoodShare] (replies and mood-less records excluded from the
+/// denominator). Returns null when that month has no mood-bearing record — the
+/// monthly sibling of [positiveMoodShare] and the positivity companion of
+/// [moodEntryShareOfMonth].
+int? positiveMoodShareOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return positiveMoodShare(monthly.toList());
+}

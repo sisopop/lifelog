@@ -432,6 +432,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final pct = positiveMoodShareOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (pct == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '😊 이번 달 기분을 남긴 기록 중 $pct%가 좋은 기분이었어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final longest = longestEntryOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (longest == null) return const SizedBox.shrink();
