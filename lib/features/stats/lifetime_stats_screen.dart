@@ -23,9 +23,10 @@ class LifetimeStatsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
-    final journals = (ref.watch(journalsProvider).asData?.value ?? const [])
+    final journalList = (ref.watch(journalsProvider).asData?.value ?? const [])
         .where((j) => !j.isArchived)
-        .length;
+        .toList();
+    final journals = journalList.length;
     final s = computeLifetimeStats(entries);
     final moods = moodBreakdown(entries);
     final domMood = dominantMood(entries);
@@ -228,6 +229,20 @@ class LifetimeStatsScreen extends ConsumerWidget {
                     padding: const EdgeInsets.only(top: 12),
                     child: _InsightLine(
                       text: '✨ 기록의 $pct%를 즐겨찾기했어요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
+                  final busy = busiestJournal(entries);
+                  if (busy == null) return const SizedBox.shrink();
+                  final j = journalList
+                      .where((j) => j.journalId == busy.key)
+                      .firstOrNull;
+                  if (j == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '📚 가장 많이 쓴 일기장은 ${j.title}이에요 (${busy.value}개)',
                     ),
                   );
                 }),

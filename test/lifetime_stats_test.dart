@@ -14,11 +14,12 @@ DiaryEntry _entry({
   List<String> media = const [],
   String? location,
   String? title,
+  String journalId = 'jr_default',
 }) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
-      journalId: 'jr_default',
+      journalId: journalId,
       title: title,
       content: content,
       tags: tags,
@@ -670,6 +671,49 @@ void main() {
         _entry(id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', favorite: true),
       ]);
       expect(pct, isNull);
+    });
+  });
+
+  group('busiestJournal', () {
+    test('returns the journalId with the most top-level records', () {
+      final busy = busiestJournal([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j2'),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), journalId: 'j2'),
+      ]);
+      expect(busy?.key, 'j2');
+      expect(busy?.value, 2);
+    });
+
+    test('replies are excluded from the per-journal counts', () {
+      final busy = busiestJournal([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), journalId: 'j2'),
+        // Three replies in j2 must NOT make it the busiest.
+        _entry(id: 'r1', at: DateTime(2026, 6, 3), replyTo: 'c', journalId: 'j2'),
+        _entry(id: 'r2', at: DateTime(2026, 6, 3), replyTo: 'c', journalId: 'j2'),
+      ]);
+      expect(busy?.key, 'j1');
+      expect(busy?.value, 2);
+    });
+
+    test('null when fewer than two distinct journals carry a record', () {
+      expect(busiestJournal(const []), isNull);
+      final single = busiestJournal([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+      ]);
+      expect(single, isNull);
+    });
+
+    test('ties resolve to the first-appearing journalId', () {
+      final busy = busiestJournal([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j2'),
+      ]);
+      expect(busy?.key, 'j1');
+      expect(busy?.value, 1);
     });
   });
 

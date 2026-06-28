@@ -179,6 +179,25 @@ int? photoEntryShare(List<DiaryEntry> entries) {
   return (withPhoto * 100 / total).round();
 }
 
+/// Pure: which journal holds the most top-level records, as a
+/// `MapEntry(journalId, count)`. Replies are excluded. Returns null when fewer
+/// than two distinct journals carry a top-level record (a single journal is
+/// self-evident, so the insight is hidden). Ties resolve to the journalId that
+/// first appears in [entries] (insertion order is preserved by the map).
+MapEntry<String, int>? busiestJournal(List<DiaryEntry> entries) {
+  final counts = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    counts[e.journalId] = (counts[e.journalId] ?? 0) + 1;
+  }
+  if (counts.length < 2) return null;
+  MapEntry<String, int>? best;
+  counts.forEach((id, n) {
+    if (best == null || n > best!.value) best = MapEntry(id, n);
+  });
+  return best;
+}
+
 /// Pure: what share of top-level records are starred (favorite), as a 0–100
 /// percent. Replies are excluded. Returns null when there are no top-level
 /// records — the favorite member of the share family ([taggedEntryShare]/
