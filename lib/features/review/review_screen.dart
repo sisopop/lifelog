@@ -419,6 +419,21 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              // Most tags on a single entry this month. ≥2 only — at 1 it just
+              // echoes the tag-share line above.
+              final most = maxTagsOnEntryOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (most < 2) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '🔖 이번 달 한 기록에 최대 $most개의 태그를 달았어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final titled = titledEntryCountOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (titled == 0) return const SizedBox.shrink();

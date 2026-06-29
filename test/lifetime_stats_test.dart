@@ -1800,4 +1800,27 @@ void main() {
       expect(maxTagsOnEntry([_entry(id: 'a', at: DateTime(2026, 6, 1))]), 0);
     });
   });
+
+  group('maxTagsOnEntryOfMonth', () {
+    test('only counts the requested month', () {
+      final entries = [
+        _entry(id: 'jun', at: DateTime(2026, 6, 13), tags: ['a', 'b', 'c']),
+        _entry(id: 'may', at: DateTime(2026, 5, 1), tags: ['x', 'y', 'z', 'w']),
+        _entry(id: 'jun2', at: DateTime(2026, 6, 2), tags: ['a']),
+      ];
+      expect(maxTagsOnEntryOfMonth(entries, 2026, 6), 3);
+      expect(maxTagsOnEntryOfMonth(entries, 2026, 5), 4);
+    });
+
+    test('0 when the month has no tagged record', () {
+      expect(maxTagsOnEntryOfMonth(const [], 2026, 6), 0);
+      expect(
+        maxTagsOnEntryOfMonth([
+          _entry(id: 'a', at: DateTime(2026, 5, 1), tags: ['x', 'y']),
+          _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        ], 2026, 6),
+        0,
+      );
+    });
+  });
 }

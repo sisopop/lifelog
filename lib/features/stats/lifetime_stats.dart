@@ -468,3 +468,12 @@ int maxTagsOnEntry(List<DiaryEntry> entries) {
   }
   return most;
 }
+
+/// Pure: [maxTagsOnEntry] restricted to records created in the given
+/// [year]/[month]. Replies are excluded. Returns 0 when that month has no
+/// tagged record. The monthly companion shown on the review screen.
+int maxTagsOnEntryOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return maxTagsOnEntry(monthly.toList());
+}
