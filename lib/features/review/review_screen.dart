@@ -393,6 +393,21 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              // How concentrated this month's records are in the busiest
+              // journal. Hidden when only one journal is used that month.
+              final pct = busiestJournalShareOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (pct == null) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '📊 이번 달 기록의 $pct%가 그 일기장에 모여 있어요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final replies = replyCountOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (replies == 0) return const SizedBox.shrink();

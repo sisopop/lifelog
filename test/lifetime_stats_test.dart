@@ -1253,6 +1253,42 @@ void main() {
     });
   });
 
+  group('busiestJournalShareOfMonth', () {
+    test('filters to the month, then reuses busiestJournalShare', () {
+      // June: j1 3, j2 1 → 3/4 = 75%. May entry is excluded.
+      final pct = busiestJournalShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), journalId: 'j1'),
+        _entry(id: 'd', at: DateTime(2026, 6, 4), journalId: 'j2'),
+        _entry(id: 'm', at: DateTime(2026, 5, 9), journalId: 'j2'),
+      ], 2026, 6);
+      expect(pct, 75);
+    });
+
+    test('null when the month has fewer than two distinct journals', () {
+      expect(
+        busiestJournalShareOfMonth([
+          _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+          _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+        ], 2026, 6),
+        isNull,
+      );
+      expect(busiestJournalShareOfMonth(const [], 2026, 6), isNull);
+    });
+
+    test('excludes replies from both numerator and denominator', () {
+      // Top-level June: j1 2, j2 1 → 2/3 ≈ 67%. Reply in j2 must not count.
+      final pct = busiestJournalShareOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), journalId: 'j2'),
+        _entry(id: 'r', at: DateTime(2026, 6, 3), replyTo: 'c', journalId: 'j2'),
+      ], 2026, 6);
+      expect(pct, 67);
+    });
+  });
+
   group('dayPartBreakdown', () {
     test('empty → empty map', () {
       expect(dayPartBreakdown(const []), isEmpty);

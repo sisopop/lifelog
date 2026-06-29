@@ -308,6 +308,19 @@ MapEntry<String, int>? busiestJournalOfMonth(
   return busiestJournal(monthly.toList());
 }
 
+/// Pure: [busiestJournalShare] restricted to records created in [year]/[month]
+/// — what share (0–100, rounded) of that month's top-level records live in its
+/// most-used journal. Filters [entries] to the month, then reuses
+/// [busiestJournalShare]. Returns null when that month has fewer than two
+/// journals in use (its share would be a trivial 100%). The monthly companion
+/// of [busiestJournalShare] for the review screen.
+int? busiestJournalShareOfMonth(
+    List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return busiestJournalShare(monthly.toList());
+}
+
 /// Pure: how many distinct tags were ever used across all [entries]. Reuses
 /// [topTags] with no limit (replies excluded; tags compared exactly as stored).
 /// Returns 0 when nothing is tagged — the whole-history sibling of
