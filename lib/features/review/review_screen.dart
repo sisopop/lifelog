@@ -544,6 +544,19 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              final n = aiSummaryCountOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (n == 0) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '🤖 이번 달 AI 요약을 한 기록이 $n개예요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final pct = aiSummaryShareOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (pct == null || pct == 0) return const SizedBox.shrink();

@@ -156,6 +156,15 @@ int aiSummaryCount(List<DiaryEntry> entries) {
   return summarized;
 }
 
+/// Pure: how many of one calendar month's top-level records carry an AI summary.
+/// Filters to the given [year]/[month], then reuses [aiSummaryCount]. Returns 0
+/// when that month has none.
+int aiSummaryCountOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return aiSummaryCount(monthly.toList());
+}
+
 /// Pure: what share of top-level records were shared beyond private — i.e.
 /// [EntryVisibility.link] or [EntryVisibility.public] — as a 0–100 percent.
 /// Replies are excluded. Returns null when there are no top-level records — a

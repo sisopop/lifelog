@@ -893,6 +893,29 @@ void main() {
     });
   });
 
+  group('aiSummaryCountOfMonth', () {
+    test('counts that month\'s top-level records with an AI summary', () {
+      final entries = [
+        _entry(id: 'a', at: DateTime(2026, 6, 1), aiSummary: '요약'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), aiSummary: '또 요약'),
+        // other month — must be ignored
+        _entry(id: 'o', at: DateTime(2026, 5, 9), aiSummary: '지난달'),
+      ];
+      expect(aiSummaryCountOfMonth(entries, 2026, 6), 2);
+    });
+
+    test('replies are excluded; zero when the month has none', () {
+      final entries = [
+        _entry(id: 'a', at: DateTime(2026, 6, 1), aiSummary: '요약'),
+        _entry(
+            id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', aiSummary: '답장'),
+      ];
+      expect(aiSummaryCountOfMonth(entries, 2026, 6), 1);
+      expect(aiSummaryCountOfMonth(entries, 2026, 7), 0);
+    });
+  });
+
   group('sharedEntryCount', () {
     test('counts top-level records shared beyond private', () {
       final n = sharedEntryCount([
