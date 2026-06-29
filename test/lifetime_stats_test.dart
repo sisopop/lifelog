@@ -1773,6 +1773,32 @@ void main() {
     });
   });
 
+  group('locationEntryCountOfMonth', () {
+    test('counts located top-level records in that month only, excludes replies',
+        () {
+      // June: 2 located (incl. trimmed); blank June, located July, located reply.
+      final n = locationEntryCountOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), location: '제주도'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), location: ' 서울 '),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), location: '   '),
+        _entry(id: 'd', at: DateTime(2026, 7, 4), location: '부산'),
+        _entry(id: 'r', at: DateTime(2026, 6, 5), replyTo: 'a', location: '강릉'),
+      ], 2026, 6);
+      expect(n, 2);
+    });
+
+    test('0 when empty or no record in the month has a location', () {
+      expect(locationEntryCountOfMonth(const [], 2026, 6), 0);
+      expect(
+        locationEntryCountOfMonth([
+          _entry(id: 'a', at: DateTime(2026, 5, 1), location: '지난달'),
+          _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        ], 2026, 6),
+        0,
+      );
+    });
+  });
+
   group('maxTagsOnEntry', () {
     test('returns the largest tag count on any single entry', () {
       final n = maxTagsOnEntry([
