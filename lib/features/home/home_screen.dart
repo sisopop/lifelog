@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../config/notice_banner.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../memories/on_this_day_section.dart';
@@ -103,6 +104,9 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 20),
+            // Admin-authored notices (skeleton: from remoteConfigProvider's
+            // local dummy until Firebase lands). Empty box when none are live.
+            const NoticeBanner(),
             // The journals are the hero: a bookshelf grid right under the
             // header, with "새 일기장" as the trailing tile.
             if (journalsFailed)
