@@ -84,6 +84,42 @@ void main() {
     });
   });
 
+  group('nextDialogNotice', () {
+    final now = DateTime(2026, 6, 29, 12);
+
+    test('returns the first unseen live dialog notice, ignoring banners', () {
+      final config = RemoteConfig(notices: [
+        const AppNotice(id: 'b', title: 'banner'), // banner → ignored
+        const AppNotice(id: 'd1', title: 'dialog one', type: NoticeType.dialog),
+        const AppNotice(id: 'd2', title: 'dialog two', type: NoticeType.dialog),
+      ]);
+      expect(config.nextDialogNotice(now, <String>{})?.id, 'd1');
+      // d1 already seen → falls through to d2.
+      expect(config.nextDialogNotice(now, {'d1'})?.id, 'd2');
+      // all seen → nothing to pop.
+      expect(config.nextDialogNotice(now, {'d1', 'd2'}), isNull);
+    });
+
+    test('skips inactive/expired dialog notices', () {
+      final config = RemoteConfig(notices: [
+        const AppNotice(
+            id: 'off', title: 'x', type: NoticeType.dialog, active: false),
+        AppNotice(
+            id: 'gone',
+            title: 'x',
+            type: NoticeType.dialog,
+            endAt: DateTime(2026, 6, 1)),
+        const AppNotice(id: 'ok', title: 'x', type: NoticeType.dialog),
+      ]);
+      expect(config.nextDialogNotice(now, <String>{})?.id, 'ok');
+    });
+
+    test('no dialog notices yields null', () {
+      const config = RemoteConfig(notices: [AppNotice(id: 'b', title: 'b')]);
+      expect(config.nextDialogNotice(now, <String>{}), isNull);
+    });
+  });
+
   group('dummyRemoteConfig', () {
     test('exposes a live welcome banner for the skeleton', () {
       final config = dummyRemoteConfig();

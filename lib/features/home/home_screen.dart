@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../config/notice_banner.dart';
+import '../config/notice_dialog_host.dart';
 import '../config/remote_config_provider.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
@@ -113,6 +114,8 @@ class HomeScreen extends ConsumerWidget {
             // Admin-authored notices (skeleton: from remoteConfigProvider's
             // local dummy until Firebase lands). Empty box when none are live.
             const NoticeBanner(),
+            // Invisible: pops any live dialog-type notice once (id remembered).
+            const NoticeDialogHost(),
             // The journals are the hero: a bookshelf grid right under the
             // header, with "새 일기장" as the trailing tile.
             if (journalsFailed)

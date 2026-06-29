@@ -93,6 +93,17 @@ class RemoteConfig {
           .where((n) => !bannersOnly || n.type == NoticeType.banner)
           .toList();
 
+  /// Pure: the first live dialog-type notice the user hasn't dismissed yet
+  /// (its id is not in [seenIds]), in declared order — or null when there is
+  /// nothing new to pop up. Banner-type notices are ignored (they live in the
+  /// home banner). Lets the home pop an admin announcement exactly once.
+  AppNotice? nextDialogNotice(DateTime now, Set<String> seenIds) {
+    for (final n in liveNotices(now)) {
+      if (n.type == NoticeType.dialog && !seenIds.contains(n.id)) return n;
+    }
+    return null;
+  }
+
   factory RemoteConfig.fromJson(Map<String, dynamic> json) {
     final features = <String, bool>{};
     final rawFeatures = json['features'];
