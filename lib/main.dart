@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/i18n/locale_provider.dart';
+import 'firebase_options.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/session.dart';
@@ -15,6 +17,16 @@ Future<void> main() async {
   // Load date-format symbols for all locales so locale-aware date formatting
   // works the moment the user switches language (see TECH_DESIGN.md §8.2).
   await initializeDateFormatting();
+  // Remote config (feature flags + notices) lives in Firebase. A failure here
+  // must never block the app — remoteConfigProvider falls back to a dummy, so
+  // we just log and continue if init fails (e.g. no network on first launch).
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase init failed (using dummy config): $e');
+  }
   final prefs = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(

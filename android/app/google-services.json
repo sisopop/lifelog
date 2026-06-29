@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "523613709745",
+    "project_id": "ableflow-lifelog",
+    "storage_bucket": "ableflow-lifelog.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523613709745:android:89a0734006f8c2152ec990",
+        "android_client_info": {
+          "package_name": "org.onmdlab.lifelog"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBcLP8ZpUlwQmUfwBlivS-tCxYz_yKLX0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

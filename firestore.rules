@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Admin-authored, app reads at launch. Public read, no client writes
+    // (the admin console writes via privileged Admin SDK / Functions only).
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /notices/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /categories/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /skins/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Everything else (users, ledger, credits) is server-only for now.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
