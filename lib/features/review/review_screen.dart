@@ -503,6 +503,21 @@ class ReviewScreen extends ConsumerWidget {
               );
             }),
             Builder(builder: (context) {
+              // Count of records carrying a mood this month — sits above the
+              // share line, mirroring the summary screen's count/share pair.
+              final n = moodEntryCountOfMonth(
+                  ref.watch(reviewEntriesProvider), stats.year, stats.month);
+              if (n == 0) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                  '💭 이번 달 기분을 남긴 기록이 $n개예요',
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.textSecondary),
+                ),
+              );
+            }),
+            Builder(builder: (context) {
               final pct = moodEntryShareOfMonth(
                   ref.watch(reviewEntriesProvider), stats.year, stats.month);
               if (pct == null || pct == 0) return const SizedBox.shrink();

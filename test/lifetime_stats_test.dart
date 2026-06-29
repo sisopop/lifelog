@@ -1843,6 +1843,32 @@ void main() {
     });
   });
 
+  group('moodEntryCountOfMonth', () {
+    test('counts mooded top-level records in that month only, excludes replies',
+        () {
+      // June: 2 mooded; moodless June, mooded July, mooded reply all skip.
+      final n = moodEntryCountOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), mood: Mood.hard),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'd', at: DateTime(2026, 7, 4), mood: Mood.good),
+        _entry(id: 'r', at: DateTime(2026, 6, 5), replyTo: 'a', mood: Mood.neutral),
+      ], 2026, 6);
+      expect(n, 2);
+    });
+
+    test('0 when empty or no record in the month carries a mood', () {
+      expect(moodEntryCountOfMonth(const [], 2026, 6), 0);
+      expect(
+        moodEntryCountOfMonth([
+          _entry(id: 'a', at: DateTime(2026, 5, 1), mood: Mood.good),
+          _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        ], 2026, 6),
+        0,
+      );
+    });
+  });
+
   group('titledEntryCountOfMonth', () {
     test('counts titled top-level records in that month only, excludes replies',
         () {

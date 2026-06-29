@@ -287,6 +287,16 @@ int? moodEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
   return moodEntryShare(monthly.toList());
 }
 
+/// Pure: how many of one calendar month's top-level records carry a mood,
+/// reusing [moodEntryCount] on that month's entries. Replies are excluded.
+/// Returns 0 when none do — the monthly count companion of
+/// [moodEntryShareOfMonth] for the review screen.
+int moodEntryCountOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return moodEntryCount(monthly.toList());
+}
+
 /// Pure: what share of one calendar month's top-level records are starred
 /// (favorite), as a 0–100 percent. Filters [entries] to the given
 /// [year]/[month], then reuses [favoriteEntryShare] (replies excluded). Returns
