@@ -864,6 +864,35 @@ void main() {
     });
   });
 
+  group('aiSummaryCount', () {
+    test('counts top-level records with a non-empty AI summary', () {
+      final n = aiSummaryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), aiSummary: '요약'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), aiSummary: '   '),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), aiSummary: '두 번째'),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+      ]);
+      expect(n, 2);
+    });
+
+    test('replies are excluded', () {
+      final n = aiSummaryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), aiSummary: '요약'),
+        _entry(
+            id: 'r', at: DateTime(2026, 6, 1), replyTo: 'a', aiSummary: '답장요약'),
+      ]);
+      expect(n, 1);
+    });
+
+    test('zero when no record has a summary', () {
+      final n = aiSummaryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), aiSummary: '  '),
+      ]);
+      expect(n, 0);
+    });
+  });
+
   group('sharedEntryCount', () {
     test('counts top-level records shared beyond private', () {
       final n = sharedEntryCount([

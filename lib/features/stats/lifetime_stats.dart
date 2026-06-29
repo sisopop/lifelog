@@ -144,6 +144,18 @@ int? aiSummaryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
   return aiSummaryShare(monthly.toList());
 }
 
+/// Pure: how many top-level records carry a non-empty AI summary. Replies are
+/// excluded. A summary counts only when it has non-whitespace text. Returns 0
+/// when none. The count companion to [aiSummaryShare].
+int aiSummaryCount(List<DiaryEntry> entries) {
+  var summarized = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.aiSummary?.trim().isNotEmpty ?? false) summarized++;
+  }
+  return summarized;
+}
+
 /// Pure: what share of top-level records were shared beyond private — i.e.
 /// [EntryVisibility.link] or [EntryVisibility.public] — as a 0–100 percent.
 /// Replies are excluded. Returns null when there are no top-level records — a
