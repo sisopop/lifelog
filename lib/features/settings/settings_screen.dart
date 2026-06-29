@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../auth/session.dart';
 import '../entries/entries_provider.dart';
+import '../export/backup_json.dart';
 import '../export/export_markdown.dart';
 import '../journals/default_journal_provider.dart';
 import '../journals/journals_provider.dart';
@@ -77,6 +78,7 @@ class SettingsScreen extends ConsumerWidget {
           _HomeLayoutTile(),
           _ReadingTextSizeTile(),
           _ExportTile(),
+          _BackupJsonTile(),
           _TrashTile(),
           _SectionTile(
             icon: Icons.notifications_none,
@@ -263,6 +265,43 @@ class _ExportTile extends ConsumerWidget {
           await Clipboard.setData(ClipboardData(text: text));
           messenger.showSnackBar(
             SnackBar(content: Text('${entries.length}개 기록을 클립보드에 복사했어요')),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// Exports every journal + entry as a loss-less JSON backup and copies it to
+/// the clipboard. Unlike the Markdown export this round-trips exactly, so it can
+/// later be restored (가져오기). Trashed records are included.
+class _BackupJsonTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: const Icon(Icons.backup_outlined, color: AppColors.textSecondary),
+        title: const Text('전체 백업 (JSON)'),
+        subtitle: const Text('모든 기록을 그대로 복원 가능한 형태로 클립보드에 복사'),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        onTap: () async {
+          final journals = ref.read(journalsProvider).asData?.value ?? const [];
+          final entries = ref.read(entriesProvider).asData?.value ?? const [];
+          final messenger = ScaffoldMessenger.of(context);
+          if (entries.isEmpty && journals.isEmpty) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('백업할 기록이 없어요')),
+            );
+            return;
+          }
+          final json = exportBackupJson(journals, entries, DateTime.now());
+          await Clipboard.setData(ClipboardData(text: json));
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                  '기록 ${entries.length}개 · 일기장 ${journals.length}개를 백업했어요'),
+            ),
           );
         },
       ),
