@@ -301,6 +301,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   );
                 }),
                 Builder(builder: (context) {
+                  final moods = moodEntryCount(entries);
+                  if (moods == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '💭 기분을 남긴 기록이 $moods개예요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final pct = moodEntryShare(entries);
                   if (pct == null || pct == 0) return const SizedBox.shrink();
                   return Padding(

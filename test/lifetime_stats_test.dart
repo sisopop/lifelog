@@ -1819,6 +1819,30 @@ void main() {
     });
   });
 
+  group('moodEntryCount', () {
+    test('counts top-level records carrying a mood, excludes replies', () {
+      // 2 top-level with a mood; moodless one and a mooded reply skip.
+      final n = moodEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), mood: Mood.good),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), mood: Mood.neutral),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'r', at: DateTime(2026, 6, 4), replyTo: 'a', mood: Mood.hard),
+      ]);
+      expect(n, 2);
+    });
+
+    test('0 when empty or no record carries a mood', () {
+      expect(moodEntryCount(const []), 0);
+      expect(
+        moodEntryCount([
+          _entry(id: 'a', at: DateTime(2026, 6, 1)),
+          _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        ]),
+        0,
+      );
+    });
+  });
+
   group('titledEntryCountOfMonth', () {
     test('counts titled top-level records in that month only, excludes replies',
         () {

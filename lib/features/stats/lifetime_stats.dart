@@ -223,6 +223,19 @@ int locationEntryCount(List<DiaryEntry> entries) {
   return located;
 }
 
+/// Pure: how many top-level records carry a mood ([DiaryEntry.mood] non-null).
+/// Replies are excluded. Returns 0 when none do — the count companion to
+/// [moodEntryShare], mirroring how [taggedEntryCount]/[locationEntryCount] sit
+/// beside their share lines.
+int moodEntryCount(List<DiaryEntry> entries) {
+  var withMood = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.mood != null) withMood++;
+  }
+  return withMood;
+}
+
 /// Pure: how many top-level records in [year]/[month] carry a non-empty title,
 /// reusing [titledEntryCount] on that month's entries. Replies are excluded.
 /// The monthly count companion of [titleEntryShareOfMonth] for the review
