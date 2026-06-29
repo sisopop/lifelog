@@ -210,6 +210,19 @@ int taggedEntryCount(List<DiaryEntry> entries) {
   return tagged;
 }
 
+/// Pure: how many top-level records carry a non-empty location. Replies are
+/// excluded; a location counts only when it has non-whitespace text. Returns 0
+/// when none do — the count companion to [locationEntryShare], mirroring how
+/// [photoEntryCount]/[taggedEntryCount] sit beside their share lines.
+int locationEntryCount(List<DiaryEntry> entries) {
+  var located = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().isNotEmpty) located++;
+  }
+  return located;
+}
+
 /// Pure: the longest consecutive-day recording run within one calendar month.
 /// Filters [entries] to the given [year]/[month], then reuses [recordedDates]
 /// and [longestStreak] (both replies-excluded). Returns 0 when that month has

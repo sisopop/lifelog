@@ -1720,4 +1720,30 @@ void main() {
       );
     });
   });
+
+  group('locationEntryCount', () {
+    test('counts located top-level records, excludes replies and blank places',
+        () {
+      // 2 located top-level (incl. trimmed); blank, null, and a located reply skip.
+      final n = locationEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), location: '제주'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), location: '  부산 '),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), location: '   '),
+        _entry(id: 'd', at: DateTime(2026, 6, 4)),
+        _entry(id: 'r', at: DateTime(2026, 6, 5), replyTo: 'a', location: '서울'),
+      ]);
+      expect(n, 2);
+    });
+
+    test('0 when empty or no record carries a location', () {
+      expect(locationEntryCount(const []), 0);
+      expect(
+        locationEntryCount([
+          _entry(id: 'a', at: DateTime(2026, 6, 1)),
+          _entry(id: 'b', at: DateTime(2026, 6, 2), location: ''),
+        ]),
+        0,
+      );
+    });
+  });
 }
