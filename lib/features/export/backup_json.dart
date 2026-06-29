@@ -98,6 +98,60 @@ BackupData parseBackupJson(String raw) {
   );
 }
 
+/// Counts for a restore preview: how many records are brand new vs. already
+/// present (matched by id, and therefore overwritten by the backup copy).
+class RestoreSummary {
+  const RestoreSummary({
+    required this.newJournals,
+    required this.updatedJournals,
+    required this.newEntries,
+    required this.updatedEntries,
+  });
+
+  final int newJournals;
+  final int updatedJournals;
+  final int newEntries;
+  final int updatedEntries;
+
+  int get totalJournals => newJournals + updatedJournals;
+  int get totalEntries => newEntries + updatedEntries;
+}
+
+/// Pure: classifies a [backup]'s records against what already exists (by id) so
+/// the UI can preview and report the restore. Mutates nothing. A record whose
+/// id already exists will be overwritten (counted as "updated"); the rest are
+/// "new".
+RestoreSummary summarizeRestore({
+  required Set<String> existingJournalIds,
+  required Set<String> existingEntryIds,
+  required BackupData backup,
+}) {
+  var newJournals = 0;
+  var updatedJournals = 0;
+  for (final j in backup.journals) {
+    if (existingJournalIds.contains(j.journalId)) {
+      updatedJournals++;
+    } else {
+      newJournals++;
+    }
+  }
+  var newEntries = 0;
+  var updatedEntries = 0;
+  for (final e in backup.entries) {
+    if (existingEntryIds.contains(e.entryId)) {
+      updatedEntries++;
+    } else {
+      newEntries++;
+    }
+  }
+  return RestoreSummary(
+    newJournals: newJournals,
+    updatedJournals: updatedJournals,
+    newEntries: newEntries,
+    updatedEntries: updatedEntries,
+  );
+}
+
 // ── serialization helpers ──────────────────────────────────────────────────
 
 Map<String, dynamic> _entryToJson(DiaryEntry e) => {

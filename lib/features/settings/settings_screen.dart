@@ -79,6 +79,7 @@ class SettingsScreen extends ConsumerWidget {
           _ReadingTextSizeTile(),
           _ExportTile(),
           _BackupJsonTile(),
+          _RestoreJsonTile(),
           _TrashTile(),
           _SectionTile(
             icon: Icons.notifications_none,
@@ -304,6 +305,101 @@ class _BackupJsonTile extends ConsumerWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Restores a JSON backup from the clipboard. Parses, asks for confirmation
+/// (it overwrites records that share an id), then upserts every journal + entry
+/// by id and refreshes. Existing records not in the backup are left untouched.
+class _RestoreJsonTile extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: ListTile(
+        leading: const Icon(Icons.settings_backup_restore,
+            color: AppColors.textSecondary),
+        title: const Text('백업 복원'),
+        subtitle: const Text('클립보드의 JSON 백업을 불러와 기록을 되살려요'),
+        trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
+        onTap: () => _restore(context, ref),
+      ),
+    );
+  }
+
+  Future<void> _restore(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final clip = await Clipboard.getData(Clipboard.kTextPlain);
+    final raw = clip?.text?.trim() ?? '';
+    if (raw.isEmpty) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('클립보드에 복원할 백업이 없어요')),
+      );
+      return;
+    }
+
+    BackupData data;
+    try {
+      data = parseBackupJson(raw);
+    } on BackupParseException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+      return;
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('백업을 읽을 수 없어요')),
+      );
+      return;
+    }
+
+    final journalsNow = ref.read(journalsProvider).asData?.value ?? const [];
+    final entriesNow = ref.read(entriesProvider).asData?.value ?? const [];
+    final summary = summarizeRestore(
+      existingJournalIds: {for (final j in journalsNow) j.journalId},
+      existingEntryIds: {for (final e in entriesNow) e.entryId},
+      backup: data,
+    );
+
+    if (!context.mounted) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('백업 복원'),
+        content: Text(
+          '기록 ${summary.totalEntries}개 · 일기장 ${summary.totalJournals}개를 복원해요.\n'
+          '새로 추가 ${summary.newEntries}개 · 덮어쓰기 ${summary.updatedEntries}개\n\n'
+          '같은 기록은 백업 내용으로 덮어쓰고, 백업에 없는 기존 기록은 그대로 둬요. 계속할까요?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('복원'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    final journalRepo = ref.read(journalRepositoryProvider);
+    final diaryRepo = ref.read(diaryRepositoryProvider);
+    for (final j in data.journals) {
+      await journalRepo.save(j);
+    }
+    for (final e in data.entries) {
+      await diaryRepo.save(e);
+    }
+    ref.invalidate(entriesProvider);
+    ref.invalidate(journalsProvider);
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text('복원 완료 · 기록 ${summary.totalEntries}개 '
+            '(새 ${summary.newEntries} · 갱신 ${summary.updatedEntries})'),
       ),
     );
   }

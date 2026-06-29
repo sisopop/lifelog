@@ -147,6 +147,65 @@ void main() {
     });
   });
 
+  group('summarizeRestore', () {
+    test('classifies records as new vs overwrite by id', () {
+      final backup = BackupData(
+        version: 1,
+        journals: [_journal(id: 'jr_1'), _journal(id: 'jr_new')],
+        entries: [
+          _entry(id: 'e_1'),
+          _entry(id: 'e_2'),
+          _entry(id: 'e_new'),
+        ],
+      );
+      final s = summarizeRestore(
+        existingJournalIds: {'jr_1'},
+        existingEntryIds: {'e_1', 'e_2'},
+        backup: backup,
+      );
+      expect(s.newJournals, 1);
+      expect(s.updatedJournals, 1);
+      expect(s.totalJournals, 2);
+      expect(s.newEntries, 1);
+      expect(s.updatedEntries, 2);
+      expect(s.totalEntries, 3);
+    });
+
+    test('a self-restore (same ids) is all overwrite, nothing new', () {
+      final backup = BackupData(
+        version: 1,
+        journals: [_journal(id: 'jr_1')],
+        entries: [_entry(id: 'e_1'), _entry(id: 'e_2')],
+      );
+      final s = summarizeRestore(
+        existingJournalIds: {'jr_1'},
+        existingEntryIds: {'e_1', 'e_2'},
+        backup: backup,
+      );
+      expect(s.newJournals, 0);
+      expect(s.newEntries, 0);
+      expect(s.updatedJournals, 1);
+      expect(s.updatedEntries, 2);
+    });
+
+    test('restoring into an empty app is all new', () {
+      final backup = BackupData(
+        version: 1,
+        journals: [_journal(id: 'jr_1')],
+        entries: [_entry(id: 'e_1')],
+      );
+      final s = summarizeRestore(
+        existingJournalIds: const {},
+        existingEntryIds: const {},
+        backup: backup,
+      );
+      expect(s.newJournals, 1);
+      expect(s.newEntries, 1);
+      expect(s.updatedJournals, 0);
+      expect(s.updatedEntries, 0);
+    });
+  });
+
   group('parseBackupJson guards', () {
     test('throws on non-JSON text', () {
       expect(() => parseBackupJson('not json{'),
