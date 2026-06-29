@@ -29,3 +29,12 @@ String? writingMilestone(int chars) {
   if (chars >= 100) return '✍️ 벌써 100자를 넘겼어요';
   return null;
 }
+
+/// Rough reading-time estimate for the entry body, surfaced only once it is
+/// long enough to be worth showing (>= 200 graphemes). Korean prose reads at
+/// roughly 500 chars/min; returns the minute count rounded up (min 1), or null
+/// when the text is still short. Pure & top-level so it is unit-testable.
+int? readingMinutes(int chars) {
+  if (chars < 200) return null;
+  return (chars / 500).ceil();
+}

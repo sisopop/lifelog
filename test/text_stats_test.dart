@@ -52,4 +52,19 @@ void main() {
       expect(writingMilestone(5000), '🏆 1000자 돌파, 대단해요!');
     });
   });
+
+  group('readingMinutes', () {
+    test('returns null below the 200-char threshold', () {
+      expect(readingMinutes(0), isNull);
+      expect(readingMinutes(199), isNull);
+    });
+
+    test('rounds up to whole minutes at ~500 chars/min', () {
+      expect(readingMinutes(200), 1);
+      expect(readingMinutes(500), 1);
+      expect(readingMinutes(501), 2);
+      expect(readingMinutes(1000), 2);
+      expect(readingMinutes(1200), 3);
+    });
+  });
 }

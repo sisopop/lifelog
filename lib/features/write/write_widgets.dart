@@ -53,6 +53,58 @@ class _JournalSelector extends StatelessWidget {
   }
 }
 
+/// Right-aligned meta below the content field: live char/word count, an
+/// optional encouragement milestone, and a rough reading-time estimate once
+/// the entry is long enough. All values come from pure helpers in
+/// `text_stats.dart`.
+class _ContentMeta extends StatelessWidget {
+  const _ContentMeta(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = textStats(text);
+    final milestone = writingMilestone(s.chars);
+    final minutes = readingMinutes(s.chars);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            '글자 ${s.chars} · 단어 ${s.words}',
+            style: const TextStyle(fontSize: 12, color: AppColors.textHint),
+          ),
+        ),
+        if (minutes != null) ...[
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              '📖 약 $minutes분 읽을 분량',
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ),
+        ],
+        if (milestone != null) ...[
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              milestone,
+              style: const TextStyle(
+                  fontSize: 12,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _AttachButton extends StatelessWidget {
   const _AttachButton(this.icon, this.label, this.onTap);
   final IconData icon;
