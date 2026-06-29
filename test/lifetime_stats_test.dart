@@ -864,6 +864,37 @@ void main() {
     });
   });
 
+  group('sharedEntryCount', () {
+    test('counts top-level records shared beyond private', () {
+      final n = sharedEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), visibility: EntryVisibility.link),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), visibility: EntryVisibility.public),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+      ]);
+      expect(n, 2);
+    });
+
+    test('replies are excluded', () {
+      final n = sharedEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), visibility: EntryVisibility.link),
+        _entry(
+            id: 'r',
+            at: DateTime(2026, 6, 1),
+            replyTo: 'a',
+            visibility: EntryVisibility.public),
+      ]);
+      expect(n, 1);
+    });
+
+    test('zero when every record stays private', () {
+      final n = sharedEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        _entry(id: 'b', at: DateTime(2026, 6, 2)),
+      ]);
+      expect(n, 0);
+    });
+  });
+
   group('positiveMoodShare', () {
     test('share of "good" among records that carry a mood, rounded', () {
       // 1 good of 2 mood-bearing records → 50%. The 3rd record has no mood and

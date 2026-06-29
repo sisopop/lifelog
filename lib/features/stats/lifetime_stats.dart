@@ -170,6 +170,18 @@ int? sharedEntryShareOfMonth(List<DiaryEntry> entries, int year, int month) {
   return sharedEntryShare(monthly.toList());
 }
 
+/// Pure: how many top-level records are shared — visibility is
+/// [EntryVisibility.link] or [EntryVisibility.public]. Replies are excluded.
+/// Returns 0 when none. The count companion to [sharedEntryShare].
+int sharedEntryCount(List<DiaryEntry> entries) {
+  var shared = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.visibility != EntryVisibility.private) shared++;
+  }
+  return shared;
+}
+
 /// Pure: what share of top-level records carry a non-empty title, as a 0–100
 /// percent. Replies are excluded. A title counts only when it has non-whitespace
 /// text. Returns null when there are no top-level records.

@@ -361,6 +361,16 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   );
                 }),
                 Builder(builder: (context) {
+                  final shared = sharedEntryCount(entries);
+                  if (shared == 0) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '🔗 공유한 기록이 $shared개예요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final pct = sharedEntryShare(entries);
                   if (pct == null || pct == 0) return const SizedBox.shrink();
                   return Padding(
