@@ -15,6 +15,7 @@ import '../entries/entries_provider.dart';
 import '../journals/journal_repository.dart';
 import '../timeline/timeline_filter.dart';
 import 'date_field.dart';
+import 'draft_guard.dart';
 import 'entry_date.dart';
 import 'tag_input_sheet.dart';
 import 'text_stats.dart';
@@ -254,6 +255,19 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     if (mounted) context.pop();
   }
 
+  /// Closes the writer, asking first if a new draft would be thrown away.
+  Future<void> _confirmClose() async {
+    if (!hasUnsavedDraft(
+      isEditing: _isEditing,
+      title: _titleCtrl.text,
+      content: _contentCtrl.text,
+    )) {
+      context.pop();
+      return;
+    }
+    if (await confirmLeaveDraft(context) && mounted) context.pop();
+  }
+
   /// Bottom sheet to change which journal this new entry is saved into.
   Future<void> _pickJournal(List<Journal> journals) async {
     final active = journals.where((j) => !j.isArchived).toList();
@@ -305,7 +319,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? '기록 수정' : '새 기록'),
-        leading: IconButton(icon: const Icon(Icons.close), onPressed: () => context.pop()),
+        leading: IconButton(
+            icon: const Icon(Icons.close), onPressed: _confirmClose),
       ),
       body: ListView(
         padding: const EdgeInsets.all(20),
