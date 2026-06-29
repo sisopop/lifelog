@@ -198,6 +198,18 @@ int titledEntryCount(List<DiaryEntry> entries) {
   return titled;
 }
 
+/// Pure: how many top-level records carry at least one tag. Replies are
+/// excluded. Returns 0 when none do — the count companion to [taggedEntryShare],
+/// mirroring how [photoEntryCount]/[titledEntryCount] sit beside their shares.
+int taggedEntryCount(List<DiaryEntry> entries) {
+  var tagged = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.tags.isNotEmpty) tagged++;
+  }
+  return tagged;
+}
+
 /// Pure: the longest consecutive-day recording run within one calendar month.
 /// Filters [entries] to the given [year]/[month], then reuses [recordedDates]
 /// and [longestStreak] (both replies-excluded). Returns 0 when that month has

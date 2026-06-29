@@ -1697,4 +1697,27 @@ void main() {
       );
     });
   });
+
+  group('taggedEntryCount', () {
+    test('counts tagged top-level records, excludes replies', () {
+      // 2 tagged top-level; the untagged one and the tagged reply don't count.
+      final n = taggedEntryCount([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['가족']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), tags: ['일상', '육아']),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)),
+        _entry(id: 'r', at: DateTime(2026, 6, 4), replyTo: 'a', tags: ['답장']),
+      ]);
+      expect(n, 2);
+    });
+
+    test('0 when empty or no record carries a tag', () {
+      expect(taggedEntryCount(const []), 0);
+      expect(
+        taggedEntryCount([
+          _entry(id: 'a', at: DateTime(2026, 6, 1)),
+        ]),
+        0,
+      );
+    });
+  });
 }
