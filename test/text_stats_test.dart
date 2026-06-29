@@ -34,4 +34,22 @@ void main() {
       expect(s.words, 1);
     });
   });
+
+  group('writingMilestone', () {
+    test('returns null below the first threshold', () {
+      expect(writingMilestone(0), isNull);
+      expect(writingMilestone(99), isNull);
+    });
+
+    test('returns the highest milestone reached', () {
+      expect(writingMilestone(100), '✍️ 벌써 100자를 넘겼어요');
+      expect(writingMilestone(299), '✍️ 벌써 100자를 넘겼어요');
+      expect(writingMilestone(300), '✨ 300자, 술술 써지네요');
+      expect(writingMilestone(499), '✨ 300자, 술술 써지네요');
+      expect(writingMilestone(500), '🔥 500자를 넘겼어요!');
+      expect(writingMilestone(999), '🔥 500자를 넘겼어요!');
+      expect(writingMilestone(1000), '🏆 1000자 돌파, 대단해요!');
+      expect(writingMilestone(5000), '🏆 1000자 돌파, 대단해요!');
+    });
+  });
 }

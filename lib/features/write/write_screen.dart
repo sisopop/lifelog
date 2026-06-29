@@ -360,12 +360,32 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           const SizedBox(height: 6),
           Builder(builder: (context) {
             final s = textStats(_contentCtrl.text);
-            return Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '글자 ${s.chars} · 단어 ${s.words}',
-                style: const TextStyle(fontSize: 12, color: AppColors.textHint),
-              ),
+            final milestone = writingMilestone(s.chars);
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '글자 ${s.chars} · 단어 ${s.words}',
+                    style: const TextStyle(
+                        fontSize: 12, color: AppColors.textHint),
+                  ),
+                ),
+                if (milestone != null) ...[
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      milestone,
+                      style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ],
             );
           }),
           if (_contentCtrl.text.trim().isEmpty) ...[
