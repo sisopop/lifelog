@@ -223,6 +223,16 @@ int locationEntryCount(List<DiaryEntry> entries) {
   return located;
 }
 
+/// Pure: how many top-level records in [year]/[month] carry a non-empty title,
+/// reusing [titledEntryCount] on that month's entries. Replies are excluded.
+/// The monthly count companion of [titleEntryShareOfMonth] for the review
+/// screen, mirroring how [photoEntryCountOfMonth] sits beside its share line.
+int titledEntryCountOfMonth(List<DiaryEntry> entries, int year, int month) {
+  final monthly = entries.where(
+      (e) => e.createdAt.year == year && e.createdAt.month == month);
+  return titledEntryCount(monthly.toList());
+}
+
 /// Pure: the longest consecutive-day recording run within one calendar month.
 /// Filters [entries] to the given [year]/[month], then reuses [recordedDates]
 /// and [longestStreak] (both replies-excluded). Returns 0 when that month has

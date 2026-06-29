@@ -1746,4 +1746,30 @@ void main() {
       );
     });
   });
+
+  group('titledEntryCountOfMonth', () {
+    test('counts titled top-level records in that month only, excludes replies',
+        () {
+      // June: 2 titled (incl. trimmed); blank June, titled July, titled reply skip.
+      final n = titledEntryCountOfMonth([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), title: '제주도에서의 하루'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), title: '  봄 '),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), title: '   '),
+        _entry(id: 'd', at: DateTime(2026, 7, 4), title: '여름'),
+        _entry(id: 'r', at: DateTime(2026, 6, 5), replyTo: 'a', title: '답장'),
+      ], 2026, 6);
+      expect(n, 2);
+    });
+
+    test('0 when empty or no record in the month has a title', () {
+      expect(titledEntryCountOfMonth(const [], 2026, 6), 0);
+      expect(
+        titledEntryCountOfMonth([
+          _entry(id: 'a', at: DateTime(2026, 5, 1), title: '지난달'),
+          _entry(id: 'b', at: DateTime(2026, 6, 2)),
+        ], 2026, 6),
+        0,
+      );
+    });
+  });
 }
