@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lifelog/features/auth/session.dart';
 
 void main() {
-  test('session starts logged out and persists login/logout', () async {
+  test('session starts logged out and persists guest login/logout', () async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final container = ProviderContainer(
@@ -15,9 +15,10 @@ void main() {
 
     expect(container.read(sessionProvider).loggedIn, isFalse);
 
-    await container.read(sessionProvider.notifier).login('지연');
+    await container.read(sessionProvider.notifier).loginGuest('지연');
     expect(container.read(sessionProvider).loggedIn, isTrue);
     expect(container.read(sessionProvider).name, '지연');
+    expect(container.read(sessionProvider).isGuest, isTrue);
     expect(prefs.getBool('loggedIn'), isTrue);
 
     await container.read(sessionProvider.notifier).logout();
