@@ -1772,4 +1772,32 @@ void main() {
       );
     });
   });
+
+  group('maxTagsOnEntry', () {
+    test('returns the largest tag count on any single entry', () {
+      final n = maxTagsOnEntry([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['x', 'y', 'z']),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), tags: ['x']),
+        _entry(id: 'c', at: DateTime(2026, 6, 3)), // no tags
+      ]);
+      expect(n, 3);
+    });
+
+    test('ignores replies (even if a reply has more tags)', () {
+      final n = maxTagsOnEntry([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), tags: ['x', 'y']),
+        _entry(
+            id: 'r',
+            at: DateTime(2026, 6, 2),
+            replyTo: 'a',
+            tags: ['p', 'q', 'r', 's']),
+      ]);
+      expect(n, 2);
+    });
+
+    test('0 when empty or no entry carries a tag', () {
+      expect(maxTagsOnEntry(const []), 0);
+      expect(maxTagsOnEntry([_entry(id: 'a', at: DateTime(2026, 6, 1))]), 0);
+    });
+  });
 }

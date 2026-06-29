@@ -212,6 +212,18 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   );
                 }),
                 Builder(builder: (context) {
+                  // The most-tagged single entry. Only interesting past 1 tag —
+                  // at 1 it just echoes "태그를 단 기록".
+                  final most = maxTagsOnEntry(entries);
+                  if (most < 2) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '🔖 한 기록에 최대 $most개의 태그를 달았어요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final located = locationEntryCount(entries);
                   if (located == 0) return const SizedBox.shrink();
                   return Padding(

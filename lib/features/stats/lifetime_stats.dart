@@ -455,3 +455,16 @@ int recordedDaysThisYear(List<DiaryEntry> entries, DateTime now) {
   }
   return days.length;
 }
+
+/// Pure: the most tags carried by any single top-level record — i.e. the
+/// largest [DiaryEntry.tags] length. Unlike the tag-share insight (how many
+/// records are tagged), this surfaces the user's most-tagged entry. Replies are
+/// excluded. Returns 0 when no top-level record carries a tag.
+int maxTagsOnEntry(List<DiaryEntry> entries) {
+  var most = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.tags.length > most) most = e.tags.length;
+  }
+  return most;
+}
