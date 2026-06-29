@@ -279,6 +279,18 @@ class LifetimeStatsScreen extends ConsumerWidget {
                   );
                 }),
                 Builder(builder: (context) {
+                  // How concentrated records are in the busiest journal. Hidden
+                  // when only one journal is used (share would be a trivial 100%).
+                  final pct = busiestJournalShare(entries);
+                  if (pct == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: _InsightLine(
+                      text: '📊 기록의 $pct%가 그 일기장에 모여 있어요',
+                    ),
+                  );
+                }),
+                Builder(builder: (context) {
                   final replies = replyCount(entries);
                   if (replies == 0) return const SizedBox.shrink();
                   return Padding(

@@ -352,6 +352,23 @@ MapEntry<String, int>? busiestJournal(List<DiaryEntry> entries) {
   return best;
 }
 
+/// Pure: what share (0–100, rounded) of top-level records live in the single
+/// most-used journal — a concentration figure beside the [busiestJournal] line.
+/// Reuses [busiestJournal] for the winning journal's count and the total of
+/// non-reply records as the denominator. Returns null whenever [busiestJournal]
+/// does (no records, or only one journal in use — its share is trivially 100%).
+int? busiestJournalShare(List<DiaryEntry> entries) {
+  final busy = busiestJournal(entries);
+  if (busy == null) return null;
+  var total = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    total++;
+  }
+  if (total == 0) return null;
+  return (busy.value * 100 / total).round();
+}
+
 /// Pure: how many 답장(reply) records exist across all [entries] — records
 /// whose [DiaryEntry.replyToEntryId] is non-null. This is the one figure that
 /// COUNTS replies instead of excluding them (every other stat drops them).

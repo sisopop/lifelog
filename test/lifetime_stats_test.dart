@@ -964,6 +964,42 @@ void main() {
     });
   });
 
+  group('busiestJournalShare', () {
+    test('share of top-level records in the busiest journal, rounded', () {
+      // j1: 3, j2: 2 → busiest j1 = 3/5 = 60%.
+      final pct = busiestJournalShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), journalId: 'j1'),
+        _entry(id: 'd', at: DateTime(2026, 6, 4), journalId: 'j2'),
+        _entry(id: 'e', at: DateTime(2026, 6, 5), journalId: 'j2'),
+      ]);
+      expect(pct, 60);
+    });
+
+    test('replies are excluded from both numerator and denominator', () {
+      // Top-level: j1 2, j2 1 → 2/3 ≈ 67%. Replies in j2 must not count.
+      final pct = busiestJournalShare([
+        _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+        _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+        _entry(id: 'c', at: DateTime(2026, 6, 3), journalId: 'j2'),
+        _entry(id: 'r', at: DateTime(2026, 6, 3), replyTo: 'c', journalId: 'j2'),
+      ]);
+      expect(pct, 67);
+    });
+
+    test('null when empty or only one journal is in use', () {
+      expect(busiestJournalShare(const []), isNull);
+      expect(
+        busiestJournalShare([
+          _entry(id: 'a', at: DateTime(2026, 6, 1), journalId: 'j1'),
+          _entry(id: 'b', at: DateTime(2026, 6, 2), journalId: 'j1'),
+        ]),
+        isNull,
+      );
+    });
+  });
+
   group('replyCount', () {
     test('counts only reply records, ignoring top-level ones', () {
       final n = replyCount([
