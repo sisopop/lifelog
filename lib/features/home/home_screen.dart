@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../config/notice_banner.dart';
+import '../config/remote_config_provider.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../memories/on_this_day_section.dart';
@@ -37,6 +38,11 @@ class HomeScreen extends ConsumerWidget {
     final allEntries = ref.watch(entriesProvider).asData?.value ?? const [];
     final byActivity = ref.watch(homeJournalSortProvider);
     final layout = ref.watch(homeJournalLayoutProvider);
+    // Admin-controlled (skeleton: dummy config). Defaults ON so a missing or
+    // offline config never hides the user's memory surfaces.
+    final showMemories = ref
+        .watch(remoteConfigProvider)
+        .isFeatureEnabled('homeMemories', orElse: true);
     final journals = byActivity
         ? sortJournalsByActivity(rawJournals, allEntries)
         : rawJournals;
@@ -124,9 +130,11 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 20),
             const TodayPromptSection(),
             const WeeklyStripSection(),
-            const SizedBox(height: 16),
-            const OnThisDaySection(),
-            const RandomMemorySection(),
+            if (showMemories) ...[
+              const SizedBox(height: 16),
+              const OnThisDaySection(),
+              const RandomMemorySection(),
+            ],
             if (journals.isEmpty && !journalsFailed)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 36),

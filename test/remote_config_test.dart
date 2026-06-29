@@ -92,4 +92,20 @@ void main() {
       expect(config.isFeatureEnabled('ads'), false);
     });
   });
+
+  group('homeMemories gating', () {
+    // Mirrors how home_screen decides whether to show the memory surfaces:
+    // isFeatureEnabled('homeMemories', orElse: true).
+    test('dummy turns the home memory surfaces on', () {
+      expect(dummyRemoteConfig().isFeatureEnabled('homeMemories', orElse: true),
+          true);
+    });
+
+    test('absent flag stays on (safe default), explicit false hides', () {
+      const absent = RemoteConfig();
+      const off = RemoteConfig(features: {'homeMemories': false});
+      expect(absent.isFeatureEnabled('homeMemories', orElse: true), true);
+      expect(off.isFeatureEnabled('homeMemories', orElse: true), false);
+    });
+  });
 }

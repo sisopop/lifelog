@@ -121,6 +121,7 @@ RemoteConfig dummyRemoteConfig() => RemoteConfig(
         'ads': false,
         'limitedSales': true,
         'skinShop': false,
+        'homeMemories': true,
       },
       notices: [
         const AppNotice(
