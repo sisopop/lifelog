@@ -139,4 +139,38 @@ void main() {
       expect(layersByZ(base).map((l) => l.id), ['b', 'c', 'a']);
     });
   });
+
+  group('paper (속지 무늬)', () {
+    test('defaults to plain', () {
+      expect(const PageCanvas().paper, PaperStyle.plain);
+    });
+
+    test('round-trips through encode/decode', () {
+      final canvas = PageCanvas(paper: PaperStyle.grid, layers: [_layer('a')]);
+      final back = decodePageCanvas(encodePageCanvas(canvas));
+      expect(back.paper, PaperStyle.grid);
+      expect(back.layers.single.id, 'a');
+    });
+
+    test('unknown / missing paper name falls back to plain', () {
+      expect(decodePageCanvas('{"paper":"weird"}').paper, PaperStyle.plain);
+      expect(decodePageCanvas('{"layers":[]}').paper, PaperStyle.plain);
+    });
+
+    test('setPaper swaps only the style, keeps layers, no mutation', () {
+      final base = PageCanvas(layers: [_layer('a'), _layer('b')]);
+      final next = setPaper(base, PaperStyle.dotted);
+      expect(next.paper, PaperStyle.dotted);
+      expect(next.layers.map((l) => l.id), ['a', 'b']);
+      expect(base.paper, PaperStyle.plain); // unchanged
+    });
+
+    test('layer ops preserve the chosen paper', () {
+      final base = PageCanvas(paper: PaperStyle.lined, layers: [_layer('a')]);
+      expect(addLayer(base, _layer('b')).paper, PaperStyle.lined);
+      expect(removeLayer(base, 'a').paper, PaperStyle.lined);
+      expect(replaceLayer(base, _layer('a').copyWith(x: 0.1)).paper,
+          PaperStyle.lined);
+    });
+  });
 }

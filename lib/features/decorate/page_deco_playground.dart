@@ -24,6 +24,18 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
   int _seq = 0;
   int _categoryIndex = 0;
 
+  // 속지(배경) 무늬 — 디자인 가이드 캔버스 토큰을 그대로 채택.
+  static const _paperBg = Color(0xFFFFF8F0); // canvasPaperCream
+  static const _gridLine = Color(0xFFE0D5C5); // canvasGridLine
+  static const _dotColor = Color(0xFFCFC3B0); // canvasDot
+
+  static const _paperLabels = {
+    PaperStyle.plain: '무지',
+    PaperStyle.lined: '줄',
+    PaperStyle.grid: '모눈',
+    PaperStyle.dotted: '도트',
+  };
+
   DecoLayer? get _selected {
     for (final l in _canvas.layers) {
       if (l.id == _selectedId) return l;
@@ -73,7 +85,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               tooltip: '모두 지우기',
               icon: const Icon(Icons.delete_sweep_outlined),
               onPressed: () => setState(() {
-                _canvas = const PageCanvas();
+                _canvas = PageCanvas(paper: _canvas.paper);
                 _selectedId = null;
               }),
             ),
@@ -83,6 +95,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         children: [
           Expanded(child: _page()),
           if (_selected != null) _selectedToolbar(),
+          _paperSelector(),
           _palette(),
         ],
       ),
@@ -96,7 +109,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFFFFDF7), // 크림 속지
+            color: _paperBg, // 크림 속지
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
@@ -114,6 +127,11 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
                 onTap: () => setState(() => _selectedId = null),
                 child: Stack(
                   children: [
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _PaperPainter(_canvas.paper),
+                      ),
+                    ),
                     if (_canvas.isEmpty)
                       const Center(
                         child: Text(
@@ -221,6 +239,30 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     );
   }
 
+  Widget _paperSelector() {
+    return Container(
+      color: AppColors.surface,
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+      child: Row(
+        children: [
+          const Text('속지',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          const SizedBox(width: 8),
+          for (final style in PaperStyle.values)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: ChoiceChip(
+                label: Text(_paperLabels[style]!),
+                selected: _canvas.paper == style,
+                onSelected: (_) =>
+                    setState(() => _canvas = setPaper(_canvas, style)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _palette() {
     final category = kStickerCatalog[_categoryIndex];
     return Container(
@@ -266,4 +308,49 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       ),
     );
   }
+}
+
+/// 속지(배경) 무늬를 그리는 페인터. 줄/모눈/도트를 일정 간격으로 채운다.
+/// plain은 아무것도 그리지 않는다(크림 배경만 보임).
+class _PaperPainter extends CustomPainter {
+  const _PaperPainter(this.style);
+
+  final PaperStyle style;
+
+  static const double _gap = 28; // 줄/격자/도트 간격(논리 픽셀)
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    switch (style) {
+      case PaperStyle.plain:
+        return;
+      case PaperStyle.lined:
+        final paint = Paint()
+          ..color = _PageDecoPlaygroundState._gridLine
+          ..strokeWidth = 1;
+        for (var y = _gap; y < size.height; y += _gap) {
+          canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+        }
+      case PaperStyle.grid:
+        final paint = Paint()
+          ..color = _PageDecoPlaygroundState._gridLine
+          ..strokeWidth = 1;
+        for (var y = _gap; y < size.height; y += _gap) {
+          canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+        }
+        for (var x = _gap; x < size.width; x += _gap) {
+          canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+        }
+      case PaperStyle.dotted:
+        final paint = Paint()..color = _PageDecoPlaygroundState._dotColor;
+        for (var y = _gap; y < size.height; y += _gap) {
+          for (var x = _gap; x < size.width; x += _gap) {
+            canvas.drawCircle(Offset(x, y), 1.4, paint);
+          }
+        }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_PaperPainter oldDelegate) => oldDelegate.style != style;
 }

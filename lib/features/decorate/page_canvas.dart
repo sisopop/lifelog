@@ -18,6 +18,14 @@ DecoKind _kindFromName(String? name) => DecoKind.values.firstWhere(
       orElse: () => DecoKind.sticker,
     );
 
+/// 페이지 속지(배경) 무늬. plain=무지, lined=가로줄, grid=모눈, dotted=도트.
+enum PaperStyle { plain, lined, grid, dotted }
+
+PaperStyle _paperFromName(String? name) => PaperStyle.values.firstWhere(
+      (p) => p.name == name,
+      orElse: () => PaperStyle.plain,
+    );
+
 /// 0~1 범위로 가둔다(페이지 밖으로 중심이 빠져나가지 않도록).
 double clampUnit(double v) => v < 0 ? 0 : (v > 1 ? 1 : v);
 
@@ -94,11 +102,18 @@ class DecoLayer {
 double _toDouble(Object? v, double fallback) =>
     v is num ? v.toDouble() : fallback;
 
-/// 한 기록 페이지의 꾸미기 문서: 레이어 묶음 + 포맷 버전.
+/// 한 기록 페이지의 꾸미기 문서: 레이어 묶음 + 속지 무늬 + 포맷 버전.
 class PageCanvas {
-  const PageCanvas({this.layers = const [], this.version = 1});
+  const PageCanvas({
+    this.layers = const [],
+    this.paper = PaperStyle.plain,
+    this.version = 1,
+  });
 
   final List<DecoLayer> layers;
+
+  /// 속지(배경) 무늬. 레이어가 없어도 배경만 골라 꾸밀 수 있다.
+  final PaperStyle paper;
   final int version;
 
   bool get isEmpty => layers.isEmpty;
@@ -109,6 +124,7 @@ class PageCanvas {
 
   Map<String, dynamic> toJson() => {
         'version': version,
+        'paper': paper.name,
         'layers': layers.map((l) => l.toJson()).toList(),
       };
 
@@ -122,6 +138,7 @@ class PageCanvas {
         : <DecoLayer>[];
     return PageCanvas(
       layers: layers,
+      paper: _paperFromName(json['paper'] as String?),
       version: (json['version'] as num?)?.toInt() ?? 1,
     );
   }
@@ -146,12 +163,14 @@ PageCanvas decodePageCanvas(String? raw) {
 /// 레이어를 맨 위(topZ+1)에 추가한 새 캔버스를 반환한다. 원본은 불변.
 PageCanvas addLayer(PageCanvas canvas, DecoLayer layer) => PageCanvas(
       version: canvas.version,
+      paper: canvas.paper,
       layers: [...canvas.layers, layer.copyWith(z: canvas.topZ + 1)],
     );
 
 /// id에 해당하는 레이어를 제거한 새 캔버스를 반환한다. 원본은 불변.
 PageCanvas removeLayer(PageCanvas canvas, String id) => PageCanvas(
       version: canvas.version,
+      paper: canvas.paper,
       layers: canvas.layers.where((l) => l.id != id).toList(),
     );
 
@@ -159,8 +178,17 @@ PageCanvas removeLayer(PageCanvas canvas, String id) => PageCanvas(
 /// 위치·크기·회전 편집에 쓴다. 원본은 불변.
 PageCanvas replaceLayer(PageCanvas canvas, DecoLayer updated) => PageCanvas(
       version: canvas.version,
+      paper: canvas.paper,
       layers:
           canvas.layers.map((l) => l.id == updated.id ? updated : l).toList(),
+    );
+
+/// 속지(배경) 무늬만 [style]로 바꾼 새 캔버스를 반환한다(레이어는 그대로).
+/// 원본은 불변.
+PageCanvas setPaper(PageCanvas canvas, PaperStyle style) => PageCanvas(
+      version: canvas.version,
+      paper: style,
+      layers: canvas.layers,
     );
 
 /// id 레이어를 맨 위로 올린(z=topZ+1) 새 캔버스를 반환한다. 원본은 불변.
