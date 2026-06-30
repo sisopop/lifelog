@@ -251,6 +251,28 @@ void main() {
     });
   });
 
+  group('longestSentenceLength', () {
+    test('returns the longest sentence grapheme length', () {
+      // "Why"(3) "Because"(7) "How"(3) → 7
+      expect(longestSentenceLength('Why? Because. How?'), 7);
+    });
+
+    test('counts Korean syllables as one grapheme each', () {
+      // "가나다"(3) "라"(1) → 3
+      expect(longestSentenceLength('가나다. 라.'), 3);
+    });
+
+    test('null below 2 sentences', () {
+      expect(longestSentenceLength('한 문장뿐'), isNull);
+      expect(longestSentenceLength(''), isNull);
+    });
+
+    test('line breaks split sentences too', () {
+      // "짧다"(2) vs "더 긴 문장이다"(8, spaces included) → 8
+      expect(longestSentenceLength('짧다\n더 긴 문장이다'), 8);
+    });
+  });
+
   group('averageWordLength', () {
     test('chars per word, excluding whitespace', () {
       expect(averageWordLength('hello world'), 5); // 10 letters / 2

@@ -141,6 +141,7 @@ class _ContentMeta extends StatelessWidget {
     final questions = countQuestions(text);
     final avgSentence = averageSentenceLength(text);
     final avgWord = averageWordLength(text);
+    final longestSentence = longestSentenceLength(text);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -160,7 +161,8 @@ class _ContentMeta extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: Text(
               '📝 문장당 평균 $avgSentence자'
-              '${avgWord != null ? ' · 단어당 $avgWord자' : ''}',
+              '${avgWord != null ? ' · 단어당 $avgWord자' : ''}'
+              '${longestSentence != null ? ' · 최장 문장 $longestSentence자' : ''}',
               style: const TextStyle(
                   fontSize: 12, color: AppColors.textSecondary),
             ),

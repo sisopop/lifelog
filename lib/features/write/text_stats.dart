@@ -150,6 +150,28 @@ int? averageSentenceLength(String text) {
   return (chars / sentences).round();
 }
 
+/// The grapheme length of the longest sentence in the body — a complement to
+/// the sentence average that surfaces a single sprawling (run-on) sentence.
+/// Sentences are split like [countSentences] (on `.!?。！？…` and line breaks),
+/// trimmed, and measured by graphemes (so Korean syllables and emoji each count
+/// as one). Returns null below 2 sentences (with one sentence it just equals
+/// the average) or when empty. Pure & top-level so it is unit-testable; the
+/// write meta appends it to the average line only when non-null.
+int? longestSentenceLength(String text) {
+  final segs = text
+      .split(RegExp(r'[.!?。！？…\n]+'))
+      .map((s) => s.trim())
+      .where((s) => s.isNotEmpty)
+      .toList();
+  if (segs.length < 2) return null;
+  var longest = 0;
+  for (final s in segs) {
+    final n = s.characters.length;
+    if (n > longest) longest = n;
+  }
+  return longest;
+}
+
 /// Average characters per word for the body — a rough vocabulary-density hint
 /// shown next to the sentence average. Whitespace is excluded so spaces don't
 /// inflate it (unlike the sentence average's rough char count). Counts
