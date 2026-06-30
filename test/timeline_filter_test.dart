@@ -11,6 +11,7 @@ DiaryEntry _e({
   DateTime? created,
   bool favorite = false,
   List<String> media = const [],
+  String? location,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -20,6 +21,7 @@ DiaryEntry _e({
       mood: mood,
       tags: tags,
       content: 'x',
+      location: location,
       isFavorite: favorite,
       mediaUrls: media,
       createdAt: created ?? DateTime(2026, 1, 1),
@@ -206,6 +208,48 @@ void main() {
       final before = dated.length;
       filterByPeriod(dated, DatePreset.week, now);
       expect(dated.length, before);
+    });
+  });
+
+  group('availableLocations', () {
+    test('ranks distinct places by use, ties alphabetical, replies excluded',
+        () {
+      final list = [
+        _e(id: '1', location: '카페'),
+        _e(id: '2', location: '바다'),
+        _e(id: '3', location: '카페'),
+        _e(id: '4', location: '산', replyTo: '1'), // reply ignored
+        _e(id: '5', location: '  '), // blank ignored
+        _e(id: '6'), // no location
+      ];
+      expect(availableLocations(list), ['카페', '바다']);
+    });
+
+    test('trims and dedupes by trimmed value', () {
+      final list = [
+        _e(id: '1', location: ' 카페 '),
+        _e(id: '2', location: '카페'),
+      ];
+      expect(availableLocations(list), ['카페']);
+    });
+
+    test('empty when no entry has a place', () {
+      expect(availableLocations([_e(id: '1')]), isEmpty);
+    });
+  });
+
+  group('recentLocationSuggestions', () {
+    test('drops the current place and caps the list', () {
+      final all = ['카페', '바다', '산', '강', '들', '숲'];
+      expect(recentLocationSuggestions(all, '바다', max: 3), ['카페', '산', '강']);
+    });
+
+    test('trims the current value before excluding', () {
+      expect(recentLocationSuggestions(['카페', '바다'], ' 카페 '), ['바다']);
+    });
+
+    test('null current keeps everything (capped)', () {
+      expect(recentLocationSuggestions(['카페', '바다'], null), ['카페', '바다']);
     });
   });
 }

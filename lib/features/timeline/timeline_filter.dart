@@ -167,6 +167,37 @@ List<String> availableTags(List<DiaryEntry> entries) {
   return tags;
 }
 
+/// Distinct place names used across top-level entries (replies excluded),
+/// most-used first, ties broken alphabetically. Mirrors [availableTags] so the
+/// writer can re-pick a place it has used before.
+List<String> availableLocations(List<DiaryEntry> entries) {
+  final counts = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final loc = e.location?.trim();
+    if (loc == null || loc.isEmpty) continue;
+    counts[loc] = (counts[loc] ?? 0) + 1;
+  }
+  final locs = counts.keys.toList()
+    ..sort((a, b) {
+      final byCount = counts[b]!.compareTo(counts[a]!);
+      return byCount != 0 ? byCount : a.compareTo(b);
+    });
+  return locs;
+}
+
+/// Past place names to offer as one-tap chips in the location dialog, ranked by
+/// use (see [availableLocations]). Drops the entry's current place (trimmed)
+/// and caps the list. Pure & top-level so it is unit-testable.
+List<String> recentLocationSuggestions(
+  List<String> available,
+  String? current, {
+  int max = 5,
+}) {
+  final cur = current?.trim();
+  return available.where((l) => l != cur).take(max).toList();
+}
+
 class TimelineFilterNotifier extends Notifier<TimelineFilter> {
   @override
   TimelineFilter build() => const TimelineFilter();
@@ -235,4 +266,9 @@ final filteredTimelineProvider = Provider<List<DiaryEntry>>((ref) {
 final availableTagsProvider = Provider<List<String>>((ref) {
   final all = ref.watch(entriesProvider).asData?.value ?? const <DiaryEntry>[];
   return availableTags(all);
+});
+
+final availableLocationsProvider = Provider<List<String>>((ref) {
+  final all = ref.watch(entriesProvider).asData?.value ?? const <DiaryEntry>[];
+  return availableLocations(all);
 });

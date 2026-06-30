@@ -19,6 +19,7 @@ import '../timeline/timeline_filter.dart';
 import 'date_field.dart';
 import 'draft_guard.dart';
 import 'entry_date.dart';
+import 'location_field.dart';
 import 'tag_input_sheet.dart';
 import 'text_stats.dart';
 import 'writing_prompt_card.dart';
@@ -181,28 +182,13 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     if (picked != null) setState(() => _date = picked);
   }
 
-  /// Manually attach/edit a place name for the entry (no GPS needed).
+  /// Manually attach/edit a place name for the entry (no GPS needed). Offers
+  /// one-tap chips for places used before.
   Future<void> _editLocation() async {
-    final ctrl = TextEditingController(text: _location ?? '');
-    final result = await showDialog<String>(
+    final result = await showLocationDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('위치'),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          decoration: const InputDecoration(hintText: '예: 제주 바닷가, 동네 카페'),
-          onSubmitted: (v) => Navigator.pop(ctx, v),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, ''),
-              child: const Text('지우기')),
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, ctrl.text),
-              child: const Text('확인')),
-        ],
-      ),
+      allLocations: ref.read(availableLocationsProvider),
+      current: _location,
     );
     if (result == null) return; // dismissed
     final trimmed = result.trim();
