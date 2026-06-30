@@ -171,4 +171,31 @@ void main() {
       expect(countSentences('...!?'), 0);
     });
   });
+
+  group('countParagraphs', () {
+    test('blocks separated by a blank line count separately', () {
+      expect(countParagraphs('첫 문단\n\n둘째 문단'), 2);
+    });
+
+    test('a single line break does not split a paragraph', () {
+      expect(countParagraphs('한 문단\n같은 문단'), 1);
+    });
+
+    test('text with no blank line is a single paragraph', () {
+      expect(countParagraphs('그냥 평범한 하루'), 1);
+    });
+
+    test('whitespace-only blank line still separates', () {
+      expect(countParagraphs('위\n   \n아래'), 2);
+    });
+
+    test('extra blank lines do not inflate the count', () {
+      expect(countParagraphs('하나\n\n\n\n둘'), 2);
+    });
+
+    test('empty / whitespace only is zero', () {
+      expect(countParagraphs(''), 0);
+      expect(countParagraphs('   \n  \n '), 0);
+    });
+  });
 }

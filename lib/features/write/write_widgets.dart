@@ -137,6 +137,7 @@ class _ContentMeta extends StatelessWidget {
     final milestone = writingMilestone(s.chars);
     final minutes = readingMinutes(s.chars);
     final sentences = countSentences(text);
+    final paragraphs = countParagraphs(text);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -144,7 +145,8 @@ class _ContentMeta extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: Text(
             '글자 ${s.chars} · 단어 ${s.words}'
-            '${sentences > 0 ? ' · 문장 $sentences' : ''}',
+            '${sentences > 0 ? ' · 문장 $sentences' : ''}'
+            '${paragraphs > 1 ? ' · 문단 $paragraphs' : ''}',
             style: const TextStyle(fontSize: 12, color: AppColors.textHint),
           ),
         ),

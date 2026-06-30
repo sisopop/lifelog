@@ -99,3 +99,15 @@ int countSentences(String text) {
       .where((p) => p.trim().isNotEmpty)
       .length;
 }
+
+/// Rough paragraph count for the body: blocks of text separated by a blank
+/// line (one or more line breaks with only whitespace between), counting only
+/// non-empty trimmed blocks. A body with no blank line is a single paragraph;
+/// empty/whitespace only counts as zero. Pure & top-level so it is
+/// unit-testable; the write screen shows it only once there are 2+ paragraphs.
+int countParagraphs(String text) {
+  return text
+      .split(RegExp(r'\n[ \t]*\n'))
+      .where((p) => p.trim().isNotEmpty)
+      .length;
+}
