@@ -138,6 +138,7 @@ class _ContentMeta extends StatelessWidget {
     final minutes = readingMinutes(s.chars);
     final sentences = countSentences(text);
     final paragraphs = countParagraphs(text);
+    final avgSentence = averageSentenceLength(text);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -150,6 +151,17 @@ class _ContentMeta extends StatelessWidget {
             style: const TextStyle(fontSize: 12, color: AppColors.textHint),
           ),
         ),
+        if (avgSentence != null) ...[
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              '📝 문장당 평균 $avgSentence자',
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary),
+            ),
+          ),
+        ],
         if (minutes != null) ...[
           const SizedBox(height: 4),
           Align(

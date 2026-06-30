@@ -209,4 +209,21 @@ void main() {
       expect(countParagraphs('   \n  \n '), 0);
     });
   });
+
+  group('averageSentenceLength', () {
+    test('null below 2 sentences', () {
+      expect(averageSentenceLength(''), isNull);
+      expect(averageSentenceLength('한 문장뿐'), isNull);
+    });
+
+    test('rounds chars / sentence count', () {
+      // "가나다. 라마." → 8 graphemes (incl. space), 2 sentences → 4
+      expect(averageSentenceLength('가나다. 라마.'), 4);
+    });
+
+    test('rounds to nearest whole number', () {
+      // "a. b. c." → 8 graphemes (incl. spaces), 3 sentences → 2.67 → 3
+      expect(averageSentenceLength('a. b. c.'), 3);
+    });
+  });
 }

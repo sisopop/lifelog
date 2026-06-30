@@ -120,3 +120,16 @@ int countParagraphs(String text) {
       .where((p) => p.trim().isNotEmpty)
       .length;
 }
+
+/// Average characters per sentence for the body — a rough writing-pace hint.
+/// Returns null until there are at least 2 sentences (a single sentence is not
+/// informative) or when the body is empty. Uses the grapheme char count over
+/// [countSentences], rounded to the nearest whole number. Pure & top-level so
+/// it is unit-testable; the write screen shows it only when non-null.
+int? averageSentenceLength(String text) {
+  final sentences = countSentences(text);
+  if (sentences < 2) return null;
+  final chars = textStats(text).chars;
+  if (chars == 0) return null;
+  return (chars / sentences).round();
+}
