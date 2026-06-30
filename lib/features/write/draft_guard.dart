@@ -18,6 +18,13 @@ bool hasUnsavedDraft({
   return title.trim().isNotEmpty || content.trim().isNotEmpty;
 }
 
+/// Whether an entry can be saved: a record needs a non-empty body, since the
+/// title alone is optional and the save path rejects empty content. Lets the
+/// write screen disable the save buttons until there is something to keep,
+/// instead of letting the tap fail with a snackbar. Pure & top-level so it is
+/// unit-testable.
+bool canSaveEntry({required String content}) => content.trim().isNotEmpty;
+
 /// Asks the user whether to abandon an unsaved draft. Returns true to leave.
 Future<bool> confirmLeaveDraft(BuildContext context) async {
   final leave = await showDialog<bool>(

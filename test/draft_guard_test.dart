@@ -32,4 +32,15 @@ void main() {
       );
     });
   });
+
+  group('canSaveEntry', () {
+    test('content with text can be saved', () {
+      expect(canSaveEntry(content: '오늘의 기록'), isTrue);
+    });
+
+    test('empty or whitespace-only content cannot be saved', () {
+      expect(canSaveEntry(content: ''), isFalse);
+      expect(canSaveEntry(content: '   \n\t '), isFalse);
+    });
+  });
 }

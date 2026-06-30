@@ -306,6 +306,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     final jid = _targetJournalId;
     final journal = journals.where((j) => j.journalId == jid).firstOrNull;
     final shared = journal != null && journal.type != JournalType.personal;
+    final canSave = canSaveEntry(content: _contentCtrl.text);
 
     return Scaffold(
       appBar: AppBar(
@@ -453,20 +454,26 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           const SizedBox(height: 28),
           if (_isEditing)
             ElevatedButton(
-              onPressed: () => _save(
-                visibility: _editing?.visibility ?? EntryVisibility.private,
-              ),
+              onPressed: canSave
+                  ? () => _save(
+                        visibility:
+                            _editing?.visibility ?? EntryVisibility.private,
+                      )
+                  : null,
               child: const Text('수정 저장'),
             )
           else if (shared) ...[
             // 커플/교환 일기장은 멤버와 함께 보는 공동 기록이 기본.
             ElevatedButton(
-              onPressed: () => _save(visibility: EntryVisibility.link),
+              onPressed:
+                  canSave ? () => _save(visibility: EntryVisibility.link) : null,
               child: const Text('함께 저장'),
             ),
           ] else ...[
             ElevatedButton(
-              onPressed: () => _save(visibility: EntryVisibility.private),
+              onPressed: canSave
+                  ? () => _save(visibility: EntryVisibility.private)
+                  : null,
               child: const Text('비공개 저장'),
             ),
             const SizedBox(height: 10),
@@ -476,7 +483,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                 side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              onPressed: () => _save(visibility: EntryVisibility.link),
+              onPressed:
+                  canSave ? () => _save(visibility: EntryVisibility.link) : null,
               child: const Text('공유하며 저장',
                   style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
             ),
