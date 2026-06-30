@@ -15,3 +15,17 @@ List<String> suggestTags(
       .take(limit)
       .toList();
 }
+
+/// Cleans a raw tag string typed by the user into a storable tag, or null when
+/// nothing usable remains. Trims, drops any leading `#` marks (so "#여행" and
+/// "여행" are the same), and collapses internal whitespace runs to single
+/// spaces. Returns null for empty/blank or hash-only input. Pure & top-level so
+/// it is unit-testable; the tag input sheet returns its result.
+String? normalizeTag(String raw) {
+  final t = raw
+      .trim()
+      .replaceFirst(RegExp(r'^#+'), '')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  return t.isEmpty ? null : t;
+}
