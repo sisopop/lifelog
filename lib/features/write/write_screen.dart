@@ -66,7 +66,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   Mood? _mood;
   String? _location;
   final List<String> _photoPaths = [];
-  final List<String> _tags = [];
+  List<String> _tags = [];
   DiaryEntry? _editing;
   bool _prefilled = false;
 
@@ -162,13 +162,13 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       allTags: ref.read(availableTagsProvider),
       exclude: _tags,
     );
-    if (tag != null && tag.isNotEmpty && !_tags.contains(tag)) {
-      setState(() => _tags.add(tag));
+    if (tag != null && tag.isNotEmpty) {
+      setState(() => _tags = withTagAdded(_tags, tag));
     }
   }
 
   void _addTagDirect(String tag) {
-    if (!_tags.contains(tag)) setState(() => _tags.add(tag));
+    setState(() => _tags = withTagAdded(_tags, tag));
   }
 
   /// Back-date the entry. Future dates are disallowed (it's a diary).

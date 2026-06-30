@@ -52,6 +52,27 @@ void main() {
     });
   });
 
+  group('withTagAdded', () {
+    test('appends a new tag', () {
+      expect(withTagAdded(const ['여행'], '가족'), ['여행', '가족']);
+    });
+
+    test('skips a case-insensitive duplicate', () {
+      expect(withTagAdded(const ['travel'], 'Travel'), ['travel']);
+      expect(withTagAdded(const ['여행'], '여행'), ['여행']);
+    });
+
+    test('does not mutate the input list', () {
+      final original = ['여행'];
+      withTagAdded(original, '가족');
+      expect(original, ['여행']);
+    });
+
+    test('adds to an empty list', () {
+      expect(withTagAdded(const [], '여행'), ['여행']);
+    });
+  });
+
   group('tagCountHint', () {
     test('null at or below the default threshold', () {
       expect(tagCountHint(0), isNull);
