@@ -70,3 +70,20 @@ List<String> extractHashtagSuggestions(String content, List<String> existing,
   }
   return out;
 }
+
+/// Quick-add tag chips for the write screen: takes the already frequency-ranked
+/// [available] tags (from `availableTags`, most-used first) and drops any in
+/// [current], capped at [max] (default 6). Pure & top-level so it is
+/// unit-testable; the write screen renders the rest as one-tap add-chips.
+List<String> frequentTagSuggestions(
+    List<String> available, List<String> current,
+    {int max = 6}) {
+  final exclude = current.toSet();
+  final out = <String>[];
+  for (final t in available) {
+    if (exclude.contains(t)) continue;
+    out.add(t);
+    if (out.length >= max) break;
+  }
+  return out;
+}

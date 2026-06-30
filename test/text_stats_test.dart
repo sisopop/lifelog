@@ -123,4 +123,28 @@ void main() {
       );
     });
   });
+
+  group('frequentTagSuggestions', () {
+    test('keeps ranked order and drops tags already on the entry', () {
+      expect(
+        frequentTagSuggestions(['가족', '여행', '카페'], ['여행']),
+        ['가족', '카페'],
+      );
+    });
+
+    test('caps at max', () {
+      expect(
+        frequentTagSuggestions(['a', 'b', 'c'], const [], max: 2),
+        ['a', 'b'],
+      );
+    });
+
+    test('empty when every available tag is already added', () {
+      expect(frequentTagSuggestions(['a', 'b'], ['a', 'b']), isEmpty);
+    });
+
+    test('empty when there are no tags yet', () {
+      expect(frequentTagSuggestions(const [], const []), isEmpty);
+    });
+  });
 }

@@ -205,6 +205,40 @@ class _HashtagSuggestions extends StatelessWidget {
   }
 }
 
+/// One-tap chips of the diary's most-used tags (from [availableTagsProvider],
+/// frequency-ranked, replies excluded) that aren't on this entry yet. Tapping
+/// adds the tag. Renders nothing when there is nothing left to suggest.
+class _FrequentTagChips extends ConsumerWidget {
+  const _FrequentTagChips({required this.current, required this.onAdd});
+  final List<String> current;
+  final ValueChanged<String> onAdd;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final suggestions =
+        frequentTagSuggestions(ref.watch(availableTagsProvider), current);
+    if (suggestions.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          const Text('자주 쓰는 태그',
+              style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+          for (final t in suggestions)
+            ActionChip(
+              avatar: const Icon(Icons.add, size: 16),
+              label: Text('#$t'),
+              onPressed: () => onAdd(t),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AttachButton extends StatelessWidget {
   const _AttachButton(this.icon, this.label, this.onTap);
   final IconData icon;

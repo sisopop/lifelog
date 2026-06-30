@@ -164,6 +164,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     }
   }
 
+  void _addTagDirect(String tag) {
+    if (!_tags.contains(tag)) setState(() => _tags.add(tag));
+  }
+
   /// Back-date the entry. Future dates are disallowed (it's a diary).
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -445,10 +449,9 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           ],
           _HashtagSuggestions(
             suggestions: extractHashtagSuggestions(_contentCtrl.text, _tags),
-            onAdd: (t) => setState(() {
-              if (!_tags.contains(t)) _tags.add(t);
-            }),
+            onAdd: _addTagDirect,
           ),
+          _FrequentTagChips(current: _tags, onAdd: _addTagDirect),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,
