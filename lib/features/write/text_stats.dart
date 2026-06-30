@@ -51,3 +51,22 @@ String? suggestTitleFromContent(String content) {
   }
   return null;
 }
+
+/// Hashtag-style tokens (`#word`) typed in the body, offered as one-tap tag
+/// suggestions. Returns each tag text without the leading `#`, in first-seen
+/// order, case-insensitively de-duplicated, and excluding any already in
+/// [existing]. A token must have at least one non-whitespace, non-`#` char
+/// after the `#`. Capped at [max] (default 5). Pure & top-level so it is
+/// unit-testable; the write screen renders the result as add-chips.
+List<String> extractHashtagSuggestions(String content, List<String> existing,
+    {int max = 5}) {
+  final seen = <String>{for (final e in existing) e.toLowerCase()};
+  final out = <String>[];
+  for (final m in RegExp(r'#([^\s#]+)').allMatches(content)) {
+    final tag = m.group(1)!;
+    if (!seen.add(tag.toLowerCase())) continue;
+    out.add(tag);
+    if (out.length >= max) break;
+  }
+  return out;
+}

@@ -175,6 +175,36 @@ class _ContentMeta extends StatelessWidget {
   }
 }
 
+/// One-tap chips for `#hashtags` found in the body that aren't tags yet.
+/// Tapping a chip adds that tag. Renders nothing when there is nothing to
+/// suggest. Suggestions come from [extractHashtagSuggestions].
+class _HashtagSuggestions extends StatelessWidget {
+  const _HashtagSuggestions({required this.suggestions, required this.onAdd});
+  final List<String> suggestions;
+  final ValueChanged<String> onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    if (suggestions.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 4,
+        children: [
+          for (final t in suggestions)
+            ActionChip(
+              avatar:
+                  const Icon(Icons.tag, size: 16, color: AppColors.primary),
+              label: Text('#$t 추가'),
+              onPressed: () => onAdd(t),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AttachButton extends StatelessWidget {
   const _AttachButton(this.icon, this.label, this.onTap);
   final IconData icon;

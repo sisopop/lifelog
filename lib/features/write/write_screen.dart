@@ -443,6 +443,12 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                   .toList(),
             ),
           ],
+          _HashtagSuggestions(
+            suggestions: extractHashtagSuggestions(_contentCtrl.text, _tags),
+            onAdd: (t) => setState(() {
+              if (!_tags.contains(t)) _tags.add(t);
+            }),
+          ),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,

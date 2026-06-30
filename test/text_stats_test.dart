@@ -85,4 +85,42 @@ void main() {
       expect(suggestTitleFromContent('가' * 50), '가' * 50);
     });
   });
+
+  group('extractHashtagSuggestions', () {
+    test('extracts #tokens in first-seen order, stripping the #', () {
+      expect(
+        extractHashtagSuggestions('오늘 #여행 #가족 좋았다', const []),
+        ['여행', '가족'],
+      );
+    });
+
+    test('excludes tags already added (case-insensitive)', () {
+      expect(
+        extractHashtagSuggestions('#Jeju #Seoul', const ['jeju']),
+        ['Seoul'],
+      );
+    });
+
+    test('de-duplicates repeats case-insensitively', () {
+      expect(
+        extractHashtagSuggestions('#cafe #Cafe #park', const []),
+        ['cafe', 'park'],
+      );
+    });
+
+    test('ignores a lone # with no following word', () {
+      expect(extractHashtagSuggestions('# ## end #', const []), isEmpty);
+    });
+
+    test('empty when there are no hashtags', () {
+      expect(extractHashtagSuggestions('평범한 하루였다', const []), isEmpty);
+    });
+
+    test('caps the number of suggestions at max', () {
+      expect(
+        extractHashtagSuggestions('#a #b #c #d', const [], max: 2),
+        ['a', 'b'],
+      );
+    });
+  });
 }
