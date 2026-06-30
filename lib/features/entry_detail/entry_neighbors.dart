@@ -49,6 +49,22 @@ int nextEntryOrdinal(List<DiaryEntry> entries, String journalId) {
   return count + 1;
 }
 
+/// How many top-level entries [journalId] already has on the same calendar day
+/// as [date] (year/month/day match; time ignored). Replies and other journals
+/// don't count. Lets the write screen gently note when a day already holds
+/// records, so a back-dated entry isn't an accidental duplicate. Pure &
+/// top-level so it is unit-testable.
+int entriesOnDate(List<DiaryEntry> entries, String journalId, DateTime date) {
+  return entries
+      .where((e) =>
+          e.replyToEntryId == null &&
+          e.journalId == journalId &&
+          e.createdAt.year == date.year &&
+          e.createdAt.month == date.month &&
+          e.createdAt.day == date.day)
+      .length;
+}
+
 /// Previous (older) and next (newer) top-level entries in the *same journal*
 /// as the entry identified by [currentId], ordered by creation time. Replies
 /// are ignored. Returns nulls when the entry isn't found or sits at an edge.

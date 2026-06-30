@@ -338,6 +338,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           ),
           const Divider(),
           DateField(date: _date, onTap: _pickDate),
+          if (!_isEditing) _SameDayCount(journalId: jid, date: _date),
           const SizedBox(height: 8),
           const Text('오늘의 감정', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
           const SizedBox(height: 10),

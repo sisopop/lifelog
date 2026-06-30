@@ -142,4 +142,31 @@ void main() {
       expect(nextEntryOrdinal(withReply, 'j1'), 3); // r excluded
     });
   });
+
+  group('entriesOnDate', () {
+    test('counts same-day top-level entries in the journal', () {
+      final entries = [_e('a', 10), _e('b', 10), _e('c', 12)];
+      expect(entriesOnDate(entries, 'j1', DateTime(2026, 6, 10)), 2);
+      expect(entriesOnDate(entries, 'j1', DateTime(2026, 6, 12)), 1);
+    });
+
+    test('zero when the day has no records', () {
+      final entries = [_e('a', 10)];
+      expect(entriesOnDate(entries, 'j1', DateTime(2026, 6, 11)), 0);
+    });
+
+    test('ignores time of day', () {
+      final entries = [_e('a', 10)];
+      expect(entriesOnDate(entries, 'j1', DateTime(2026, 6, 10, 23, 59)), 1);
+    });
+
+    test('scoped to the journal and excludes replies', () {
+      final mixed = [
+        _e('a', 10, journalId: 'j1'),
+        _e('x', 10, journalId: 'j2'),
+        _e('r', 10, replyTo: 'a'),
+      ];
+      expect(entriesOnDate(mixed, 'j1', DateTime(2026, 6, 10)), 1); // x, r out
+    });
+  });
 }

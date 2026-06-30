@@ -373,6 +373,34 @@ class _NewEntryOrdinal extends ConsumerWidget {
   }
 }
 
+/// While composing a *new* entry, a gentle note when the chosen day already
+/// holds records in this journal (e.g. a back-dated entry), via [entriesOnDate].
+/// Renders nothing when the day is empty, so today's first entry stays quiet.
+class _SameDayCount extends ConsumerWidget {
+  const _SameDayCount({required this.journalId, required this.date});
+  final String journalId;
+  final DateTime date;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entries = ref.watch(entriesProvider).asData?.value;
+    if (entries == null) return const SizedBox.shrink();
+    final n = entriesOnDate(entries, journalId, date);
+    if (n == 0) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          const Icon(Icons.event_note, size: 15, color: AppColors.textHint),
+          const SizedBox(width: 6),
+          Text('이 날짜에 이미 $n개의 기록이 있어요',
+              style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
+        ],
+      ),
+    );
+  }
+}
+
 /// The row of attach actions under the editor (사진 / 음성 / 위치 / 태그). Voice is
 /// not wired yet (disabled). Pulled out of the write screen to keep it small.
 class _AttachRow extends StatelessWidget {
