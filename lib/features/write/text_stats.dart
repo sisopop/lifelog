@@ -65,14 +65,19 @@ String? suggestTitleFromContent(String content) {
 /// suggestions. Returns each tag text without the leading `#`, in first-seen
 /// order, case-insensitively de-duplicated, and excluding any already in
 /// [existing]. A token must have at least one non-whitespace, non-`#` char
-/// after the `#`. Capped at [max] (default 5). Pure & top-level so it is
-/// unit-testable; the write screen renders the result as add-chips.
+/// after the `#`; trailing sentence punctuation (e.g. `#가족,` `#cafe.`) is
+/// stripped, and a token that is only punctuation is ignored. Capped at [max]
+/// (default 5). Pure & top-level so it is unit-testable; the write screen
+/// renders the result as add-chips.
 List<String> extractHashtagSuggestions(String content, List<String> existing,
     {int max = 5}) {
   final seen = <String>{for (final e in existing) e.toLowerCase()};
   final out = <String>[];
   for (final m in RegExp(r'#([^\s#]+)').allMatches(content)) {
-    final tag = m.group(1)!;
+    final tag = m
+        .group(1)!
+        .replaceAll(RegExp(r'[.,!?;:…·。！？、，)\]}]+$'), '');
+    if (tag.isEmpty) continue;
     if (!seen.add(tag.toLowerCase())) continue;
     out.add(tag);
     if (out.length >= max) break;

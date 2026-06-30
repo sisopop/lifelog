@@ -133,6 +133,24 @@ void main() {
         ['a', 'b'],
       );
     });
+
+    test('strips trailing sentence punctuation from a tag', () {
+      expect(
+        extractHashtagSuggestions('오늘 #가족, #여행. 좋았다', const []),
+        ['가족', '여행'],
+      );
+    });
+
+    test('de-dupes tags that differ only by trailing punctuation', () {
+      expect(
+        extractHashtagSuggestions('#cafe #cafe!', const []),
+        ['cafe'],
+      );
+    });
+
+    test('ignores a token that is only punctuation', () {
+      expect(extractHashtagSuggestions('#... #!? end', const []), isEmpty);
+    });
   });
 
   group('frequentTagSuggestions', () {
