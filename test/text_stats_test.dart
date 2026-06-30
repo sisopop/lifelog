@@ -251,6 +251,26 @@ void main() {
     });
   });
 
+  group('averageWordLength', () {
+    test('chars per word, excluding whitespace', () {
+      expect(averageWordLength('hello world'), 5); // 10 letters / 2
+    });
+
+    test('counts Korean syllables as one grapheme each', () {
+      expect(averageWordLength('가족 여행'), 2); // 4 letters / 2
+    });
+
+    test('rounds to nearest whole number', () {
+      expect(averageWordLength('abc de'), 3); // 5 letters / 2 → 2.5 → 3
+    });
+
+    test('null below 2 words', () {
+      expect(averageWordLength('hello'), isNull);
+      expect(averageWordLength(''), isNull);
+      expect(averageWordLength('   '), isNull);
+    });
+  });
+
   group('averageSentenceLength', () {
     test('null below 2 sentences', () {
       expect(averageSentenceLength(''), isNull);

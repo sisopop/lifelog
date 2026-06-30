@@ -140,6 +140,7 @@ class _ContentMeta extends StatelessWidget {
     final paragraphs = countParagraphs(text);
     final questions = countQuestions(text);
     final avgSentence = averageSentenceLength(text);
+    final avgWord = averageWordLength(text);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -158,7 +159,8 @@ class _ContentMeta extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: Text(
-              '📝 문장당 평균 $avgSentence자',
+              '📝 문장당 평균 $avgSentence자'
+              '${avgWord != null ? ' · 단어당 $avgWord자' : ''}',
               style: const TextStyle(
                   fontSize: 12, color: AppColors.textSecondary),
             ),

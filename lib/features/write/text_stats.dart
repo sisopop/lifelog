@@ -149,3 +149,18 @@ int? averageSentenceLength(String text) {
   if (chars == 0) return null;
   return (chars / sentences).round();
 }
+
+/// Average characters per word for the body — a rough vocabulary-density hint
+/// shown next to the sentence average. Whitespace is excluded so spaces don't
+/// inflate it (unlike the sentence average's rough char count). Counts
+/// graphemes, so Korean syllables and emoji each count as one. Returns null
+/// until there are at least 2 words (a single word is not informative) or when
+/// there are no letters. Pure & top-level so it is unit-testable; the write
+/// meta shows it only when non-null.
+int? averageWordLength(String text) {
+  final words = textStats(text).words;
+  if (words < 2) return null;
+  final letters = text.replaceAll(RegExp(r'\s+'), '').characters.length;
+  if (letters == 0) return null;
+  return (letters / words).round();
+}
