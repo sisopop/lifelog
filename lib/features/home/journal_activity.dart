@@ -48,6 +48,18 @@ String relativeDayLabel(DateTime date, DateTime now) {
   return '${days ~/ 365}년 전';
 }
 
+/// The same relative-day label as [relativeDayLabel] but only for *back-dated*
+/// entries: returns null when [date] is today or in the future, so the write
+/// screen surfaces an "어제 / 3일 전 …" hint only when the entry is for a past
+/// day (staying silent for the common today case). Pure & top-level so it is
+/// unit-testable; the date row appends the non-null result.
+String? backdatedDayLabel(DateTime date, DateTime now) {
+  final d0 = DateTime(date.year, date.month, date.day);
+  final n0 = DateTime(now.year, now.month, now.day);
+  if (!d0.isBefore(n0)) return null;
+  return relativeDayLabel(date, now);
+}
+
 /// Pure: the mood recorded most often among [journalId]'s top-level records,
 /// or null when none of them carry a mood. Ties resolve to the earlier mood
 /// in [Mood.values] order.

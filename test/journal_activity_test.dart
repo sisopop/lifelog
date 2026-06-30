@@ -113,6 +113,21 @@ void main() {
     });
   });
 
+  group('backdatedDayLabel', () {
+    final now = DateTime(2026, 6, 21, 15);
+
+    test('null for today or future', () {
+      expect(backdatedDayLabel(DateTime(2026, 6, 21, 8), now), isNull);
+      expect(backdatedDayLabel(DateTime(2026, 6, 22), now), isNull);
+    });
+
+    test('past days reuse relativeDayLabel', () {
+      expect(backdatedDayLabel(DateTime(2026, 6, 20), now), '어제');
+      expect(backdatedDayLabel(DateTime(2026, 6, 18), now), '3일 전');
+      expect(backdatedDayLabel(DateTime(2024, 6, 21), now), '2년 전');
+    });
+  });
+
   group('dominantMoodForJournal', () {
     test('returns the most-recorded mood within the journal', () {
       final entries = [
