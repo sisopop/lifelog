@@ -53,6 +53,76 @@ class _JournalSelector extends StatelessWidget {
   }
 }
 
+/// Title input plus a one-tap suggestion chip. While the title is empty and
+/// the body has a usable first line, tapping the chip fills the title with it
+/// (via [suggestTitleFromContent]). Listens to its own controller so typing a
+/// title hides the chip immediately.
+class _TitleField extends StatefulWidget {
+  const _TitleField({
+    required this.controller,
+    required this.contentText,
+    required this.onApply,
+  });
+  final TextEditingController controller;
+  final String contentText;
+  final ValueChanged<String> onApply;
+
+  @override
+  State<_TitleField> createState() => _TitleFieldState();
+}
+
+class _TitleFieldState extends State<_TitleField> {
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onChange);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onChange);
+    super.dispose();
+  }
+
+  void _onChange() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final suggestion = widget.controller.text.trim().isEmpty
+        ? suggestTitleFromContent(widget.contentText)
+        : null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: widget.controller,
+          decoration: const InputDecoration(
+            hintText: '제목 (선택)',
+            border: InputBorder.none,
+          ),
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+        ),
+        if (suggestion != null)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ActionChip(
+              avatar: const Icon(Icons.title,
+                  size: 16, color: AppColors.primary),
+              label: Text(
+                '제목으로: $suggestion',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onPressed: () => widget.onApply(suggestion),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 /// Right-aligned meta below the content field: live char/word count, an
 /// optional encouragement milestone, and a rough reading-time estimate once
 /// the entry is long enough. All values come from pure helpers in

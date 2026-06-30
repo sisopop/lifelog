@@ -67,4 +67,22 @@ void main() {
       expect(readingMinutes(1200), 3);
     });
   });
+
+  group('suggestTitleFromContent', () {
+    test('uses the first non-empty trimmed line', () {
+      expect(suggestTitleFromContent('  제주 여행  \n둘째 날'), '제주 여행');
+      expect(suggestTitleFromContent('\n\n첫 줄은 비었다 아래가 첫 줄'),
+          '첫 줄은 비었다 아래가 첫 줄');
+    });
+
+    test('null when the body is empty or whitespace-only', () {
+      expect(suggestTitleFromContent(''), isNull);
+      expect(suggestTitleFromContent('   \n\t\n  '), isNull);
+    });
+
+    test('null when the first line is too long to be a title (> 50)', () {
+      expect(suggestTitleFromContent('가' * 51), isNull);
+      expect(suggestTitleFromContent('가' * 50), '가' * 50);
+    });
+  });
 }

@@ -336,13 +336,13 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             ),
             const SizedBox(height: 12),
           ],
-          TextField(
+          _TitleField(
             controller: _titleCtrl,
-            decoration: const InputDecoration(
-              hintText: '제목 (선택)',
-              border: InputBorder.none,
-            ),
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            contentText: _contentCtrl.text,
+            onApply: (t) {
+              _titleCtrl.text = t;
+              setState(() {});
+            },
           ),
           const Divider(),
           DateField(date: _date, onTap: _pickDate),
