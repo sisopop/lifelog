@@ -349,7 +349,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                         padding: const EdgeInsets.only(right: 8),
                         child: MoodChip(m,
                             selected: _mood == m,
-                            onTap: () => setState(() => _mood = m)),
+                            onTap: () =>
+                                setState(() => _mood = toggledMood(_mood, m))),
                       ))
                   .toList(),
             ),

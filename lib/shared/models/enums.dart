@@ -9,6 +9,13 @@ enum Mood {
   final String emoji;
 }
 
+/// Result of tapping a mood chip: tapping the already-selected mood clears it
+/// (returns null), tapping a different one selects it. Lets the writer undo a
+/// mis-tapped mood without a separate clear button. Pure & top-level so it is
+/// unit-testable; the write screen assigns the result to its mood field.
+Mood? toggledMood(Mood? current, Mood tapped) =>
+    current == tapped ? null : tapped;
+
 /// Sharing scope. MVP supports private / link / public.
 /// Named `EntryVisibility` to avoid clashing with Flutter's `Visibility` widget.
 enum EntryVisibility {
