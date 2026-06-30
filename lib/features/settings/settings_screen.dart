@@ -7,6 +7,7 @@ import '../../core/i18n/locale_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../l10n/app_localizations.dart';
 import '../auth/session.dart';
+import '../decorate/page_deco_playground.dart';
 import '../entries/entries_provider.dart';
 import '../export/backup_json.dart';
 import '../export/export_markdown.dart';
@@ -73,6 +74,14 @@ class SettingsScreen extends ConsumerWidget {
             label: '기분 모아보기',
             subtitle: moodCount == 0 ? null : '$moodCount종',
             onTap: () => context.push('/moods'),
+          ),
+          _SectionTile(
+            icon: Icons.auto_awesome,
+            label: '페이지 꾸미기 (실험)',
+            subtitle: '스티커를 올리고 끌어보는 미리보기',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PageDecoPlayground()),
+            ),
           ),
           _LanguageTile(),
           _HomeLayoutTile(),
