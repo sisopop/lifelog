@@ -249,6 +249,7 @@ class _EntryTags extends StatelessWidget {
   Widget build(BuildContext context) {
     if (tags.isEmpty) return const SizedBox.shrink();
     final hint = tagCountHint(tags.length);
+    final lengthHint = longTagHint(tags);
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Column(
@@ -265,6 +266,13 @@ class _EntryTags extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 2),
               child: Text(hint,
+                  style:
+                      const TextStyle(fontSize: 12, color: AppColors.textHint)),
+            ),
+          if (lengthHint != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(lengthHint,
                   style:
                       const TextStyle(fontSize: 12, color: AppColors.textHint)),
             ),

@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 /// Suggests existing tags for the write screen's tag input.
 /// [allTags] is expected to already be ordered by usage (see availableTags).
 /// Filters out tags already added ([exclude]) and, when [query] is non-empty,
@@ -39,6 +41,16 @@ List<String> withTagAdded(List<String> current, String tag) {
   final lower = tag.toLowerCase();
   if (current.any((t) => t.toLowerCase() == lower)) return List.of(current);
   return [...current, tag];
+}
+
+/// A gentle nudge when any single tag is very long (past [max] graphemes):
+/// long tags get truncated in the timeline and are awkward to scan. Returns
+/// null when every tag fits, so most entries never see it. Pairs with
+/// [tagCountHint] (which watches the count, not the length). Pure & top-level
+/// so it is unit-testable; the tag chips widget renders it.
+String? longTagHint(List<String> tags, {int max = 15}) {
+  final hasLong = tags.any((t) => t.characters.length > max);
+  return hasLong ? '태그가 길어요 · 짧게 줄이면 찾기 좋아요' : null;
 }
 
 /// A gentle nudge shown when an entry carries a lot of tags: past [max]

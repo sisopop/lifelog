@@ -73,6 +73,29 @@ void main() {
     });
   });
 
+  group('longTagHint', () {
+    test('null when every tag fits', () {
+      expect(longTagHint(const ['여행', '가족', '제주도여행이야기']), isNull);
+      expect(longTagHint(const []), isNull);
+    });
+
+    test('hint when any tag is too long', () {
+      expect(longTagHint(const ['여행', '열다섯글자를훌쩍넘기는아주긴태그입니다']), isNotNull);
+      expect(longTagHint(const ['열다섯글자를훌쩍넘기는아주긴태그입니다']), contains('길'));
+    });
+
+    test('counts graphemes, not code units', () {
+      // 16 single-grapheme chars > default max 15
+      expect(longTagHint(['a' * 16]), isNotNull);
+      expect(longTagHint(['a' * 15]), isNull);
+    });
+
+    test('respects a custom max', () {
+      expect(longTagHint(const ['네글자임'], max: 3), isNotNull);
+      expect(longTagHint(const ['네글자임'], max: 5), isNull);
+    });
+  });
+
   group('tagCountHint', () {
     test('null at or below the default threshold', () {
       expect(tagCountHint(0), isNull);
