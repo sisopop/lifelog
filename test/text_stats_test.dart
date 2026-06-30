@@ -101,6 +101,27 @@ void main() {
     });
   });
 
+  group('isTitleTooLong', () {
+    test('false at or below the limit, true above it', () {
+      expect(isTitleTooLong('가' * 40), isFalse);
+      expect(isTitleTooLong('가' * 41), isTrue);
+    });
+
+    test('trims before measuring', () {
+      expect(isTitleTooLong('  ${'가' * 40}  '), isFalse);
+    });
+
+    test('empty or whitespace is never too long', () {
+      expect(isTitleTooLong(''), isFalse);
+      expect(isTitleTooLong('   \n  '), isFalse);
+    });
+
+    test('respects a custom max', () {
+      expect(isTitleTooLong('abcdef', max: 5), isTrue);
+      expect(isTitleTooLong('abcde', max: 5), isFalse);
+    });
+  });
+
   group('extractHashtagSuggestions', () {
     test('extracts #tokens in first-seen order, stripping the #', () {
       expect(

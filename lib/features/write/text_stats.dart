@@ -63,6 +63,15 @@ String? suggestTitleFromContent(String content) {
   return null;
 }
 
+/// Whether a title is long enough to risk being clipped where titles show on a
+/// single line (entry lists, cards). Trims first, then compares the grapheme
+/// length against [max] (default 40, so Korean syllables and emoji each count
+/// as one). Empty/whitespace-only is never "too long". Pure & top-level so it
+/// is unit-testable; the title field shows a gentle hint when this is true.
+bool isTitleTooLong(String title, {int max = 40}) {
+  return title.trim().characters.length > max;
+}
+
 /// Hashtag-style tokens (`#word`) typed in the body, offered as one-tap tag
 /// suggestions. Returns each tag text without the leading `#`, in first-seen
 /// order, case-insensitively de-duplicated, and excluding any already in
