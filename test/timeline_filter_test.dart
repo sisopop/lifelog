@@ -252,4 +252,21 @@ void main() {
       expect(recentLocationSuggestions(['카페', '바다'], null), ['카페', '바다']);
     });
   });
+
+  group('normalizeLocation', () {
+    test('trims surrounding whitespace', () {
+      expect(normalizeLocation('  제주 바닷가  '), '제주 바닷가');
+    });
+
+    test('collapses internal whitespace runs to one space', () {
+      expect(normalizeLocation('제주   바닷가'), '제주 바닷가');
+      expect(normalizeLocation('a\t\tb'), 'a b');
+    });
+
+    test('null for null, empty, or blank input', () {
+      expect(normalizeLocation(null), isNull);
+      expect(normalizeLocation(''), isNull);
+      expect(normalizeLocation('   '), isNull);
+    });
+  });
 }

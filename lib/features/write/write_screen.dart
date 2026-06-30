@@ -191,8 +191,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       current: _location,
     );
     if (result == null) return; // dismissed
-    final trimmed = result.trim();
-    setState(() => _location = trimmed.isEmpty ? null : trimmed);
+    setState(() => _location = normalizeLocation(result));
   }
 
   Future<void> _save({required EntryVisibility visibility}) async {

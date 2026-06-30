@@ -186,6 +186,16 @@ List<String> availableLocations(List<DiaryEntry> entries) {
   return locs;
 }
 
+/// Cleans a typed place name: trims the ends and collapses any internal
+/// whitespace run to a single space (so ' 제주   바닷가 ' → '제주 바닷가'). Returns
+/// null when the input is null or blank, so the entry's place is cleared.
+/// Mirrors `normalizeTag`. Pure & top-level so it is unit-testable.
+String? normalizeLocation(String? raw) {
+  if (raw == null) return null;
+  final cleaned = raw.trim().replaceAll(RegExp(r'\s+'), ' ');
+  return cleaned.isEmpty ? null : cleaned;
+}
+
 /// Past place names to offer as one-tap chips in the location dialog, ranked by
 /// use (see [availableLocations]). Drops the entry's current place (trimmed)
 /// and caps the list. Pure & top-level so it is unit-testable.
