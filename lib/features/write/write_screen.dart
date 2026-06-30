@@ -398,9 +398,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerLeft,
-              child: Chip(
+              child: InputChip(
                 avatar: const Icon(Icons.place, size: 18),
                 label: Text(_location!.trim()),
+                onPressed: _editLocation,
                 onDeleted: () => setState(() => _location = null),
               ),
             ),
