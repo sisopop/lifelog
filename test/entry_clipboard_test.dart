@@ -2,7 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:lifelog/features/entry_detail/entry_clipboard.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
 
-DiaryEntry _entry({String? title, String content = '', List<String> tags = const []}) {
+DiaryEntry _entry({
+  String? title,
+  String content = '',
+  List<String> tags = const [],
+  String? location,
+}) {
   final t = DateTime(2026, 6, 17);
   return DiaryEntry(
     entryId: 'e',
@@ -11,6 +16,7 @@ DiaryEntry _entry({String? title, String content = '', List<String> tags = const
     title: title,
     content: content,
     tags: tags,
+    location: location,
     createdAt: t,
     updatedAt: t,
   );
@@ -44,5 +50,22 @@ void main() {
   test('content is trimmed', () {
     final text = entryClipboardText(_entry(content: '  hi  '));
     expect(text, 'hi');
+  });
+
+  test('location is included as 📍 place between body and tags', () {
+    final text = entryClipboardText(
+      _entry(content: '바다를 걸었다', location: '제주', tags: ['여행']),
+    );
+    expect(text, '바다를 걸었다\n\n📍 제주\n\n#여행');
+  });
+
+  test('blank or null location is skipped', () {
+    expect(entryClipboardText(_entry(content: 'b', location: '   ')), 'b');
+    expect(entryClipboardText(_entry(content: 'b')), 'b');
+  });
+
+  test('location is trimmed', () {
+    final text = entryClipboardText(_entry(content: 'b', location: '  제주  '));
+    expect(text, 'b\n\n📍 제주');
   });
 }
