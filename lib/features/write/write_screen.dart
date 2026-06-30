@@ -12,6 +12,7 @@ import '../../shared/widgets/mood_chip.dart';
 import '../../shared/widgets/photo.dart';
 import '../../shared/models/journal.dart';
 import '../entries/entries_provider.dart';
+import '../entry_detail/entry_neighbors.dart';
 import '../journals/journal_repository.dart';
 import '../timeline/timeline_filter.dart';
 import 'date_field.dart';
@@ -338,6 +339,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                   ? () => _pickJournal(journals)
                   : null,
             ),
+            _NewEntryOrdinal(journalId: jid),
             const SizedBox(height: 12),
           ],
           _TitleField(
@@ -453,14 +455,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           ),
           _FrequentTagChips(current: _tags, onAdd: _addTagDirect),
           const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            children: [
-              _AttachButton(Icons.photo_outlined, '사진', _pickPhotos),
-              const _AttachButton(Icons.mic_none, '음성', null),
-              _AttachButton(Icons.place_outlined, '위치', _editLocation),
-              _AttachButton(Icons.tag, '태그', _addTag),
-            ],
+          _AttachRow(
+            onPhoto: _pickPhotos,
+            onLocation: _editLocation,
+            onTag: _addTag,
           ),
           const SizedBox(height: 28),
           if (_isEditing)

@@ -37,6 +37,18 @@ EntryOrdinal? entryOrdinal(List<DiaryEntry> entries, String currentId) {
   return EntryOrdinal(idx + 1, siblings.length);
 }
 
+/// The 1-based position a brand-new top-level entry would take in [journalId]
+/// — one past the journal's current top-level count. Replies are ignored, and
+/// entries in other journals don't count. Always >= 1 (an empty journal's first
+/// entry is the 1st). Pure & top-level so it is unit-testable; the write screen
+/// shows it as a gentle "이 일기장의 N번째 기록" nudge while composing.
+int nextEntryOrdinal(List<DiaryEntry> entries, String journalId) {
+  final count = entries
+      .where((e) => e.replyToEntryId == null && e.journalId == journalId)
+      .length;
+  return count + 1;
+}
+
 /// Previous (older) and next (newer) top-level entries in the *same journal*
 /// as the entry identified by [currentId], ordered by creation time. Replies
 /// are ignored. Returns nulls when the entry isn't found or sits at an edge.

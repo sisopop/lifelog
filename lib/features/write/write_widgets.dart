@@ -255,6 +255,59 @@ class _FrequentTagChips extends ConsumerWidget {
   }
 }
 
+/// While composing a *new* entry, a gentle nudge showing which number this
+/// entry will be within its journal (e.g. "이 일기장의 7번째 기록이에요"). Watches
+/// the entry list and computes the position via [nextEntryOrdinal] (replies
+/// ignored). Shown only for new entries.
+class _NewEntryOrdinal extends ConsumerWidget {
+  const _NewEntryOrdinal({required this.journalId});
+  final String journalId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final entries = ref.watch(entriesProvider).asData?.value;
+    if (entries == null) return const SizedBox.shrink();
+    final n = nextEntryOrdinal(entries, journalId);
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          const Icon(Icons.auto_stories, size: 15, color: AppColors.textHint),
+          const SizedBox(width: 6),
+          Text('이 일기장의 $n번째 기록이에요',
+              style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
+        ],
+      ),
+    );
+  }
+}
+
+/// The row of attach actions under the editor (사진 / 음성 / 위치 / 태그). Voice is
+/// not wired yet (disabled). Pulled out of the write screen to keep it small.
+class _AttachRow extends StatelessWidget {
+  const _AttachRow({
+    required this.onPhoto,
+    required this.onLocation,
+    required this.onTag,
+  });
+  final VoidCallback onPhoto;
+  final VoidCallback onLocation;
+  final VoidCallback onTag;
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      children: [
+        _AttachButton(Icons.photo_outlined, '사진', onPhoto),
+        const _AttachButton(Icons.mic_none, '음성', null),
+        _AttachButton(Icons.place_outlined, '위치', onLocation),
+        _AttachButton(Icons.tag, '태그', onTag),
+      ],
+    );
+  }
+}
+
 class _AttachButton extends StatelessWidget {
   const _AttachButton(this.icon, this.label, this.onTap);
   final IconData icon;
