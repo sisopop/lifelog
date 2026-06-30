@@ -417,4 +417,31 @@ void main() {
       expect(moodReminder('가' * 9, false, minChars: 10), isNull);
     });
   });
+
+  group('tidyEntryContent', () {
+    test('trims surrounding whitespace', () {
+      expect(tidyEntryContent('  오늘의 기록  '), '오늘의 기록');
+      expect(tidyEntryContent('\n\n hi \n\n'), 'hi');
+    });
+
+    test('collapses runs of 3+ newlines to a single blank line', () {
+      expect(tidyEntryContent('a\n\n\n\nb'), 'a\n\nb');
+      expect(tidyEntryContent('a\n\n\nb\n\n\n\n\nc'), 'a\n\nb\n\nc');
+    });
+
+    test('keeps one blank line between paragraphs', () {
+      expect(tidyEntryContent('a\n\nb'), 'a\n\nb');
+      expect(tidyEntryContent('a\nb'), 'a\nb');
+    });
+
+    test('strips trailing spaces from each line', () {
+      expect(tidyEntryContent('a   \nb\t'), 'a\nb');
+      expect(tidyEntryContent('한 줄  \n다음 줄 '), '한 줄\n다음 줄');
+    });
+
+    test('empty or whitespace-only yields empty', () {
+      expect(tidyEntryContent(''), '');
+      expect(tidyEntryContent('   \n\t \n  '), '');
+    });
+  });
 }

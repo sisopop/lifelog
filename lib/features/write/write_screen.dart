@@ -208,7 +208,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       await notifier.editEntry(
         _editing!.copyWith(
           title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
-          content: _contentCtrl.text.trim(),
+          content: tidyEntryContent(_contentCtrl.text),
           mood: _mood,
           visibility: visibility,
           // Pass '' (not null) so clearing the place persists — copyWith keeps
@@ -227,7 +227,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           userId: widget.authorId ?? 'me',
           journalId: journalId,
           title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
-          content: _contentCtrl.text.trim(),
+          content: tidyEntryContent(_contentCtrl.text),
           mood: _mood,
           visibility: visibility,
           location: _location,

@@ -244,3 +244,15 @@ int? averageWordLength(String text) {
   if (letters == 0) return null;
   return (letters / words).round();
 }
+
+/// Tidies the diary body just before it is saved: strips trailing spaces from
+/// every line and collapses runs of 3+ newlines down to a single blank line, so
+/// accidental gaps don't bloat the stored entry. One blank line between
+/// paragraphs (an intentional break) is kept, and the whole text is trimmed.
+/// Pure & top-level so it is unit-testable; the write screen calls it in place
+/// of a plain `.trim()` when persisting.
+String tidyEntryContent(String text) {
+  final stripped =
+      text.split('\n').map((l) => l.replaceAll(RegExp(r'[ \t]+$'), '')).join('\n');
+  return stripped.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+}
