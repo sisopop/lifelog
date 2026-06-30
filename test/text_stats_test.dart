@@ -354,4 +354,25 @@ void main() {
       expect(averageSentenceLength('a. b. c.'), 3);
     });
   });
+
+  group('paragraphBreakHint', () {
+    test('null when below the char threshold', () {
+      expect(paragraphBreakHint(399, 1), isNull);
+      expect(paragraphBreakHint(0, 1), isNull);
+    });
+
+    test('hint when long and a single block', () {
+      expect(paragraphBreakHint(400, 1), contains('문단'));
+      expect(paragraphBreakHint(1000, 0), isNotNull);
+    });
+
+    test('null when already split into paragraphs', () {
+      expect(paragraphBreakHint(1000, 2), isNull);
+    });
+
+    test('respects a custom minChars', () {
+      expect(paragraphBreakHint(120, 1, minChars: 100), isNotNull);
+      expect(paragraphBreakHint(80, 1, minChars: 100), isNull);
+    });
+  });
 }

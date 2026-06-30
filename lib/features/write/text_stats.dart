@@ -198,6 +198,16 @@ int? longestSentenceLength(String text) {
   return longest;
 }
 
+/// A gentle nudge to break a long, single-block entry into paragraphs for
+/// readability. Returns the hint only when the body is past [minChars]
+/// (default 400) yet still has at most one paragraph (no blank line);
+/// otherwise null, so short or already-split entries never see it. Pure &
+/// top-level so it is unit-testable; the write meta renders the non-null result.
+String? paragraphBreakHint(int chars, int paragraphs, {int minChars = 400}) {
+  if (chars < minChars || paragraphs > 1) return null;
+  return '긴 글은 빈 줄로 문단을 나누면 읽기 좋아요';
+}
+
 /// Average characters per word for the body — a rough vocabulary-density hint
 /// shown next to the sentence average. Whitespace is excluded so spaces don't
 /// inflate it (unlike the sentence average's rough char count). Counts
