@@ -122,6 +122,30 @@ void main() {
     });
   });
 
+  group('titleEchoesFirstLine', () {
+    test('true when the title equals the first non-empty line', () {
+      expect(titleEchoesFirstLine('제주 여행', '제주 여행\n둘째 날'), isTrue);
+    });
+
+    test('case-insensitive and trims both sides', () {
+      expect(titleEchoesFirstLine('  Jeju  ', 'jeju\nday two'), isTrue);
+    });
+
+    test('skips leading blank lines to find the first real line', () {
+      expect(titleEchoesFirstLine('첫 줄', '\n\n첫 줄\n둘째'), isTrue);
+    });
+
+    test('false when the title differs from the first line', () {
+      expect(titleEchoesFirstLine('다른 제목', '제주 여행\n둘째 날'), isFalse);
+    });
+
+    test('false when the title or body is empty', () {
+      expect(titleEchoesFirstLine('', '제주 여행'), isFalse);
+      expect(titleEchoesFirstLine('제주 여행', ''), isFalse);
+      expect(titleEchoesFirstLine('  ', '제주 여행'), isFalse);
+    });
+  });
+
   group('extractHashtagSuggestions', () {
     test('extracts #tokens in first-seen order, stripping the #', () {
       expect(

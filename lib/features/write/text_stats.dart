@@ -72,6 +72,23 @@ bool isTitleTooLong(String title, {int max = 40}) {
   return title.trim().characters.length > max;
 }
 
+/// Whether the title merely repeats the body's first non-empty line, so the
+/// writer can drop the duplicate. Compares the trimmed title against the first
+/// non-empty trimmed line of [content], case-insensitively. False when either
+/// is empty. Pairs with [suggestTitleFromContent] (which fills the title from
+/// that very line). Pure & top-level so it is unit-testable; the title field
+/// shows a gentle hint when true.
+bool titleEchoesFirstLine(String title, String content) {
+  final t = title.trim();
+  if (t.isEmpty) return false;
+  for (final line in content.split('\n')) {
+    final l = line.trim();
+    if (l.isEmpty) continue;
+    return l.toLowerCase() == t.toLowerCase();
+  }
+  return false;
+}
+
 /// Hashtag-style tokens (`#word`) typed in the body, offered as one-tap tag
 /// suggestions. Returns each tag text without the leading `#`, in first-seen
 /// order, case-insensitively de-duplicated, and excluding any already in

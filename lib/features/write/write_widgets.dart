@@ -94,6 +94,8 @@ class _TitleFieldState extends State<_TitleField> {
         ? suggestTitleFromContent(widget.contentText)
         : null;
     final tooLong = isTitleTooLong(widget.controller.text);
+    final echoesFirstLine =
+        titleEchoesFirstLine(widget.controller.text, widget.contentText);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -125,6 +127,14 @@ class _TitleFieldState extends State<_TitleField> {
             child: Text(
               '제목이 길어요 · 목록에서 잘릴 수 있어요',
               style: TextStyle(fontSize: 12, color: AppColors.moodHard),
+            ),
+          ),
+        if (echoesFirstLine)
+          const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Text(
+              '제목이 본문 첫 줄과 같아요 · 본문 첫 줄은 지워도 돼요',
+              style: TextStyle(fontSize: 12, color: AppColors.textHint),
             ),
           ),
       ],
