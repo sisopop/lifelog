@@ -163,7 +163,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       exclude: _tags,
     );
     if (tag != null && tag.isNotEmpty) {
-      setState(() => _tags = withTagAdded(_tags, tag));
+      setState(() => _tags = withTagsAdded(_tags, tag));
     }
   }
 

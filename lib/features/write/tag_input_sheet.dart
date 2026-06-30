@@ -35,7 +35,7 @@ Future<String?> showTagInputSheet({
                 autofocus: true,
                 decoration: const InputDecoration(hintText: '예: 여행, 가족'),
                 onChanged: (_) => setSheet(() {}),
-                onSubmitted: (v) => Navigator.pop(ctx, normalizeTag(v)),
+                onSubmitted: (v) => Navigator.pop(ctx, v),
               ),
               if (suggestions.isNotEmpty) ...[
                 const SizedBox(height: 12),
@@ -52,7 +52,7 @@ Future<String?> showTagInputSheet({
               ],
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: () => Navigator.pop(ctx, normalizeTag(ctrl.text)),
+                onPressed: () => Navigator.pop(ctx, ctrl.text),
                 child: const Text('추가'),
               ),
             ],

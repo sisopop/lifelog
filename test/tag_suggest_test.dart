@@ -73,6 +73,51 @@ void main() {
     });
   });
 
+  group('splitTagInput', () {
+    test('splits on commas', () {
+      expect(splitTagInput('여행, 가족'), ['여행', '가족']);
+    });
+
+    test('splits on newlines and fullwidth/japanese commas', () {
+      expect(splitTagInput('여행，가족、일상\n추억'),
+          ['여행', '가족', '일상', '추억']);
+    });
+
+    test('keeps spaces inside a tag (only commas split)', () {
+      expect(splitTagInput('제주 여행, 가족'), ['제주 여행', '가족']);
+    });
+
+    test('normalizes each piece and drops blanks/hash-only', () {
+      expect(splitTagInput(' #여행 ,  , ##'), ['여행']);
+    });
+
+    test('single tag returns a one-element list', () {
+      expect(splitTagInput('여행'), ['여행']);
+    });
+  });
+
+  group('withTagsAdded', () {
+    test('adds several tags from one input', () {
+      expect(withTagsAdded(const ['일상'], '여행, 가족'),
+          ['일상', '여행', '가족']);
+    });
+
+    test('skips duplicates against existing and within the input', () {
+      expect(withTagsAdded(const ['travel'], 'Travel, family, FAMILY'),
+          ['travel', 'family']);
+    });
+
+    test('does not mutate the input list', () {
+      final original = ['여행'];
+      withTagsAdded(original, '가족, 일상');
+      expect(original, ['여행']);
+    });
+
+    test('blank input leaves the list unchanged', () {
+      expect(withTagsAdded(const ['여행'], '  ,  '), ['여행']);
+    });
+  });
+
   group('longTagHint', () {
     test('null when every tag fits', () {
       expect(longTagHint(const ['여행', '가족', '제주도여행이야기']), isNull);

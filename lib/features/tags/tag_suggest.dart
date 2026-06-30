@@ -43,6 +43,33 @@ List<String> withTagAdded(List<String> current, String tag) {
   return [...current, tag];
 }
 
+/// Splits one raw input into several tags so a user can type "여행, 가족" and
+/// get two tags at once. Splits on commas (`,`、，) and newlines only — not
+/// spaces, so a multi-word tag like "제주 여행" stays intact. Each piece is run
+/// through [normalizeTag]; blank/hash-only pieces are dropped. Order is kept and
+/// no de-duplication happens here (that is [withTagAdded]'s job). Pure &
+/// top-level so it is unit-testable.
+List<String> splitTagInput(String raw) {
+  return raw
+      .split(RegExp(r'[,，、\n]'))
+      .map(normalizeTag)
+      .whereType<String>()
+      .toList();
+}
+
+/// Adds every tag found in one raw input ([splitTagInput]) to [current],
+/// skipping case-insensitive duplicates via [withTagAdded] (both against the
+/// existing list and within the input itself). Returns a new list; the original
+/// is untouched. Lets the tag sheet accept "여행, 가족" as two tags in one go.
+/// Pure & top-level so it is unit-testable.
+List<String> withTagsAdded(List<String> current, String raw) {
+  var result = current;
+  for (final tag in splitTagInput(raw)) {
+    result = withTagAdded(result, tag);
+  }
+  return List.of(result);
+}
+
 /// A gentle nudge when any single tag is very long (past [max] graphemes):
 /// long tags get truncated in the timeline and are awkward to scan. Returns
 /// null when every tag fits, so most entries never see it. Pairs with
