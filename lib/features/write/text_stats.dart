@@ -39,15 +39,24 @@ int? readingMinutes(int chars) {
   return (chars / 500).ceil();
 }
 
-/// Suggests a title from the body: the first non-empty line, trimmed. Returns
-/// null when the body has no text, or when that first line is too long to read
-/// as a title (> 50 graphemes). Pure & top-level so it is unit-testable; the
-/// write screen offers it as a one-tap chip only while the title is empty.
+/// Suggests a title from the body: the first non-empty line, trimmed. When that
+/// line is too long to read as a title (> 50 graphemes), falls back to its
+/// first sentence (split on sentence-ending punctuation) if that alone fits,
+/// so flowing single-paragraph entries still get a suggestion. Returns null
+/// when the body has no text, or when even the first sentence is too long.
+/// Pure & top-level so it is unit-testable; the write screen offers it as a
+/// one-tap chip only while the title is empty.
 String? suggestTitleFromContent(String content) {
   for (final line in content.split('\n')) {
     final t = line.trim();
     if (t.isEmpty) continue;
-    return t.characters.length > 50 ? null : t;
+    if (t.characters.length <= 50) return t;
+    for (final seg in t.split(RegExp(r'[.!?。！？…]+'))) {
+      final s = seg.trim();
+      if (s.isEmpty) continue;
+      return s.characters.length <= 50 ? s : null;
+    }
+    return null;
   }
   return null;
 }

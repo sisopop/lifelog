@@ -84,6 +84,17 @@ void main() {
       expect(suggestTitleFromContent('가' * 51), isNull);
       expect(suggestTitleFromContent('가' * 50), '가' * 50);
     });
+
+    test('falls back to the first sentence when the line is too long', () {
+      expect(
+        suggestTitleFromContent('짧은 제목. ${'가' * 60}'),
+        '짧은 제목',
+      );
+    });
+
+    test('null when even the first sentence is too long', () {
+      expect(suggestTitleFromContent('${'가' * 60}. 나머지'), isNull);
+    });
   });
 
   group('extractHashtagSuggestions', () {
