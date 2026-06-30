@@ -256,3 +256,14 @@ String tidyEntryContent(String text) {
       text.split('\n').map((l) => l.replaceAll(RegExp(r'[ \t]+$'), '')).join('\n');
   return stripped.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
 }
+
+/// Tidies the optional title just before it is saved: trims it and collapses
+/// any internal run of whitespace (including stray newlines a paste might add)
+/// to a single space, so a title stays a clean one-liner in lists. Returns null
+/// when nothing meaningful is left, matching the "no title" case. Pure &
+/// top-level so it is unit-testable; the write screen calls it in place of the
+/// inline trim-or-null when persisting.
+String? tidyEntryTitle(String raw) {
+  final tidy = raw.trim().replaceAll(RegExp(r'\s+'), ' ');
+  return tidy.isEmpty ? null : tidy;
+}

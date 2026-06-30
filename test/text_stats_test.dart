@@ -444,4 +444,21 @@ void main() {
       expect(tidyEntryContent('   \n\t \n  '), '');
     });
   });
+
+  group('tidyEntryTitle', () {
+    test('trims surrounding whitespace', () {
+      expect(tidyEntryTitle('  제주 여행  '), '제주 여행');
+    });
+
+    test('collapses internal whitespace runs to a single space', () {
+      expect(tidyEntryTitle('제주   여행'), '제주 여행');
+      expect(tidyEntryTitle('a\t\tb'), 'a b');
+      expect(tidyEntryTitle('첫 줄\n둘째'), '첫 줄 둘째');
+    });
+
+    test('null for empty or whitespace-only input', () {
+      expect(tidyEntryTitle(''), isNull);
+      expect(tidyEntryTitle('   \n\t '), isNull);
+    });
+  });
 }

@@ -207,7 +207,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
         _editing!.copyWith(
-          title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
+          title: tidyEntryTitle(_titleCtrl.text),
           content: tidyEntryContent(_contentCtrl.text),
           mood: _mood,
           visibility: visibility,
@@ -226,7 +226,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           entryId: now.microsecondsSinceEpoch.toString(),
           userId: widget.authorId ?? 'me',
           journalId: journalId,
-          title: _titleCtrl.text.trim().isEmpty ? null : _titleCtrl.text.trim(),
+          title: tidyEntryTitle(_titleCtrl.text),
           content: tidyEntryContent(_contentCtrl.text),
           mood: _mood,
           visibility: visibility,
