@@ -198,6 +198,18 @@ int? longestSentenceLength(String text) {
   return longest;
 }
 
+/// A gentle nudge to pick today's mood once the writer has put real thought
+/// into the body (past [minChars] graphemes) but hasn't tagged how the day
+/// felt. Returns null when a mood is already chosen or the body is still short,
+/// so it never nags an empty or barely-started entry. Takes a plain bool (not
+/// the Mood enum) to stay UI-free. Pure & top-level so it is unit-testable; the
+/// write screen renders it under the mood chips.
+String? moodReminder(String content, bool hasMood, {int minChars = 100}) {
+  if (hasMood) return null;
+  if (content.trim().characters.length < minChars) return null;
+  return '오늘의 기분도 한 번 남겨보세요';
+}
+
 /// A gentle nudge to break a long, single-block entry into paragraphs for
 /// readability. Returns the hint only when the body is past [minChars]
 /// (default 400) yet still has at most one paragraph (no blank line);

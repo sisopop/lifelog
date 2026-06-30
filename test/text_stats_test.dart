@@ -392,4 +392,29 @@ void main() {
       expect(longSentenceHint(50, max: 50), isNull);
     });
   });
+
+  group('moodReminder', () {
+    test('null when a mood is already chosen', () {
+      expect(moodReminder('가' * 200, true), isNull);
+    });
+
+    test('null while the body is still short', () {
+      expect(moodReminder('가' * 99, false), isNull);
+      expect(moodReminder('', false), isNull);
+    });
+
+    test('nudges a substantial body with no mood', () {
+      expect(moodReminder('가' * 100, false), contains('기분'));
+    });
+
+    test('counts trimmed graphemes', () {
+      expect(moodReminder('  ${'a' * 100}  ', false), isNotNull);
+      expect(moodReminder('  ${'a' * 99}  ', false), isNull);
+    });
+
+    test('respects a custom minChars', () {
+      expect(moodReminder('가' * 10, false, minChars: 10), isNotNull);
+      expect(moodReminder('가' * 9, false, minChars: 10), isNull);
+    });
+  });
 }

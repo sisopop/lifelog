@@ -354,6 +354,16 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
                   .toList(),
             ),
           ),
+          Builder(builder: (_) {
+            final nudge = moodReminder(_contentCtrl.text, _mood != null);
+            if (nudge == null) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(nudge,
+                  style:
+                      const TextStyle(fontSize: 12, color: AppColors.textHint)),
+            );
+          }),
           const SizedBox(height: 20),
           TextField(
             controller: _contentCtrl,
