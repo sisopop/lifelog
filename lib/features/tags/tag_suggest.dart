@@ -29,3 +29,12 @@ String? normalizeTag(String raw) {
       .trim();
   return t.isEmpty ? null : t;
 }
+
+/// A gentle nudge shown when an entry carries a lot of tags: past [max]
+/// (default 6) each tag becomes less useful for finding the entry later.
+/// Returns null at or below the threshold so most entries never see it.
+/// Pure & top-level so it is unit-testable; the tag chips widget renders it.
+String? tagCountHint(int count, {int max = 6}) {
+  if (count <= max) return null;
+  return '태그가 많아요 · 핵심만 남겨도 찾기 좋아요';
+}

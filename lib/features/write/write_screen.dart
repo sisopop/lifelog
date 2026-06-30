@@ -14,6 +14,7 @@ import '../../shared/models/journal.dart';
 import '../entries/entries_provider.dart';
 import '../entry_detail/entry_neighbors.dart';
 import '../journals/journal_repository.dart';
+import '../tags/tag_suggest.dart';
 import '../timeline/timeline_filter.dart';
 import 'date_field.dart';
 import 'draft_guard.dart';
@@ -437,18 +438,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
               ),
             ),
           ],
-          if (_tags.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: _tags
-                  .map((t) => Chip(
-                        label: Text('#$t'),
-                        onDeleted: () => setState(() => _tags.remove(t)),
-                      ))
-                  .toList(),
-            ),
-          ],
+          _EntryTags(
+            tags: _tags,
+            onRemove: (t) => setState(() => _tags.remove(t)),
+          ),
           _HashtagSuggestions(
             suggestions: extractHashtagSuggestions(_contentCtrl.text, _tags),
             onAdd: _addTagDirect,

@@ -216,6 +216,42 @@ class _ContentMeta extends StatelessWidget {
   }
 }
 
+/// The entry's tag chips (each deletable) plus a gentle hint when there are a
+/// lot of them (see [tagCountHint]). Renders nothing when there are no tags.
+class _EntryTags extends StatelessWidget {
+  const _EntryTags({required this.tags, required this.onRemove});
+  final List<String> tags;
+  final ValueChanged<String> onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    if (tags.isEmpty) return const SizedBox.shrink();
+    final hint = tagCountHint(tags.length);
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final t in tags)
+                Chip(label: Text('#$t'), onDeleted: () => onRemove(t)),
+            ],
+          ),
+          if (hint != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(hint,
+                  style:
+                      const TextStyle(fontSize: 12, color: AppColors.textHint)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// One-tap chips for `#hashtags` found in the body that aren't tags yet.
 /// Tapping a chip adds that tag. Renders nothing when there is nothing to
 /// suggest. Suggestions come from [extractHashtagSuggestions].

@@ -51,4 +51,21 @@ void main() {
       expect(normalizeTag('##'), isNull);
     });
   });
+
+  group('tagCountHint', () {
+    test('null at or below the default threshold', () {
+      expect(tagCountHint(0), isNull);
+      expect(tagCountHint(6), isNull);
+    });
+
+    test('returns a hint past the threshold', () {
+      expect(tagCountHint(7), isNotNull);
+      expect(tagCountHint(20), contains('많'));
+    });
+
+    test('respects a custom max', () {
+      expect(tagCountHint(3, max: 3), isNull);
+      expect(tagCountHint(4, max: 3), isNotNull);
+    });
+  });
 }
