@@ -118,6 +118,27 @@ void main() {
     });
   });
 
+  group('tidyTags', () {
+    test('normalizes each tag (trim, strip #, collapse whitespace)', () {
+      expect(tidyTags(const [' #여행 ', '제주  여행']), ['여행', '제주 여행']);
+    });
+
+    test('drops blank and hash-only tags', () {
+      expect(tidyTags(const ['여행', '   ', '##', '']), ['여행']);
+    });
+
+    test('removes case-insensitive duplicates, keeping order', () {
+      expect(tidyTags(const ['travel', 'Travel', '여행', '여행']),
+          ['travel', '여행']);
+    });
+
+    test('does not mutate the input list', () {
+      final original = [' 여행 ', '여행'];
+      tidyTags(original);
+      expect(original, [' 여행 ', '여행']);
+    });
+  });
+
   group('longTagHint', () {
     test('null when every tag fits', () {
       expect(longTagHint(const ['여행', '가족', '제주도여행이야기']), isNull);

@@ -215,7 +215,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           // the old value when given null.
           location: _location ?? '',
           mediaUrls: List.of(_photoPaths),
-          tags: List.of(_tags),
+          tags: tidyTags(_tags),
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -233,7 +233,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           location: _location,
           aiStatus: AiStatus.pending, // summary generated async (see TECH_DESIGN.md)
           mediaUrls: List.of(_photoPaths),
-          tags: List.of(_tags),
+          tags: tidyTags(_tags),
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),

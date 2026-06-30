@@ -70,6 +70,22 @@ List<String> withTagsAdded(List<String> current, String raw) {
   return List.of(result);
 }
 
+/// Tidies a tag list just before it is saved: each tag is run through
+/// [normalizeTag] (trim, drop a leading `#`, collapse inner whitespace),
+/// blank/hash-only tags are dropped, and case-insensitive duplicates are
+/// removed while order is preserved. New entries are already clean (the add
+/// flow normalizes), so this mainly cleans tags carried over from an edited
+/// older entry. Returns a new list; the original is untouched. Pure &
+/// top-level so it is unit-testable; the write screen calls it when persisting.
+List<String> tidyTags(List<String> tags) {
+  var result = <String>[];
+  for (final t in tags) {
+    final n = normalizeTag(t);
+    if (n != null) result = withTagAdded(result, n);
+  }
+  return result;
+}
+
 /// A gentle nudge when any single tag is very long (past [max] graphemes):
 /// long tags get truncated in the timeline and are awkward to scan. Returns
 /// null when every tag fits, so most entries never see it. Pairs with
