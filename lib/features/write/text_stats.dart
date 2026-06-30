@@ -20,13 +20,14 @@ TextStats textStats(String text) {
 
 /// Character-count milestones surfaced live while writing, as gentle
 /// encouragement. Returns the label for the highest threshold reached
-/// (`>= chars`), or null when below the first one (100). Pure & top-level so
+/// (`>= chars`), or null when below the first one (50). Pure & top-level so
 /// it is unit-testable; the write screen just renders the non-null result.
 String? writingMilestone(int chars) {
   if (chars >= 1000) return '🏆 1000자 돌파, 대단해요!';
   if (chars >= 500) return '🔥 500자를 넘겼어요!';
   if (chars >= 300) return '✨ 300자, 술술 써지네요';
   if (chars >= 100) return '✍️ 벌써 100자를 넘겼어요';
+  if (chars >= 50) return '🌱 좋은 시작이에요';
   return null;
 }
 
