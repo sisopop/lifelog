@@ -136,13 +136,15 @@ class _ContentMeta extends StatelessWidget {
     final s = textStats(text);
     final milestone = writingMilestone(s.chars);
     final minutes = readingMinutes(s.chars);
+    final sentences = countSentences(text);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Align(
           alignment: Alignment.centerRight,
           child: Text(
-            '글자 ${s.chars} · 단어 ${s.words}',
+            '글자 ${s.chars} · 단어 ${s.words}'
+            '${sentences > 0 ? ' · 문장 $sentences' : ''}',
             style: const TextStyle(fontSize: 12, color: AppColors.textHint),
           ),
         ),

@@ -87,3 +87,15 @@ List<String> frequentTagSuggestions(
   }
   return out;
 }
+
+/// Rough sentence count for the body: runs of text separated by
+/// sentence-ending punctuation (`. ! ? 。 ！ ？ …`) or line breaks, counting
+/// only non-empty trimmed segments. Text with no terminator counts as one
+/// sentence; punctuation/whitespace only counts as zero. Pure & top-level so
+/// it is unit-testable.
+int countSentences(String text) {
+  return text
+      .split(RegExp(r'[.!?。！？…\n]+'))
+      .where((p) => p.trim().isNotEmpty)
+      .length;
+}

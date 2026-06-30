@@ -147,4 +147,28 @@ void main() {
       expect(frequentTagSuggestions(const [], const []), isEmpty);
     });
   });
+
+  group('countSentences', () {
+    test('counts segments split by sentence-ending punctuation', () {
+      expect(countSentences('밥을 먹었다. 산책도 했다! 좋은 날이었나?'), 3);
+    });
+
+    test('text with no terminator is a single sentence', () {
+      expect(countSentences('그냥 평범한 하루'), 1);
+    });
+
+    test('line breaks separate sentences', () {
+      expect(countSentences('첫 줄\n\n둘째 줄'), 2);
+    });
+
+    test('repeated terminators do not inflate the count', () {
+      expect(countSentences('대박!! 진짜??'), 2);
+    });
+
+    test('empty / punctuation-or-whitespace only is zero', () {
+      expect(countSentences(''), 0);
+      expect(countSentences('   \n  '), 0);
+      expect(countSentences('...!?'), 0);
+    });
+  });
 }
