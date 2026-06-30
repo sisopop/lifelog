@@ -138,6 +138,7 @@ class _ContentMeta extends StatelessWidget {
     final minutes = readingMinutes(s.chars);
     final sentences = countSentences(text);
     final paragraphs = countParagraphs(text);
+    final questions = countQuestions(text);
     final avgSentence = averageSentenceLength(text);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -147,7 +148,8 @@ class _ContentMeta extends StatelessWidget {
           child: Text(
             '글자 ${s.chars} · 단어 ${s.words}'
             '${sentences > 0 ? ' · 문장 $sentences' : ''}'
-            '${paragraphs > 1 ? ' · 문단 $paragraphs' : ''}',
+            '${paragraphs > 1 ? ' · 문단 $paragraphs' : ''}'
+            '${questions > 0 ? ' · 질문 $questions' : ''}',
             style: const TextStyle(fontSize: 12, color: AppColors.textHint),
           ),
         ),

@@ -232,6 +232,25 @@ void main() {
     });
   });
 
+  group('countQuestions', () {
+    test('counts question sentences', () {
+      expect(countQuestions('왜 그럴까? 그냥 그렇다. 어떻게 하지?'), 2);
+    });
+
+    test('repeated question marks count once', () {
+      expect(countQuestions('진짜?? 정말?'), 2);
+    });
+
+    test('handles the fullwidth question mark', () {
+      expect(countQuestions('정말？ 그래'), 1);
+    });
+
+    test('zero when there are no questions', () {
+      expect(countQuestions('그냥 평범한 하루였다.'), 0);
+      expect(countQuestions(''), 0);
+    });
+  });
+
   group('averageSentenceLength', () {
     test('null below 2 sentences', () {
       expect(averageSentenceLength(''), isNull);

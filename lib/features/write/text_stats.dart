@@ -128,6 +128,15 @@ int countParagraphs(String text) {
       .length;
 }
 
+/// Number of question sentences in the body — runs of `?`/`？` count once each
+/// (so `정말??` is one question, matching [countSentences]'s handling of
+/// repeated terminators). A gentle nudge that the writer is asking themselves
+/// things. Pure & top-level so it is unit-testable; the write meta appends it
+/// to the count line only when there is at least one.
+int countQuestions(String text) {
+  return RegExp(r'[?？]+').allMatches(text).length;
+}
+
 /// Average characters per sentence for the body — a rough writing-pace hint.
 /// Returns null until there are at least 2 sentences (a single sentence is not
 /// informative) or when the body is empty. Uses the grapheme char count over
