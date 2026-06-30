@@ -23,6 +23,7 @@ TextStats textStats(String text) {
 /// (`>= chars`), or null when below the first one (50). Pure & top-level so
 /// it is unit-testable; the write screen just renders the non-null result.
 String? writingMilestone(int chars) {
+  if (chars >= 2000) return '📚 2000자, 한 편의 글이 됐어요';
   if (chars >= 1000) return '🏆 1000자 돌파, 대단해요!';
   if (chars >= 500) return '🔥 500자를 넘겼어요!';
   if (chars >= 300) return '✨ 300자, 술술 써지네요';

@@ -51,7 +51,9 @@ void main() {
       expect(writingMilestone(500), '🔥 500자를 넘겼어요!');
       expect(writingMilestone(999), '🔥 500자를 넘겼어요!');
       expect(writingMilestone(1000), '🏆 1000자 돌파, 대단해요!');
-      expect(writingMilestone(5000), '🏆 1000자 돌파, 대단해요!');
+      expect(writingMilestone(1999), '🏆 1000자 돌파, 대단해요!');
+      expect(writingMilestone(2000), '📚 2000자, 한 편의 글이 됐어요');
+      expect(writingMilestone(5000), '📚 2000자, 한 편의 글이 됐어요');
     });
   });
 
