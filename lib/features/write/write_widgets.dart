@@ -162,6 +162,7 @@ class _ContentMeta extends StatelessWidget {
     final avgWord = averageWordLength(text);
     final longestSentence = longestSentenceLength(text);
     final paragraphHint = paragraphBreakHint(s.chars, paragraphs);
+    final longSentence = longSentenceHint(longestSentence);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -218,6 +219,16 @@ class _ContentMeta extends StatelessWidget {
             alignment: Alignment.centerRight,
             child: Text(
               paragraphHint,
+              style: const TextStyle(fontSize: 12, color: AppColors.textHint),
+            ),
+          ),
+        ],
+        if (longSentence != null) ...[
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              longSentence,
               style: const TextStyle(fontSize: 12, color: AppColors.textHint),
             ),
           ),

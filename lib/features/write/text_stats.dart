@@ -208,6 +208,16 @@ String? paragraphBreakHint(int chars, int paragraphs, {int minChars = 400}) {
   return '긴 글은 빈 줄로 문단을 나누면 읽기 좋아요';
 }
 
+/// A gentle nudge when a single sentence runs very long (past [max], default
+/// 150 graphemes) — breaking it up reads more easily. Takes the already-computed
+/// [longest] sentence length (see [longestSentenceLength]); returns null when it
+/// is null or within the limit. Pure & top-level so it is unit-testable; the
+/// write meta renders the non-null result.
+String? longSentenceHint(int? longest, {int max = 150}) {
+  if (longest == null || longest <= max) return null;
+  return '한 문장이 길어요 · 끊어 쓰면 읽기 편해요';
+}
+
 /// Average characters per word for the body — a rough vocabulary-density hint
 /// shown next to the sentence average. Whitespace is excluded so spaces don't
 /// inflate it (unlike the sentence average's rough char count). Counts

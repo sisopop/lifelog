@@ -375,4 +375,21 @@ void main() {
       expect(paragraphBreakHint(80, 1, minChars: 100), isNull);
     });
   });
+
+  group('longSentenceHint', () {
+    test('null for null or within the limit', () {
+      expect(longSentenceHint(null), isNull);
+      expect(longSentenceHint(150), isNull);
+    });
+
+    test('hint past the limit', () {
+      expect(longSentenceHint(151), contains('문장'));
+      expect(longSentenceHint(400), isNotNull);
+    });
+
+    test('respects a custom max', () {
+      expect(longSentenceHint(60, max: 50), isNotNull);
+      expect(longSentenceHint(50, max: 50), isNull);
+    });
+  });
 }
