@@ -87,11 +87,14 @@ class PageCanvasView extends StatelessWidget {
 /// (텍스트·스티커)는 글자로 그린다. [stickerSize]는 scale이 이미 반영된 글자
 /// 크기. 편집기와 읽기전용 뷰가 이 함수를 공유해 배치가 항상 일치한다.
 Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
-  final content = _decoLayerBody(l, stickerSize);
+  Widget content = _decoLayerBody(l, stickerSize);
   // 좌우/위아래 뒤집기(거울상). 회전·배치는 상위에서 이미 적용된다.
-  return (l.flipX || l.flipY)
-      ? Transform.flip(flipX: l.flipX, flipY: l.flipY, child: content)
-      : content;
+  if (l.flipX || l.flipY) {
+    content = Transform.flip(flipX: l.flipX, flipY: l.flipY, child: content);
+  }
+  // 반투명(기본 1.0=불투명). 낮추면 배경·아래 레이어가 비친다.
+  if (l.opacity != 1.0) content = Opacity(opacity: l.opacity, child: content);
+  return content;
 }
 
 Widget _decoLayerBody(DecoLayer l, double stickerSize) {

@@ -216,8 +216,21 @@ PageCanvas duplicateLayer(
       bgColorValue: src.bgColorValue,
       flipX: src.flipX,
       flipY: src.flipY,
+      opacity: src.opacity,
     ),
   );
+}
+
+/// id 레이어의 불투명도를 [delta]만큼 조절(0.2~1.0로 가둠)한 새 캔버스를 반환한다.
+/// 흐리게(-)·진하게(+) 버튼이 쓴다. 이미 한계라 값이 그대로면 원본(동일 인스턴스),
+/// id가 없어도 원본 그대로. 위치·크기·회전·z 등은 보존. 원본은 불변.
+PageCanvas stepLayerOpacity(PageCanvas canvas, String id, double delta) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final next = (l.opacity + delta).clamp(0.2, 1.0);
+  if (next == l.opacity) return canvas;
+  return replaceLayer(canvas, l.copyWith(opacity: next));
 }
 
 /// id 레이어의 좌우 뒤집힘(거울상)을 토글한 새 캔버스를 반환한다. 위치·크기·회전·z는

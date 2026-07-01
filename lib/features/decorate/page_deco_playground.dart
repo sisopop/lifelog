@@ -359,6 +359,18 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               setState(() => _canvas = resetLayerScale(_canvas, id));
             }
           }),
+          _toolBtn(Icons.opacity, '흐리게', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = stepLayerOpacity(_canvas, id, -0.2));
+            }
+          }),
+          _toolBtn(Icons.opacity_outlined, '진하게', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = stepLayerOpacity(_canvas, id, 0.2));
+            }
+          }),
           _toolBtn(Icons.rotate_right, '회전', () => _editSelected((l) =>
               l.copyWith(rotation: (l.rotation + 15) % 360))),
           _toolBtn(Icons.rotate_90_degrees_cw, '90°', () {

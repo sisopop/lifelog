@@ -50,6 +50,7 @@ class DecoLayer {
     this.bgColorValue,
     this.flipX = false,
     this.flipY = false,
+    this.opacity = 1.0,
   });
 
   final String id;
@@ -84,6 +85,11 @@ class DecoLayer {
   /// true면 180° 돌린 것과 같다(렌더는 decoLayerContent가 처리).
   final bool flipY;
 
+  /// 불투명도(0~1). 기본 1.0=불투명. 낮출수록 배경·아래 레이어가 비쳐 은은한
+  /// 느낌을 준다(옛 저장본은 1.0이라 종전과 동일). 스티커·사진·테이프·글자
+  /// 어디에나 적용된다(렌더는 decoLayerContent가 처리).
+  final double opacity;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -97,6 +103,7 @@ class DecoLayer {
     int? bgColorValue,
     bool? flipX,
     bool? flipY,
+    double? opacity,
   }) =>
       DecoLayer(
         id: id,
@@ -112,6 +119,7 @@ class DecoLayer {
         bgColorValue: bgColorValue ?? this.bgColorValue,
         flipX: flipX ?? this.flipX,
         flipY: flipY ?? this.flipY,
+        opacity: opacity ?? this.opacity,
       );
 
   Map<String, dynamic> toJson() => {
@@ -132,6 +140,8 @@ class DecoLayer {
         // 뒤집지 않았으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (flipX) 'flipX': true,
         if (flipY) 'flipY': true,
+        // 불투명(기본 1.0)이면 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
+        if (opacity != 1.0) 'opacity': opacity,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -149,6 +159,7 @@ class DecoLayer {
         bgColorValue: (json['bg'] as num?)?.toInt(),
         flipX: json['flipX'] == true,
         flipY: json['flipY'] == true,
+        opacity: _toDouble(json['opacity'], 1.0),
       );
 }
 
