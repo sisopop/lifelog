@@ -411,6 +411,16 @@ PageCanvas updateTextLayer(
   );
 }
 
+/// 가장 최근에 올린 레이어(리스트의 마지막) 하나를 지운 새 캔버스를 반환한다.
+/// 방금 올린 스티커·글자·사진·테이프를 실행 취소처럼 한 번에 무를 때 쓴다.
+/// z(쌓임 순서)가 아니라 **추가 순서** 기준이라 맨 앞/맨 뒤 보내기와 무관하게
+/// "방금 올린 것"을 지운다(레이어 조작 함수들이 모두 리스트 순서를 보존하므로
+/// layers.last가 항상 가장 최근 추가분). 비어 있으면 원본 그대로. 원본은 불변.
+PageCanvas removeLastLayer(PageCanvas canvas) {
+  if (canvas.layers.isEmpty) return canvas;
+  return removeLayer(canvas, canvas.layers.last.id);
+}
+
 /// 캔버스 구성 요약 문구(예: "스티커 2 · 사진 1"). 레이어 종류별 개수를 세어
 /// 0인 종류는 빼고 이어 붙인다. 레이어가 하나도 없으면 null(무늬만 있는 경우
 /// 포함). 편집기를 열지 않고도 무엇이 올라가 있는지 한눈에 보여줄 때 쓴다.

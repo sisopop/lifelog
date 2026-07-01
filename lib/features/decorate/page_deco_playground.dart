@@ -197,6 +197,16 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
             ),
           if (_canvas.layers.isNotEmpty)
             IconButton(
+              tooltip: '실행 취소',
+              icon: const Icon(Icons.undo),
+              onPressed: () => setState(() {
+                final last = _canvas.layers.last.id;
+                _canvas = removeLastLayer(_canvas);
+                if (_selectedId == last) _selectedId = null;
+              }),
+            ),
+          if (_canvas.layers.isNotEmpty)
+            IconButton(
               tooltip: '모두 지우기',
               icon: const Icon(Icons.delete_sweep_outlined),
               onPressed: () => setState(() {

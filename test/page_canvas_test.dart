@@ -320,6 +320,40 @@ void main() {
     });
   });
 
+  group('removeLastLayer', () {
+    test('removes the most recently added layer, keeps earlier ones', () {
+      final base =
+          PageCanvas(layers: [_layer('a'), _layer('b'), _layer('c')]);
+      final next = removeLastLayer(base);
+      expect(next.layers.map((l) => l.id), ['a', 'b']);
+    });
+
+    test('uses add order, not z — front/back sends do not change target', () {
+      // 'a'를 맨 앞으로 올려 z가 가장 높아도, 지워지는 건 마지막에 추가한 'b'.
+      final base = PageCanvas(layers: [_layer('a', z: 0), _layer('b', z: 1)]);
+      final raised = bringLayerToFront(base, 'a');
+      final next = removeLastLayer(raised);
+      expect(next.layers.map((l) => l.id), ['a']);
+    });
+
+    test('empty canvas → unchanged (same instance)', () {
+      const base = PageCanvas();
+      expect(identical(removeLastLayer(base), base), isTrue);
+    });
+
+    test('does not mutate original, preserves paper + color', () {
+      final base = PageCanvas(
+        layers: [_layer('a'), _layer('b')],
+        paper: PaperStyle.grid,
+        paperColorValue: 0xFFEEF4FB,
+      );
+      final next = removeLastLayer(base);
+      expect(base.layers.length, 2); // 원본 불변
+      expect(next.paper, PaperStyle.grid);
+      expect(next.paperColorValue, 0xFFEEF4FB);
+    });
+  });
+
   group('duplicateLayer', () {
     test('copies the layer with a new id, offset and on top', () {
       const src = DecoLayer(
