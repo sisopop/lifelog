@@ -38,7 +38,9 @@ class PageCanvasView extends StatelessWidget {
         aspectRatio: aspectRatio,
         child: Container(
           decoration: BoxDecoration(
-            color: kCanvasPaperCream,
+            color: canvas.paperColorValue != null
+                ? Color(canvas.paperColorValue!)
+                : kCanvasPaperCream,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),

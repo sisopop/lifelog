@@ -139,6 +139,7 @@ class PageCanvas {
   const PageCanvas({
     this.layers = const [],
     this.paper = PaperStyle.plain,
+    this.paperColorValue,
     this.version = 1,
   });
 
@@ -146,6 +147,10 @@ class PageCanvas {
 
   /// 속지(배경) 무늬. 레이어가 없어도 배경만 골라 꾸밀 수 있다.
   final PaperStyle paper;
+
+  /// 속지(배경) 바탕색(ARGB 정수). null이면 기본 크림색. 무늬(paper)와 별개로
+  /// 종이 자체의 색을 고른다(옛 저장본은 null이라 종전과 동일).
+  final int? paperColorValue;
   final int version;
 
   bool get isEmpty => layers.isEmpty;
@@ -161,6 +166,8 @@ class PageCanvas {
   Map<String, dynamic> toJson() => {
         'version': version,
         'paper': paper.name,
+        // 바탕색이 없으면(기본 크림) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
+        if (paperColorValue != null) 'paperColor': paperColorValue,
         'layers': layers.map((l) => l.toJson()).toList(),
       };
 
@@ -175,6 +182,7 @@ class PageCanvas {
     return PageCanvas(
       layers: layers,
       paper: _paperFromName(json['paper'] as String?),
+      paperColorValue: (json['paperColor'] as num?)?.toInt(),
       version: (json['version'] as num?)?.toInt() ?? 1,
     );
   }
@@ -281,6 +289,7 @@ PageCanvas addTapeLayer(
 PageCanvas addLayer(PageCanvas canvas, DecoLayer layer) => PageCanvas(
       version: canvas.version,
       paper: canvas.paper,
+      paperColorValue: canvas.paperColorValue,
       layers: [...canvas.layers, layer.copyWith(z: canvas.topZ + 1)],
     );
 
@@ -288,6 +297,7 @@ PageCanvas addLayer(PageCanvas canvas, DecoLayer layer) => PageCanvas(
 PageCanvas removeLayer(PageCanvas canvas, String id) => PageCanvas(
       version: canvas.version,
       paper: canvas.paper,
+      paperColorValue: canvas.paperColorValue,
       layers: canvas.layers.where((l) => l.id != id).toList(),
     );
 
@@ -296,6 +306,7 @@ PageCanvas removeLayer(PageCanvas canvas, String id) => PageCanvas(
 PageCanvas replaceLayer(PageCanvas canvas, DecoLayer updated) => PageCanvas(
       version: canvas.version,
       paper: canvas.paper,
+      paperColorValue: canvas.paperColorValue,
       layers:
           canvas.layers.map((l) => l.id == updated.id ? updated : l).toList(),
     );
@@ -305,6 +316,16 @@ PageCanvas replaceLayer(PageCanvas canvas, DecoLayer updated) => PageCanvas(
 PageCanvas setPaper(PageCanvas canvas, PaperStyle style) => PageCanvas(
       version: canvas.version,
       paper: style,
+      paperColorValue: canvas.paperColorValue,
+      layers: canvas.layers,
+    );
+
+/// 속지(배경) 바탕색만 [colorValue](ARGB, null이면 기본 크림)로 바꾼 새 캔버스를
+/// 반환한다(무늬·레이어는 그대로). 원본은 불변.
+PageCanvas setPaperColor(PageCanvas canvas, int? colorValue) => PageCanvas(
+      version: canvas.version,
+      paper: canvas.paper,
+      paperColorValue: colorValue,
       layers: canvas.layers,
     );
 

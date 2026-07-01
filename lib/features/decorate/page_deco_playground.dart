@@ -9,6 +9,7 @@ import '../../shared/widgets/photo.dart';
 import 'content_flow_demo.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
+import 'paper_selector.dart';
 import 'sticker_catalog.dart';
 import 'text_layer_dialog.dart';
 import 'washi_tape_catalog.dart';
@@ -49,16 +50,11 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
   int _categoryIndex = 0;
   final _picker = ImagePicker();
 
-  /// 저장할 게 없는 빈 캔버스(무늬 없음·레이어 없음)인지.
+  /// 저장할 게 없는 빈 캔버스(무늬 없음·바탕색 기본·레이어 없음)인지.
   bool get _isBlank =>
-      _canvas.layers.isEmpty && _canvas.paper == PaperStyle.plain;
-
-  static const _paperLabels = {
-    PaperStyle.plain: '무지',
-    PaperStyle.lined: '줄',
-    PaperStyle.grid: '모눈',
-    PaperStyle.dotted: '도트',
-  };
+      _canvas.layers.isEmpty &&
+      _canvas.paper == PaperStyle.plain &&
+      _canvas.paperColorValue == null;
 
   DecoLayer? get _selected {
     for (final l in _canvas.layers) {
@@ -179,7 +175,10 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               tooltip: '모두 지우기',
               icon: const Icon(Icons.delete_sweep_outlined),
               onPressed: () => setState(() {
-                _canvas = PageCanvas(paper: _canvas.paper);
+                _canvas = PageCanvas(
+                  paper: _canvas.paper,
+                  paperColorValue: _canvas.paperColorValue,
+                );
                 _selectedId = null;
               }),
             ),
@@ -194,7 +193,14 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         children: [
           Expanded(child: _page()),
           if (_selected != null) _selectedToolbar(),
-          _paperSelector(),
+          PaperSelector(
+            paper: _canvas.paper,
+            paperColorValue: _canvas.paperColorValue,
+            onPaperChanged: (style) =>
+                setState(() => _canvas = setPaper(_canvas, style)),
+            onColorChanged: (value) =>
+                setState(() => _canvas = setPaperColor(_canvas, value)),
+          ),
           _palette(),
         ],
       ),
@@ -208,7 +214,9 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            color: kCanvasPaperCream, // 크림 속지
+            color: _canvas.paperColorValue != null
+                ? Color(_canvas.paperColorValue!)
+                : kCanvasPaperCream, // 기본 크림 속지
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
@@ -347,30 +355,6 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
             Text(label, style: TextStyle(fontSize: 11, color: color)),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _paperSelector() {
-    return Container(
-      color: AppColors.surface,
-      padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
-      child: Row(
-        children: [
-          const Text('속지',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          const SizedBox(width: 8),
-          for (final style in PaperStyle.values)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: ChoiceChip(
-                label: Text(_paperLabels[style]!),
-                selected: _canvas.paper == style,
-                onSelected: (_) =>
-                    setState(() => _canvas = setPaper(_canvas, style)),
-              ),
-            ),
-        ],
       ),
     );
   }

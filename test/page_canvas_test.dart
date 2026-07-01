@@ -418,4 +418,51 @@ void main() {
           PaperStyle.lined);
     });
   });
+
+  group('paper color (속지 바탕색)', () {
+    test('defaults to null (기본 크림)', () {
+      expect(const PageCanvas().paperColorValue, isNull);
+    });
+
+    test('setPaperColor swaps only the color, keeps paper+layers, no mutation',
+        () {
+      final base = PageCanvas(paper: PaperStyle.grid, layers: [_layer('a')]);
+      final next = setPaperColor(base, 0xFFFFF0F3);
+      expect(next.paperColorValue, 0xFFFFF0F3);
+      expect(next.paper, PaperStyle.grid);
+      expect(next.layers.single.id, 'a');
+      expect(base.paperColorValue, isNull); // unchanged
+    });
+
+    test('setPaperColor(null) clears back to default cream', () {
+      final base = setPaperColor(const PageCanvas(), 0xFFFFF0F3);
+      expect(setPaperColor(base, null).paperColorValue, isNull);
+    });
+
+    test('round-trips through encode/decode', () {
+      final canvas = setPaperColor(const PageCanvas(), 0xFFEFF7F0);
+      final back = decodePageCanvas(encodePageCanvas(canvas));
+      expect(back.paperColorValue, 0xFFEFF7F0);
+    });
+
+    test('toJson omits paperColor when default (byte-compat with old saves)',
+        () {
+      expect(const PageCanvas().toJson().containsKey('paperColor'), isFalse);
+      expect(
+          setPaperColor(const PageCanvas(), 0xFF123456)
+              .toJson()['paperColor'],
+          0xFF123456);
+    });
+
+    test('layer ops + setPaper preserve the chosen paper color', () {
+      final base = setPaperColor(
+          PageCanvas(paper: PaperStyle.lined, layers: [_layer('a')]),
+          0xFFF3E9D8);
+      expect(addLayer(base, _layer('b')).paperColorValue, 0xFFF3E9D8);
+      expect(removeLayer(base, 'a').paperColorValue, 0xFFF3E9D8);
+      expect(replaceLayer(base, _layer('a').copyWith(x: 0.1)).paperColorValue,
+          0xFFF3E9D8);
+      expect(setPaper(base, PaperStyle.dotted).paperColorValue, 0xFFF3E9D8);
+    });
+  });
 }
