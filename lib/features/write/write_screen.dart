@@ -6,6 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../decorate/page_canvas.dart';
+import '../decorate/page_canvas_view.dart';
+import '../decorate/page_deco_playground.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/mood_chip.dart';
@@ -18,6 +21,7 @@ import '../tags/tag_suggest.dart';
 import '../timeline/timeline_filter.dart';
 import 'date_field.dart';
 import 'draft_guard.dart';
+import 'journal_picker_sheet.dart';
 import 'entry_date.dart';
 import 'location_field.dart';
 import 'tag_input_sheet.dart';
@@ -67,6 +71,9 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   String? _location;
   final List<String> _photoPaths = [];
   List<String> _tags = [];
+
+  /// 페이지(내지) 꾸미기 캔버스 JSON. null이면 꾸미기 없는 순수 텍스트 기록.
+  String? _pageCanvas;
   DiaryEntry? _editing;
   bool _prefilled = false;
 
@@ -114,6 +121,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         _tags
           ..clear()
           ..addAll(entry.tags);
+        _pageCanvas = entry.pageCanvas;
         _prefilled = true;
       }
     }
@@ -194,6 +202,22 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     setState(() => _location = normalizeLocation(result));
   }
 
+  /// Opens the canvas editor; "완료" returns the edited canvas (null = clear).
+  Future<void> _editPageCanvas() async {
+    final nav = Navigator.of(context);
+    await nav.push(MaterialPageRoute<void>(
+      builder: (_) => PageDecoPlayground(
+        title: '페이지 꾸미기',
+        initial: decodePageCanvas(_pageCanvas),
+        onDone: (canvas) {
+          setState(() =>
+              _pageCanvas = canvas == null ? null : encodePageCanvas(canvas));
+          nav.pop();
+        },
+      ),
+    ));
+  }
+
   Future<void> _save({required EntryVisibility visibility}) async {
     if (_contentCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -216,6 +240,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           location: _location ?? '',
           mediaUrls: List.of(_photoPaths),
           tags: tidyTags(_tags),
+          pageCanvas: _pageCanvas,
+          clearPageCanvas: _pageCanvas == null,
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -234,6 +260,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           aiStatus: AiStatus.pending, // summary generated async (see TECH_DESIGN.md)
           mediaUrls: List.of(_photoPaths),
           tags: tidyTags(_tags),
+          pageCanvas: _pageCanvas,
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
@@ -261,36 +288,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
 
   /// Bottom sheet to change which journal this new entry is saved into.
   Future<void> _pickJournal(List<Journal> journals) async {
-    final active = journals.where((j) => !j.isArchived).toList();
-    final picked = await showModalBottomSheet<String>(
+    final picked = await showJournalPicker(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('어느 일기장에 쓸까요?',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-              ),
-            ),
-            for (final j in active)
-              ListTile(
-                leading:
-                    Text(j.displayIcon, style: const TextStyle(fontSize: 20)),
-                title: Text(j.title),
-                subtitle: Text(j.type.label),
-                trailing: j.journalId == _targetJournalId
-                    ? const Icon(Icons.check, color: AppColors.primary)
-                    : null,
-                onTap: () => Navigator.pop(ctx, j.journalId),
-              ),
-          ],
-        ),
-      ),
+      journals: journals,
+      currentId: _targetJournalId,
     );
     if (picked != null && picked != _targetJournalId) {
       setState(() => _journalId = picked);
@@ -452,6 +453,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             onLocation: _editLocation,
             onTag: _addTag,
           ),
+          const SizedBox(height: 16),
+          _DecoratePageTile(canvasJson: _pageCanvas, onEdit: _editPageCanvas),
           const SizedBox(height: 28),
           if (_isEditing)
             ElevatedButton(

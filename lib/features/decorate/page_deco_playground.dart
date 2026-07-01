@@ -4,30 +4,47 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
 import 'page_canvas.dart';
+import 'page_canvas_view.dart';
 import 'sticker_catalog.dart';
 
-/// 기록 페이지 꾸미기 **실험용 프로토타입**.
+/// 기록 페이지 꾸미기 캔버스 에디터.
 ///
-/// 아직 저장(DB)·실제 기록 연동은 없다 — 순전히 [PageCanvas] 모델 위에서
-/// 스티커를 올리고·끌고·키우고·돌리는 "꾸미는 재미"를 손으로 만져보기 위한
-/// 화면이다. 방향이 정해지면 이 조작 흐름을 실제 글쓰기 화면에 이식한다.
+/// [PageCanvas] 모델 위에서 스티커를 올리고·끌고·키우고·돌리는 편집 화면.
+/// 두 가지 모드로 쓰인다:
+///  - **실험용**(기본): [initial]/[onDone] 없이 열면 저장 없이 자유롭게 만져보는
+///    프로토타입(설정 → "페이지 꾸미기(실험)").
+///  - **실기록 편집**: [initial]에 기존 캔버스를 주고 [onDone]를 넘기면, 상단
+///    "완료" 버튼이 현재 캔버스를 콜백으로 돌려준다(빈 캔버스면 null → 꾸미기 해제).
 class PageDecoPlayground extends StatefulWidget {
-  const PageDecoPlayground({super.key});
+  const PageDecoPlayground({
+    super.key,
+    this.initial,
+    this.onDone,
+    this.title = '페이지 꾸미기 (실험)',
+  });
+
+  /// 편집을 시작할 캔버스. null이면 빈 캔버스에서 시작.
+  final PageCanvas? initial;
+
+  /// 실기록 편집 모드: "완료" 버튼을 누르면 현재 캔버스를 돌려준다. 캔버스가
+  /// 비어 있으면(무늬 plain·레이어 없음) null을 돌려 "꾸미기 없음"을 뜻한다.
+  final ValueChanged<PageCanvas?>? onDone;
+
+  final String title;
 
   @override
   State<PageDecoPlayground> createState() => _PageDecoPlaygroundState();
 }
 
 class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
-  PageCanvas _canvas = const PageCanvas();
+  late PageCanvas _canvas = widget.initial ?? const PageCanvas();
   String? _selectedId;
   int _seq = 0;
   int _categoryIndex = 0;
 
-  // 속지(배경) 무늬 — 디자인 가이드 캔버스 토큰을 그대로 채택.
-  static const _paperBg = Color(0xFFFFF8F0); // canvasPaperCream
-  static const _gridLine = Color(0xFFE0D5C5); // canvasGridLine
-  static const _dotColor = Color(0xFFCFC3B0); // canvasDot
+  /// 저장할 게 없는 빈 캔버스(무늬 없음·레이어 없음)인지.
+  bool get _isBlank =>
+      _canvas.layers.isEmpty && _canvas.paper == PaperStyle.plain;
 
   static const _paperLabels = {
     PaperStyle.plain: '무지',
@@ -78,7 +95,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('페이지 꾸미기 (실험)'),
+        title: Text(widget.title),
         actions: [
           if (_canvas.layers.isNotEmpty)
             IconButton(
@@ -88,6 +105,11 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
                 _canvas = PageCanvas(paper: _canvas.paper);
                 _selectedId = null;
               }),
+            ),
+          if (widget.onDone != null)
+            TextButton(
+              onPressed: () => widget.onDone!(_isBlank ? null : _canvas),
+              child: const Text('완료'),
             ),
         ],
       ),
@@ -109,7 +131,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            color: _paperBg, // 크림 속지
+            color: kCanvasPaperCream, // 크림 속지
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
@@ -129,7 +151,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
                   children: [
                     Positioned.fill(
                       child: CustomPaint(
-                        painter: _PaperPainter(_canvas.paper),
+                        painter: PageCanvasPaperPainter(_canvas.paper),
                       ),
                     ),
                     if (_canvas.isEmpty)
@@ -308,49 +330,4 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       ),
     );
   }
-}
-
-/// 속지(배경) 무늬를 그리는 페인터. 줄/모눈/도트를 일정 간격으로 채운다.
-/// plain은 아무것도 그리지 않는다(크림 배경만 보임).
-class _PaperPainter extends CustomPainter {
-  const _PaperPainter(this.style);
-
-  final PaperStyle style;
-
-  static const double _gap = 28; // 줄/격자/도트 간격(논리 픽셀)
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    switch (style) {
-      case PaperStyle.plain:
-        return;
-      case PaperStyle.lined:
-        final paint = Paint()
-          ..color = _PageDecoPlaygroundState._gridLine
-          ..strokeWidth = 1;
-        for (var y = _gap; y < size.height; y += _gap) {
-          canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-        }
-      case PaperStyle.grid:
-        final paint = Paint()
-          ..color = _PageDecoPlaygroundState._gridLine
-          ..strokeWidth = 1;
-        for (var y = _gap; y < size.height; y += _gap) {
-          canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-        }
-        for (var x = _gap; x < size.width; x += _gap) {
-          canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-        }
-      case PaperStyle.dotted:
-        final paint = Paint()..color = _PageDecoPlaygroundState._dotColor;
-        for (var y = _gap; y < size.height; y += _gap) {
-          for (var x = _gap; x < size.width; x += _gap) {
-            canvas.drawCircle(Offset(x, y), 1.4, paint);
-          }
-        }
-    }
-  }
-
-  @override
-  bool shouldRepaint(_PaperPainter oldDelegate) => oldDelegate.style != style;
 }

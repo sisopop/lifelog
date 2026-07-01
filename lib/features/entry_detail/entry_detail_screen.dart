@@ -10,12 +10,14 @@ import '../../shared/models/journal.dart';
 import '../decorate/cover_paper.dart';
 import '../decorate/cover_paper_color.dart';
 import '../decorate/cover_paper_painter.dart';
+import '../decorate/page_canvas.dart';
+import '../decorate/page_canvas_view.dart';
+import 'entry_gallery.dart';
 import '../journals/journals_provider.dart';
 import 'entry_clipboard.dart';
 import 'entry_edited.dart';
 import 'reading_time.dart';
 import '../../shared/models/journal_member.dart';
-import '../../shared/widgets/photo.dart';
 import 'mood_editor.dart';
 import 'related_entries_section.dart';
 import '../entries/entries_provider.dart';
@@ -108,7 +110,11 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   _header(context, entry, date, authorName),
                 const SizedBox(height: 20),
                 if (entry.mediaUrls.isNotEmpty) ...[
-                  _gallery(entry),
+                  EntryGallery(entry.mediaUrls),
+                  const SizedBox(height: 20),
+                ],
+                if (entry.pageCanvas != null) ...[
+                  PageCanvasView(decodePageCanvas(entry.pageCanvas)),
                   const SizedBox(height: 20),
                 ],
                 Text(entry.content,
@@ -356,21 +362,6 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _gallery(DiaryEntry entry) {
-    return SizedBox(
-      height: 200,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: entry.mediaUrls.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (_, i) => ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: PhotoView(entry.mediaUrls[i], width: 260, height: 200, iconSize: 40),
-        ),
-      ),
     );
   }
 
