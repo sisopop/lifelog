@@ -355,6 +355,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               setState(() => _canvas = straightenLayer(_canvas, id));
             }
           }),
+          _toolBtn(Icons.center_focus_strong_outlined, '가운데', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = centerLayer(_canvas, id));
+            }
+          }),
           if (_selected?.kind == DecoKind.text)
             _toolBtn(Icons.edit_outlined, '편집', () => _editText(_selected!)),
           _toolBtn(Icons.copy_all_outlined, '복제', () {

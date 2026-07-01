@@ -353,6 +353,17 @@ PageCanvas straightenLayer(PageCanvas canvas, String id) {
   return replaceLayer(canvas, matches.first.copyWith(rotation: 0));
 }
 
+/// id 레이어를 페이지 정중앙(x=0.5, y=0.5)으로 옮긴 새 캔버스를 반환한다. 위치만
+/// 바꾸고 크기·회전·z는 그대로. 가장자리로 밀려난 레이어를 한 번에 가운데로 모을
+/// 때 쓴다. 이미 정중앙이거나 id가 없으면 원본 그대로. 원본은 불변.
+PageCanvas centerLayer(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  if (l.x == 0.5 && l.y == 0.5) return canvas;
+  return replaceLayer(canvas, l.copyWith(x: 0.5, y: 0.5));
+}
+
 /// id 레이어를 똑같이 복제한 새 캔버스를 반환한다(같은 스티커/테이프/글자를 도장처럼
 /// 여러 번 찍을 때). 복제본은 [newId]를 달고 살짝 어긋난 위치([dx],[dy] 만큼, 0~1로
 /// 가둠)에 맨 위로 얹힌다. 색·굵기·형광펜·크기·회전 등 모든 속성은 그대로 복사된다.
