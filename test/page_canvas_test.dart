@@ -320,6 +320,37 @@ void main() {
     });
   });
 
+  group('straightenLayer', () {
+    test('resets rotation to 0, keeps position/scale/z', () {
+      final base = PageCanvas(layers: [
+        _layer('a').copyWith(rotation: -8, x: 0.3, y: 0.2, scale: 1.4, z: 3),
+      ]);
+      final next = straightenLayer(base, 'a');
+      final l = next.layers.single;
+      expect(l.rotation, 0);
+      expect(l.x, 0.3);
+      expect(l.y, 0.2);
+      expect(l.scale, 1.4);
+      expect(l.z, 3);
+    });
+
+    test('already straight → unchanged (same instance)', () {
+      final base = PageCanvas(layers: [_layer('a')]); // rotation 0
+      expect(identical(straightenLayer(base, 'a'), base), isTrue);
+    });
+
+    test('unknown id → unchanged', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(rotation: 30)]);
+      expect(identical(straightenLayer(base, 'zzz'), base), isTrue);
+    });
+
+    test('does not mutate original', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(rotation: 45)]);
+      straightenLayer(base, 'a');
+      expect(base.layers.single.rotation, 45);
+    });
+  });
+
   group('removeLastLayer', () {
     test('removes the most recently added layer, keeps earlier ones', () {
       final base =

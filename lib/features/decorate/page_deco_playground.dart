@@ -334,11 +334,14 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
   }
 
   Widget _selectedToolbar() {
+    // 글자 레이어일 때 버튼이 많아(편집 포함) 좁은 화면에서 넘칠 수 있어
+    // 가로 스크롤로 감싼다(넘치면 스크롤, 아니면 그대로 보인다).
     return Container(
       color: AppColors.surface,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
         children: [
           _toolBtn(Icons.remove, '작게', () => _editSelected((l) =>
               l.copyWith(scale: (l.scale - 0.15).clamp(0.4, 4.0)))),
@@ -346,6 +349,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               l.copyWith(scale: (l.scale + 0.15).clamp(0.4, 4.0)))),
           _toolBtn(Icons.rotate_right, '회전', () => _editSelected((l) =>
               l.copyWith(rotation: (l.rotation + 15) % 360))),
+          _toolBtn(Icons.straighten, '똑바로', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = straightenLayer(_canvas, id));
+            }
+          }),
           if (_selected?.kind == DecoKind.text)
             _toolBtn(Icons.edit_outlined, '편집', () => _editText(_selected!)),
           _toolBtn(Icons.copy_all_outlined, '복제', () {
@@ -373,6 +382,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
           _toolBtn(Icons.delete_outline, '삭제', _deleteSelected,
               color: AppColors.moodHard),
         ],
+        ),
       ),
     );
   }
@@ -383,9 +393,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Padding(
-        // 글자 레이어일 때 버튼이 8개(편집 포함)라 좁은 화면에서 넘치지 않도록
-        // 가로 여백을 작게 잡는다.
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+        // 툴바가 가로 스크롤이라 넘침 걱정 없이 여유 있는 가로 여백을 준다.
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

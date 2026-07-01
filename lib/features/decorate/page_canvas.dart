@@ -344,6 +344,15 @@ PageCanvas sendLayerToBack(PageCanvas canvas, String id) {
   return replaceLayer(canvas, target.first.copyWith(z: canvas.bottomZ - 1));
 }
 
+/// id 레이어의 회전을 0°로 되돌린(똑바로 세운) 새 캔버스를 반환한다. 위치·크기·z는
+/// 그대로. 여러 번 돌리거나 기울여 붙인 테이프를 한 번에 반듯하게 펼 때 쓴다.
+/// 이미 0°이거나 id가 없으면 원본 그대로. 원본은 불변.
+PageCanvas straightenLayer(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty || matches.first.rotation == 0) return canvas;
+  return replaceLayer(canvas, matches.first.copyWith(rotation: 0));
+}
+
 /// id 레이어를 똑같이 복제한 새 캔버스를 반환한다(같은 스티커/테이프/글자를 도장처럼
 /// 여러 번 찍을 때). 복제본은 [newId]를 달고 살짝 어긋난 위치([dx],[dy] 만큼, 0~1로
 /// 가둠)에 맨 위로 얹힌다. 색·굵기·형광펜·크기·회전 등 모든 속성은 그대로 복사된다.
