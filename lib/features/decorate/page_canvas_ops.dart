@@ -244,6 +244,19 @@ PageCanvas centerLayerVertically(PageCanvas canvas, String id) {
   return replaceLayer(canvas, matches.first.copyWith(y: 0.5));
 }
 
+/// id 레이어를 [dx],[dy] 만큼 미세하게 옮긴 새 캔버스를 반환한다(작은 캔버스에서
+/// 드래그로는 정밀하게 못 놓을 때 화살표로 한 칸씩). 위치는 0~1로 가둔다. 크기·회전·
+/// z는 그대로. id가 없거나 가둔 뒤 위치가 그대로면(가장자리) 원본 그대로. 원본은 불변.
+PageCanvas nudgeLayer(PageCanvas canvas, String id, double dx, double dy) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final nx = clampUnit(l.x + dx);
+  final ny = clampUnit(l.y + dy);
+  if (nx == l.x && ny == l.y) return canvas;
+  return replaceLayer(canvas, l.copyWith(x: nx, y: ny));
+}
+
 /// id 레이어를 똑같이 복제한 새 캔버스를 반환한다(같은 스티커/테이프/글자를 도장처럼
 /// 여러 번 찍을 때). 복제본은 [newId]를 달고 살짝 어긋난 위치([dx],[dy] 만큼, 0~1로
 /// 가둠)에 맨 위로 얹힌다. 색·굵기·형광펜·크기·회전 등 모든 속성은 그대로 복사된다.

@@ -176,6 +176,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     setState(() => _canvas = replaceLayer(_canvas, f(sel)));
   }
 
+  // 선택된 레이어 id에 캔버스 순수함수를 적용해 상태를 갱신한다. 툴바 버튼들이 공유.
+  void _applyToSelected(PageCanvas Function(PageCanvas, String) op) {
+    final id = _selectedId;
+    if (id != null) setState(() => _canvas = op(_canvas, id));
+  }
+
   void _deleteSelected() {
     final id = _selectedId;
     if (id == null) return;
@@ -359,78 +365,36 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               l.copyWith(scale: (l.scale - 0.15).clamp(0.4, 4.0)))),
           _toolBtn(Icons.add, '크게', () => _editSelected((l) =>
               l.copyWith(scale: (l.scale + 0.15).clamp(0.4, 4.0)))),
-          _toolBtn(Icons.aspect_ratio, '원래크기', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = resetLayerScale(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.opacity, '흐리게', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = stepLayerOpacity(_canvas, id, -0.2));
-            }
-          }),
-          _toolBtn(Icons.opacity_outlined, '진하게', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = stepLayerOpacity(_canvas, id, 0.2));
-            }
-          }),
-          _toolBtn(Icons.rotate_left, '왼쪽', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = stepLayerRotation(_canvas, id, -15));
-            }
-          }),
-          _toolBtn(Icons.rotate_right, '오른쪽', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = stepLayerRotation(_canvas, id, 15));
-            }
-          }),
-          _toolBtn(Icons.rotate_90_degrees_cw, '90°', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = rotateLayerQuarter(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.straighten, '똑바로', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = straightenLayer(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.center_focus_strong_outlined, '가운데', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = centerLayer(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.align_horizontal_center, '가로중앙', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = centerLayerHorizontally(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.align_vertical_center, '세로중앙', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = centerLayerVertically(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.flip, '좌우', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = flipLayerX(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.swap_vert, '상하', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = flipLayerY(_canvas, id));
-            }
-          }),
+          _toolBtn(Icons.aspect_ratio, '원래크기',
+              () => _applyToSelected(resetLayerScale)),
+          _toolBtn(Icons.keyboard_arrow_up, '위로',
+              () => _applyToSelected((c, id) => nudgeLayer(c, id, 0, -0.05))),
+          _toolBtn(Icons.keyboard_arrow_down, '아래로',
+              () => _applyToSelected((c, id) => nudgeLayer(c, id, 0, 0.05))),
+          _toolBtn(Icons.keyboard_arrow_left, '왼쪽으로',
+              () => _applyToSelected((c, id) => nudgeLayer(c, id, -0.05, 0))),
+          _toolBtn(Icons.keyboard_arrow_right, '오른쪽으로',
+              () => _applyToSelected((c, id) => nudgeLayer(c, id, 0.05, 0))),
+          _toolBtn(Icons.opacity, '흐리게',
+              () => _applyToSelected((c, id) => stepLayerOpacity(c, id, -0.2))),
+          _toolBtn(Icons.opacity_outlined, '진하게',
+              () => _applyToSelected((c, id) => stepLayerOpacity(c, id, 0.2))),
+          _toolBtn(Icons.rotate_left, '왼쪽',
+              () => _applyToSelected((c, id) => stepLayerRotation(c, id, -15))),
+          _toolBtn(Icons.rotate_right, '오른쪽',
+              () => _applyToSelected((c, id) => stepLayerRotation(c, id, 15))),
+          _toolBtn(Icons.rotate_90_degrees_cw, '90°',
+              () => _applyToSelected(rotateLayerQuarter)),
+          _toolBtn(Icons.straighten, '똑바로',
+              () => _applyToSelected(straightenLayer)),
+          _toolBtn(Icons.center_focus_strong_outlined, '가운데',
+              () => _applyToSelected(centerLayer)),
+          _toolBtn(Icons.align_horizontal_center, '가로중앙',
+              () => _applyToSelected(centerLayerHorizontally)),
+          _toolBtn(Icons.align_vertical_center, '세로중앙',
+              () => _applyToSelected(centerLayerVertically)),
+          _toolBtn(Icons.flip, '좌우', () => _applyToSelected(flipLayerX)),
+          _toolBtn(Icons.swap_vert, '상하', () => _applyToSelected(flipLayerY)),
           if (_selected?.kind == DecoKind.text)
             _toolBtn(Icons.edit_outlined, '편집', () => _editText(_selected!)),
           _toolBtn(Icons.copy_all_outlined, '복제', () {
@@ -443,30 +407,14 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               });
             }
           }),
-          _toolBtn(Icons.arrow_upward, '앞으로', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = stepLayerForward(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.arrow_downward, '뒤로', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = stepLayerBackward(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.flip_to_front, '맨 앞', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = bringLayerToFront(_canvas, id));
-            }
-          }),
-          _toolBtn(Icons.flip_to_back, '맨 뒤', () {
-            final id = _selectedId;
-            if (id != null) {
-              setState(() => _canvas = sendLayerToBack(_canvas, id));
-            }
-          }),
+          _toolBtn(Icons.arrow_upward, '앞으로',
+              () => _applyToSelected(stepLayerForward)),
+          _toolBtn(Icons.arrow_downward, '뒤로',
+              () => _applyToSelected(stepLayerBackward)),
+          _toolBtn(Icons.flip_to_front, '맨 앞',
+              () => _applyToSelected(bringLayerToFront)),
+          _toolBtn(Icons.flip_to_back, '맨 뒤',
+              () => _applyToSelected(sendLayerToBack)),
           _toolBtn(Icons.delete_outline, '삭제', _deleteSelected,
               color: AppColors.moodHard),
         ],
