@@ -11,6 +11,7 @@ class TextLayerInput {
     this.bold,
     this.bgColorValue, {
     this.italic = false,
+    this.underline = false,
   });
 
   /// 앞뒤 공백을 다듬은 글 내용(빈 문구면 다이얼로그가 null을 돌려주므로 항상 비지 않음).
@@ -24,6 +25,9 @@ class TextLayerInput {
 
   /// 기울여(이탤릭) 그릴지.
   final bool italic;
+
+  /// 밑줄을 그을지.
+  final bool underline;
 
   /// 형광펜(배경) 색(ARGB 정수). null이면 배경 없음.
   final int? bgColorValue;
@@ -42,6 +46,7 @@ Future<TextLayerInput?> showTextLayerDialog(
   var color = initial == null ? kTextInkColors.first : Color(initial.colorValue);
   var bold = initial?.bold ?? false;
   var italic = initial?.italic ?? false;
+  var underline = initial?.underline ?? false;
   int? bg = initial?.bgColorValue; // 형광펜 배경(null=없음)
   final ok = await showDialog<bool>(
     context: context,
@@ -59,6 +64,7 @@ Future<TextLayerInput?> showTextLayerDialog(
                 color: color,
                 fontWeight: bold ? FontWeight.w700 : null,
                 fontStyle: italic ? FontStyle.italic : null,
+                decoration: underline ? TextDecoration.underline : null,
               ),
               decoration: InputDecoration(
                 hintText: '예: 오늘의 한마디',
@@ -105,6 +111,18 @@ Future<TextLayerInput?> showTextLayerDialog(
                 Switch(
                   value: italic,
                   onChanged: (v) => setDialog(() => italic = v),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const Icon(Icons.format_underlined, size: 20),
+                const SizedBox(width: 8),
+                const Text('밑줄'),
+                const Spacer(),
+                Switch(
+                  value: underline,
+                  onChanged: (v) => setDialog(() => underline = v),
                 ),
               ],
             ),
@@ -160,5 +178,6 @@ Future<TextLayerInput?> showTextLayerDialog(
   if (ok != true) return null;
   final text = controller.text.trim();
   if (text.isEmpty) return null;
-  return TextLayerInput(text, color.toARGB32(), bold, bg, italic: italic);
+  return TextLayerInput(text, color.toARGB32(), bold, bg,
+      italic: italic, underline: underline);
 }
