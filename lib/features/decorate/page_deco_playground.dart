@@ -138,6 +138,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         input.text,
         colorValue: input.colorValue,
         bold: input.bold,
+        bgColorValue: input.bgColorValue,
       );
       _selectedId = id;
     });

@@ -110,13 +110,26 @@ Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
       child: PhotoView(l.value, width: side, height: side, iconSize: side * 0.4),
     );
   }
-  return Text(
+  final text = Text(
     l.value,
     style: TextStyle(
       fontSize: stickerSize,
       color: l.colorValue == null ? null : Color(l.colorValue!),
       fontWeight: l.bold ? FontWeight.w700 : null,
     ),
+  );
+  if (l.bgColorValue == null) return text;
+  // 형광펜 배경: 글자 뒤에 파스텔 블록을 깔고 살짝 여백·둥근 모서리를 준다.
+  return Container(
+    padding: EdgeInsets.symmetric(
+      horizontal: stickerSize * 0.2,
+      vertical: stickerSize * 0.06,
+    ),
+    decoration: BoxDecoration(
+      color: Color(l.bgColorValue!),
+      borderRadius: BorderRadius.circular(stickerSize * 0.16),
+    ),
+    child: text,
   );
 }
 

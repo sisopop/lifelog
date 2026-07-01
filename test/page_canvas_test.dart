@@ -27,6 +27,7 @@ void main() {
           z: 3,
           colorValue: 0xFF2F6FEB,
           bold: true,
+          bgColorValue: 0xFFFFF1A8,
         ),
         const DecoLayer(id: 'b', kind: DecoKind.sticker, value: '🌸'),
       ]);
@@ -43,9 +44,11 @@ void main() {
       expect(a.z, 3);
       expect(a.colorValue, 0xFF2F6FEB);
       expect(a.bold, isTrue);
-      // 색이 없는 레이어는 colorValue null·bold false(옛 저장본 호환)
+      expect(a.bgColorValue, 0xFFFFF1A8);
+      // 색이 없는 레이어는 colorValue null·bold false·bgColorValue null(옛 저장본 호환)
       expect(back.layers[1].colorValue, isNull);
       expect(back.layers[1].bold, isFalse);
+      expect(back.layers[1].bgColorValue, isNull);
     });
 
     test('empty canvas round-trips', () {
@@ -66,6 +69,14 @@ void main() {
       const boldLayer =
           DecoLayer(id: 'b', kind: DecoKind.text, value: 'hi', bold: true);
       expect(boldLayer.toJson()['bold'], true);
+    });
+
+    test('layer without highlight omits the bg field (byte-compatible)', () {
+      const layer = DecoLayer(id: 'a', kind: DecoKind.text, value: 'hi');
+      expect(layer.toJson().containsKey('bg'), isFalse);
+      const hl = DecoLayer(
+          id: 'b', kind: DecoKind.text, value: 'hi', bgColorValue: 0xFFFFF1A8);
+      expect(hl.toJson()['bg'], 0xFFFFF1A8);
     });
   });
 
@@ -174,6 +185,14 @@ void main() {
       expect(bold.layers.single.bold, isTrue);
       final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
       expect(plain.layers.single.bold, isFalse);
+    });
+
+    test('carries the highlight bg when given, null by default', () {
+      final hl = addTextLayer(const PageCanvas(), 'x0', 'hi',
+          bgColorValue: 0xFFFFF1A8);
+      expect(hl.layers.single.bgColorValue, 0xFFFFF1A8);
+      final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
+      expect(plain.layers.single.bgColorValue, isNull);
     });
   });
 

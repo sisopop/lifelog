@@ -45,6 +45,7 @@ class DecoLayer {
     this.z = 0,
     this.colorValue,
     this.bold = false,
+    this.bgColorValue,
   });
 
   final String id;
@@ -67,6 +68,10 @@ class DecoLayer {
   /// 호환). true면 [FontWeight.w700]로 렌더.
   final bool bold;
 
+  /// 글자 뒤에 깔리는 형광펜(배경) 색(ARGB 정수). null이면 배경 없음. text
+  /// 레이어에만 쓰인다(옛 저장본·다른 종류는 null이라 종전과 동일).
+  final int? bgColorValue;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -77,6 +82,7 @@ class DecoLayer {
     int? z,
     int? colorValue,
     bool? bold,
+    int? bgColorValue,
   }) =>
       DecoLayer(
         id: id,
@@ -89,6 +95,7 @@ class DecoLayer {
         z: z ?? this.z,
         colorValue: colorValue ?? this.colorValue,
         bold: bold ?? this.bold,
+        bgColorValue: bgColorValue ?? this.bgColorValue,
       );
 
   Map<String, dynamic> toJson() => {
@@ -104,6 +111,8 @@ class DecoLayer {
         if (colorValue != null) 'color': colorValue,
         // 굵게가 아니면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (bold) 'bold': true,
+        // 배경이 없으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
+        if (bgColorValue != null) 'bg': bgColorValue,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -118,6 +127,7 @@ class DecoLayer {
         z: (json['z'] as num?)?.toInt() ?? 0,
         colorValue: (json['color'] as num?)?.toInt(),
         bold: json['bold'] == true,
+        bgColorValue: (json['bg'] as num?)?.toInt(),
       );
 }
 
@@ -212,6 +222,7 @@ PageCanvas addPhotoLayer(
 /// 글자(메모) 레이어를 캔버스 맨 위에 추가한 새 캔버스를 반환한다. 공백뿐인
 /// 글자는 잘못된 추가를 막기 위해 원본을 그대로 돌려준다. 앞뒤 공백은 다듬는다.
 /// [colorValue]는 글자 색(ARGB, null이면 기본 잉크색). [bold]가 true면 굵게.
+/// [bgColorValue]는 글자 뒤 형광펜(배경) 색(ARGB, null이면 배경 없음).
 /// [x],[y]는 중심 비율(0~1로 가둠). 원본은 불변.
 PageCanvas addTextLayer(
   PageCanvas canvas,
@@ -221,6 +232,7 @@ PageCanvas addTextLayer(
   double y = 0.5,
   int? colorValue,
   bool bold = false,
+  int? bgColorValue,
 }) {
   final trimmed = text.trim();
   if (trimmed.isEmpty) return canvas;
@@ -234,6 +246,7 @@ PageCanvas addTextLayer(
       y: clampUnit(y),
       colorValue: colorValue,
       bold: bold,
+      bgColorValue: bgColorValue,
     ),
   );
 }
