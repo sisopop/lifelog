@@ -55,4 +55,52 @@ void main() {
       expect(base.layers.single.rotation, 10);
     });
   });
+
+  group('stepLayerRotation', () {
+    test('adds a positive delta, keeps position/scale/z', () {
+      final base = PageCanvas(layers: [
+        _layer('a').copyWith(x: 0.2, y: 0.3, scale: 1.4, rotation: 30, z: 5),
+      ]);
+      final l = stepLayerRotation(base, 'a', 15).layers.single;
+      expect(l.rotation, 45);
+      expect([l.x, l.y, l.scale, l.z], [0.2, 0.3, 1.4, 5]);
+    });
+
+    test('a negative delta normalizes below zero into 0~359', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(rotation: 0)]);
+      expect(stepLayerRotation(base, 'a', -15).layers.single.rotation, 345);
+    });
+
+    test('wraps a positive result past 360', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(rotation: 350)]);
+      expect(stepLayerRotation(base, 'a', 15).layers.single.rotation, 5);
+    });
+
+    test('left then right returns to the original angle', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(rotation: 40)]);
+      final back = stepLayerRotation(stepLayerRotation(base, 'a', -15), 'a', 15);
+      expect(back.layers.single.rotation, 40);
+    });
+
+    test('unknown id → unchanged (same instance)', () {
+      final base = PageCanvas(layers: [_layer('a')]);
+      expect(identical(stepLayerRotation(base, 'zzz', 15), base), isTrue);
+    });
+
+    test('only rotates the target, leaves others put', () {
+      final base = PageCanvas(layers: [
+        _layer('a').copyWith(rotation: 0),
+        _layer('b').copyWith(rotation: 45),
+      ]);
+      final next = stepLayerRotation(base, 'a', -15);
+      expect(next.layers.firstWhere((l) => l.id == 'a').rotation, 345);
+      expect(next.layers.firstWhere((l) => l.id == 'b').rotation, 45);
+    });
+
+    test('does not mutate original', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(rotation: 10)]);
+      stepLayerRotation(base, 'a', 15);
+      expect(base.layers.single.rotation, 10);
+    });
+  });
 }
