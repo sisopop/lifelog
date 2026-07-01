@@ -47,6 +47,7 @@ class DecoLayer {
     this.z = 0,
     this.colorValue,
     this.bold = false,
+    this.italic = false,
     this.bgColorValue,
     this.flipX = false,
     this.flipY = false,
@@ -72,6 +73,10 @@ class DecoLayer {
   /// 글자를 굵게 그릴지. text 레이어에만 쓰인다(기본 false=보통 굵기, 옛 저장본
   /// 호환). true면 [FontWeight.w700]로 렌더.
   final bool bold;
+
+  /// 글자를 기울여(이탤릭) 그릴지. text 레이어에만 쓰인다(기본 false=곧은 글자,
+  /// 옛 저장본 호환). true면 [FontStyle.italic]로 렌더. bold와 독립.
+  final bool italic;
 
   /// 글자 뒤에 깔리는 형광펜(배경) 색(ARGB 정수). null이면 배경 없음. text
   /// 레이어에만 쓰인다(옛 저장본·다른 종류는 null이라 종전과 동일).
@@ -100,6 +105,7 @@ class DecoLayer {
     int? z,
     int? colorValue,
     bool? bold,
+    bool? italic,
     int? bgColorValue,
     bool? flipX,
     bool? flipY,
@@ -116,6 +122,7 @@ class DecoLayer {
         z: z ?? this.z,
         colorValue: colorValue ?? this.colorValue,
         bold: bold ?? this.bold,
+        italic: italic ?? this.italic,
         bgColorValue: bgColorValue ?? this.bgColorValue,
         flipX: flipX ?? this.flipX,
         flipY: flipY ?? this.flipY,
@@ -135,6 +142,8 @@ class DecoLayer {
         if (colorValue != null) 'color': colorValue,
         // 굵게가 아니면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (bold) 'bold': true,
+        // 기울임이 아니면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
+        if (italic) 'italic': true,
         // 배경이 없으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (bgColorValue != null) 'bg': bgColorValue,
         // 뒤집지 않았으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
@@ -156,6 +165,7 @@ class DecoLayer {
         z: (json['z'] as num?)?.toInt() ?? 0,
         colorValue: (json['color'] as num?)?.toInt(),
         bold: json['bold'] == true,
+        italic: json['italic'] == true,
         bgColorValue: (json['bg'] as num?)?.toInt(),
         flipX: json['flipX'] == true,
         flipY: json['flipY'] == true,

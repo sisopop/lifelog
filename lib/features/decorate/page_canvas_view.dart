@@ -129,6 +129,7 @@ Widget _decoLayerBody(DecoLayer l, double stickerSize) {
       fontSize: stickerSize,
       color: l.colorValue == null ? null : Color(l.colorValue!),
       fontWeight: l.bold ? FontWeight.w700 : null,
+      fontStyle: l.italic ? FontStyle.italic : null,
     ),
   );
   if (l.bgColorValue == null) return text;
