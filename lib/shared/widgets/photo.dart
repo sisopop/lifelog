@@ -26,6 +26,16 @@ ImageProvider photoProvider(String path) {
   return FileImage(File(path));
 }
 
+/// Guesses an image MIME type from a file name (for base64 data URLs).
+String imageMimeForName(String name) {
+  final n = name.toLowerCase();
+  if (n.endsWith('.png')) return 'image/png';
+  if (n.endsWith('.gif')) return 'image/gif';
+  if (n.endsWith('.webp')) return 'image/webp';
+  if (n.endsWith('.heic')) return 'image/heic';
+  return 'image/jpeg';
+}
+
 /// A square photo thumbnail/preview with a graceful fallback.
 class PhotoView extends StatelessWidget {
   const PhotoView(

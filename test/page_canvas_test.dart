@@ -90,6 +90,31 @@ void main() {
     });
   });
 
+  group('addPhotoLayer', () {
+    test('adds a photo layer on top with the given path', () {
+      final base = PageCanvas(layers: [_layer('a', z: 2)]);
+      final next = addPhotoLayer(base, 'p0', 'data:image/png;base64,AAAA');
+      expect(next.layers.length, 2);
+      expect(next.layers.last.id, 'p0');
+      expect(next.layers.last.kind, DecoKind.photo);
+      expect(next.layers.last.value, 'data:image/png;base64,AAAA');
+      expect(next.layers.last.z, 3); // topZ+1
+      expect(base.layers.length, 1); // input unchanged
+    });
+
+    test('empty or blank path returns the canvas unchanged', () {
+      final base = PageCanvas(layers: [_layer('a')]);
+      expect(addPhotoLayer(base, 'p0', '').layers.length, 1);
+      expect(addPhotoLayer(base, 'p0', '   ').layers.length, 1);
+    });
+
+    test('clamps the center position into 0..1', () {
+      final next = addPhotoLayer(const PageCanvas(), 'p0', 'x', x: 1.7, y: -0.3);
+      expect(next.layers.single.x, 1);
+      expect(next.layers.single.y, 0);
+    });
+  });
+
   group('removeLayer', () {
     test('drops the matching id, keeps others', () {
       final base = PageCanvas(layers: [_layer('a'), _layer('b')]);

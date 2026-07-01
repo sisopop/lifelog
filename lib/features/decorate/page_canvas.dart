@@ -160,6 +160,29 @@ PageCanvas decodePageCanvas(String? raw) {
   return const PageCanvas();
 }
 
+/// 사진 레이어를 캔버스 맨 위에 추가한 새 캔버스를 반환한다. [path]가 비어 있으면
+/// 잘못된 추가를 막기 위해 원본을 그대로 돌려준다. [x],[y]는 중심 비율(0~1로 가둠).
+/// 원본은 불변.
+PageCanvas addPhotoLayer(
+  PageCanvas canvas,
+  String id,
+  String path, {
+  double x = 0.5,
+  double y = 0.4,
+}) {
+  if (path.trim().isEmpty) return canvas;
+  return addLayer(
+    canvas,
+    DecoLayer(
+      id: id,
+      kind: DecoKind.photo,
+      value: path,
+      x: clampUnit(x),
+      y: clampUnit(y),
+    ),
+  );
+}
+
 /// 레이어를 맨 위(topZ+1)에 추가한 새 캔버스를 반환한다. 원본은 불변.
 PageCanvas addLayer(PageCanvas canvas, DecoLayer layer) => PageCanvas(
       version: canvas.version,

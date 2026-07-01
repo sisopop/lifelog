@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/widgets/photo.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
 import 'sticker_catalog.dart';
@@ -41,6 +44,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
   String? _selectedId;
   int _seq = 0;
   int _categoryIndex = 0;
+  final _picker = ImagePicker();
 
   /// 저장할 게 없는 빈 캔버스(무늬 없음·레이어 없음)인지.
   bool get _isBlank =>
@@ -73,6 +77,39 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       _canvas = addLayer(_canvas, layer);
       _selectedId = layer.id;
     });
+  }
+
+  /// 갤러리에서 사진을 골라 캔버스에 얹는다. base64 data URL로 인코딩해
+  /// (기록 사진과 같은 방식) 캔버스 JSON에 그대로 영속·모든 플랫폼에서 렌더된다.
+  Future<void> _addPhoto() async {
+    try {
+      final x = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+      );
+      if (x == null) return;
+      final bytes = await x.readAsBytes();
+      final data = 'data:${imageMimeForName(x.name)};base64,'
+          '${base64Encode(bytes)}';
+      if (!mounted) return;
+      final id = 'p${_seq++}';
+      setState(() {
+        _canvas = addPhotoLayer(
+          _canvas,
+          id,
+          data,
+          x: 0.5 + (math.Random().nextDouble() - 0.5) * 0.2,
+          y: 0.4 + (math.Random().nextDouble() - 0.5) * 0.2,
+        );
+        _selectedId = id;
+      });
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('사진을 불러오지 못했어요')),
+        );
+      }
+    }
   }
 
   void _editSelected(DecoLayer Function(DecoLayer) f) {
@@ -205,10 +242,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
                       borderRadius: BorderRadius.circular(10),
                     )
                   : null,
-              child: Text(
-                l.value,
-                style: TextStyle(fontSize: 44 * l.scale),
-              ),
+              child: decoLayerContent(l, stickerSize: 44 * l.scale),
             ),
           ),
         ),
@@ -294,6 +328,15 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: _addPhoto,
+              icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
+              label: const Text('사진 추가'),
+            ),
+          ),
+          const SizedBox(height: 8),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../shared/widgets/photo.dart';
 import 'page_canvas.dart';
 
 // 캔버스 색 토큰 — 디자인 가이드 v1.0 캔버스(아날로그 질감) 팔레트.
@@ -72,14 +73,35 @@ class PageCanvasView extends StatelessWidget {
         translation: const Offset(-0.5, -0.5),
         child: Transform.rotate(
           angle: l.rotation * math.pi / 180,
-          child: Text(
-            l.value,
-            style: TextStyle(fontSize: stickerBaseSize * l.scale),
-          ),
+          child: decoLayerContent(l, stickerSize: stickerBaseSize * l.scale),
         ),
       ),
     );
   }
+}
+
+/// 레이어 한 개의 시각 표현. 사진(photo)은 흰 액자(폴라로이드풍)로, 그 외
+/// (텍스트·스티커)는 글자로 그린다. [stickerSize]는 scale이 이미 반영된 글자
+/// 크기. 편집기와 읽기전용 뷰가 이 함수를 공유해 배치가 항상 일치한다.
+Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
+  if (l.kind == DecoKind.photo) {
+    final side = stickerSize * 2.6; // 사진은 글자보다 크게
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: PhotoView(l.value, width: side, height: side, iconSize: side * 0.4),
+    );
+  }
+  return Text(l.value, style: TextStyle(fontSize: stickerSize));
 }
 
 /// 속지(배경) 무늬 페인터. 줄/모눈/도트를 일정 간격으로 채운다. plain은 아무것도

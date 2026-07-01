@@ -143,7 +143,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       final encoded = <String>[];
       for (final x in picked) {
         final bytes = await x.readAsBytes();
-        encoded.add('data:${_mimeFor(x.name)};base64,${base64Encode(bytes)}');
+        encoded.add(
+            'data:${imageMimeForName(x.name)};base64,${base64Encode(bytes)}');
       }
       if (mounted) setState(() => _photoPaths.addAll(encoded));
     } catch (_) {
@@ -155,14 +156,6 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     }
   }
 
-  String _mimeFor(String name) {
-    final n = name.toLowerCase();
-    if (n.endsWith('.png')) return 'image/png';
-    if (n.endsWith('.gif')) return 'image/gif';
-    if (n.endsWith('.webp')) return 'image/webp';
-    if (n.endsWith('.heic')) return 'image/heic';
-    return 'image/jpeg';
-  }
 
   Future<void> _addTag() async {
     final tag = await showTagInputSheet(
