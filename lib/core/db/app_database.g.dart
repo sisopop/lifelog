@@ -149,6 +149,17 @@ class $DiaryEntriesTable extends DiaryEntries
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<List<String>>($DiaryEntriesTable.$convertermediaUrls);
+  static const VerificationMeta _pageCanvasMeta = const VerificationMeta(
+    'pageCanvas',
+  );
+  @override
+  late final GeneratedColumn<String> pageCanvas = GeneratedColumn<String>(
+    'page_canvas',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isFavoriteMeta = const VerificationMeta(
     'isFavorite',
   );
@@ -222,6 +233,7 @@ class $DiaryEntriesTable extends DiaryEntries
     location,
     tags,
     mediaUrls,
+    pageCanvas,
     isFavorite,
     deletedAt,
     createdAt,
@@ -301,6 +313,12 @@ class $DiaryEntriesTable extends DiaryEntries
       context.handle(
         _locationMeta,
         location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    }
+    if (data.containsKey('page_canvas')) {
+      context.handle(
+        _pageCanvasMeta,
+        pageCanvas.isAcceptableOrUnknown(data['page_canvas']!, _pageCanvasMeta),
       );
     }
     if (data.containsKey('is_favorite')) {
@@ -406,6 +424,10 @@ class $DiaryEntriesTable extends DiaryEntries
           data['${effectivePrefix}media_urls'],
         )!,
       ),
+      pageCanvas: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}page_canvas'],
+      ),
       isFavorite: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_favorite'],
@@ -469,6 +491,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
   final String? location;
   final List<String> tags;
   final List<String> mediaUrls;
+  final String? pageCanvas;
   final bool isFavorite;
   final DateTime? deletedAt;
   final DateTime createdAt;
@@ -489,6 +512,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     this.location,
     required this.tags,
     required this.mediaUrls,
+    this.pageCanvas,
     required this.isFavorite,
     this.deletedAt,
     required this.createdAt,
@@ -540,6 +564,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
         $DiaryEntriesTable.$convertermediaUrls.toSql(mediaUrls),
       );
     }
+    if (!nullToAbsent || pageCanvas != null) {
+      map['page_canvas'] = Variable<String>(pageCanvas);
+    }
     map['is_favorite'] = Variable<bool>(isFavorite);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -578,6 +605,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           : Value(location),
       tags: Value(tags),
       mediaUrls: Value(mediaUrls),
+      pageCanvas: pageCanvas == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pageCanvas),
       isFavorite: Value(isFavorite),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -614,6 +644,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       location: serializer.fromJson<String?>(json['location']),
       tags: serializer.fromJson<List<String>>(json['tags']),
       mediaUrls: serializer.fromJson<List<String>>(json['mediaUrls']),
+      pageCanvas: serializer.fromJson<String?>(json['pageCanvas']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -647,6 +678,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       'location': serializer.toJson<String?>(location),
       'tags': serializer.toJson<List<String>>(tags),
       'mediaUrls': serializer.toJson<List<String>>(mediaUrls),
+      'pageCanvas': serializer.toJson<String?>(pageCanvas),
       'isFavorite': serializer.toJson<bool>(isFavorite),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -672,6 +704,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     Value<String?> location = const Value.absent(),
     List<String>? tags,
     List<String>? mediaUrls,
+    Value<String?> pageCanvas = const Value.absent(),
     bool? isFavorite,
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
@@ -694,6 +727,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     location: location.present ? location.value : this.location,
     tags: tags ?? this.tags,
     mediaUrls: mediaUrls ?? this.mediaUrls,
+    pageCanvas: pageCanvas.present ? pageCanvas.value : this.pageCanvas,
     isFavorite: isFavorite ?? this.isFavorite,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     createdAt: createdAt ?? this.createdAt,
@@ -720,6 +754,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       location: data.location.present ? data.location.value : this.location,
       tags: data.tags.present ? data.tags.value : this.tags,
       mediaUrls: data.mediaUrls.present ? data.mediaUrls.value : this.mediaUrls,
+      pageCanvas: data.pageCanvas.present
+          ? data.pageCanvas.value
+          : this.pageCanvas,
       isFavorite: data.isFavorite.present
           ? data.isFavorite.value
           : this.isFavorite,
@@ -749,6 +786,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           ..write('location: $location, ')
           ..write('tags: $tags, ')
           ..write('mediaUrls: $mediaUrls, ')
+          ..write('pageCanvas: $pageCanvas, ')
           ..write('isFavorite: $isFavorite, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -774,6 +812,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     location,
     tags,
     mediaUrls,
+    pageCanvas,
     isFavorite,
     deletedAt,
     createdAt,
@@ -798,6 +837,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           other.location == this.location &&
           other.tags == this.tags &&
           other.mediaUrls == this.mediaUrls &&
+          other.pageCanvas == this.pageCanvas &&
           other.isFavorite == this.isFavorite &&
           other.deletedAt == this.deletedAt &&
           other.createdAt == this.createdAt &&
@@ -820,6 +860,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
   final Value<String?> location;
   final Value<List<String>> tags;
   final Value<List<String>> mediaUrls;
+  final Value<String?> pageCanvas;
   final Value<bool> isFavorite;
   final Value<DateTime?> deletedAt;
   final Value<DateTime> createdAt;
@@ -841,6 +882,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.location = const Value.absent(),
     this.tags = const Value.absent(),
     this.mediaUrls = const Value.absent(),
+    this.pageCanvas = const Value.absent(),
     this.isFavorite = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -863,6 +905,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.location = const Value.absent(),
     required List<String> tags,
     required List<String> mediaUrls,
+    this.pageCanvas = const Value.absent(),
     this.isFavorite = const Value.absent(),
     this.deletedAt = const Value.absent(),
     required DateTime createdAt,
@@ -894,6 +937,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Expression<String>? location,
     Expression<String>? tags,
     Expression<String>? mediaUrls,
+    Expression<String>? pageCanvas,
     Expression<bool>? isFavorite,
     Expression<DateTime>? deletedAt,
     Expression<DateTime>? createdAt,
@@ -916,6 +960,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       if (location != null) 'location': location,
       if (tags != null) 'tags': tags,
       if (mediaUrls != null) 'media_urls': mediaUrls,
+      if (pageCanvas != null) 'page_canvas': pageCanvas,
       if (isFavorite != null) 'is_favorite': isFavorite,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdAt != null) 'created_at': createdAt,
@@ -940,6 +985,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Value<String?>? location,
     Value<List<String>>? tags,
     Value<List<String>>? mediaUrls,
+    Value<String?>? pageCanvas,
     Value<bool>? isFavorite,
     Value<DateTime?>? deletedAt,
     Value<DateTime>? createdAt,
@@ -962,6 +1008,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       location: location ?? this.location,
       tags: tags ?? this.tags,
       mediaUrls: mediaUrls ?? this.mediaUrls,
+      pageCanvas: pageCanvas ?? this.pageCanvas,
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
@@ -1026,6 +1073,9 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
         $DiaryEntriesTable.$convertermediaUrls.toSql(mediaUrls.value),
       );
     }
+    if (pageCanvas.present) {
+      map['page_canvas'] = Variable<String>(pageCanvas.value);
+    }
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
@@ -1066,6 +1116,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
           ..write('location: $location, ')
           ..write('tags: $tags, ')
           ..write('mediaUrls: $mediaUrls, ')
+          ..write('pageCanvas: $pageCanvas, ')
           ..write('isFavorite: $isFavorite, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -2830,6 +2881,7 @@ typedef $$DiaryEntriesTableCreateCompanionBuilder =
       Value<String?> location,
       required List<String> tags,
       required List<String> mediaUrls,
+      Value<String?> pageCanvas,
       Value<bool> isFavorite,
       Value<DateTime?> deletedAt,
       required DateTime createdAt,
@@ -2853,6 +2905,7 @@ typedef $$DiaryEntriesTableUpdateCompanionBuilder =
       Value<String?> location,
       Value<List<String>> tags,
       Value<List<String>> mediaUrls,
+      Value<String?> pageCanvas,
       Value<bool> isFavorite,
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
@@ -2943,6 +2996,11 @@ class $$DiaryEntriesTableFilterComposer
   get mediaUrls => $composableBuilder(
     column: $table.mediaUrls,
     builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get pageCanvas => $composableBuilder(
+    column: $table.pageCanvas,
+    builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<bool> get isFavorite => $composableBuilder(
@@ -3051,6 +3109,11 @@ class $$DiaryEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get pageCanvas => $composableBuilder(
+    column: $table.pageCanvas,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
     builder: (column) => ColumnOrderings(column),
@@ -3133,6 +3196,11 @@ class $$DiaryEntriesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<List<String>, String> get mediaUrls =>
       $composableBuilder(column: $table.mediaUrls, builder: (column) => column);
 
+  GeneratedColumn<String> get pageCanvas => $composableBuilder(
+    column: $table.pageCanvas,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
     builder: (column) => column,
@@ -3199,6 +3267,7 @@ class $$DiaryEntriesTableTableManager
                 Value<String?> location = const Value.absent(),
                 Value<List<String>> tags = const Value.absent(),
                 Value<List<String>> mediaUrls = const Value.absent(),
+                Value<String?> pageCanvas = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -3220,6 +3289,7 @@ class $$DiaryEntriesTableTableManager
                 location: location,
                 tags: tags,
                 mediaUrls: mediaUrls,
+                pageCanvas: pageCanvas,
                 isFavorite: isFavorite,
                 deletedAt: deletedAt,
                 createdAt: createdAt,
@@ -3243,6 +3313,7 @@ class $$DiaryEntriesTableTableManager
                 Value<String?> location = const Value.absent(),
                 required List<String> tags,
                 required List<String> mediaUrls,
+                Value<String?> pageCanvas = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 required DateTime createdAt,
@@ -3264,6 +3335,7 @@ class $$DiaryEntriesTableTableManager
                 location: location,
                 tags: tags,
                 mediaUrls: mediaUrls,
+                pageCanvas: pageCanvas,
                 isFavorite: isFavorite,
                 deletedAt: deletedAt,
                 createdAt: createdAt,

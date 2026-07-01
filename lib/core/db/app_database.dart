@@ -103,6 +103,9 @@ class DiaryEntries extends Table {
   TextColumn get location => text().nullable()();
   TextColumn get tags => text().map(const StringListConverter())();
   TextColumn get mediaUrls => text().map(const StringListConverter())();
+  // 페이지(내지) 꾸미기 캔버스 — 스티커/속지 등 자유 배치 문서의 JSON 직렬화.
+  // null = 종전처럼 순수 텍스트 기록(꾸미기 없음). 본문 content는 그대로 유지.
+  TextColumn get pageCanvas => text().nullable()();
   // 즐겨찾기. Default lets the v3→v4 migration backfill existing rows.
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   // 휴지통: non-null = soft-deleted (kept 30 days, hidden from normal lists).
@@ -129,7 +132,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 19;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -209,6 +212,11 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(journals, journals.iconX);
             await m.addColumn(journals, journals.iconY);
           }
+          if (from < 19) {
+            // 페이지(내지) 꾸미기 캔버스 JSON — existing entries default to null
+            // (꾸미기 없는 순수 텍스트 기록 그대로).
+            await m.addColumn(diaryEntries, diaryEntries.pageCanvas);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -272,6 +280,7 @@ class AppDatabase extends _$AppDatabase {
     final m = createMigrator();
     final expected = <String, GeneratedColumn<Object>>{
       'deleted_at': diaryEntries.deletedAt,
+      'page_canvas': diaryEntries.pageCanvas,
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {

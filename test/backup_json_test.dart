@@ -41,6 +41,7 @@ DiaryEntry _entry({
   bool isFavorite = false,
   DateTime? at,
   DateTime? deletedAt,
+  String? pageCanvas,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -58,6 +59,7 @@ DiaryEntry _entry({
       updatedAt: at ?? DateTime(2026, 6, 13, 14, 30),
       mediaUrls: mediaUrls,
       tags: tags,
+      pageCanvas: pageCanvas,
       isFavorite: isFavorite,
       deletedAt: deletedAt,
     );
@@ -126,6 +128,13 @@ void main() {
       expect(data.entries[2].deletedAt, DateTime(2026, 6, 20));
     });
 
+    test('pageCanvas JSON survives export → parse', () {
+      const canvas = '{"version":1,"paper":"grid","layers":[]}';
+      final data = parseBackupJson(exportBackupJson(
+          [_journal()], [_entry(pageCanvas: canvas)], DateTime(2026, 6, 29)));
+      expect(data.entries.first.pageCanvas, canvas);
+    });
+
     test('null optional fields stay null', () {
       final data = parseBackupJson(
           exportBackupJson([_journal()], [_entry()], DateTime(2026, 6, 29)));
@@ -136,6 +145,7 @@ void main() {
       expect(e.aiSummary, isNull);
       expect(e.replyToEntryId, isNull);
       expect(e.deletedAt, isNull);
+      expect(e.pageCanvas, isNull);
       expect(e.tags, isEmpty);
     });
 

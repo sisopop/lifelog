@@ -20,6 +20,7 @@ class DiaryEntry {
     required this.updatedAt,
     this.mediaUrls = const [],
     this.tags = const [],
+    this.pageCanvas,
     this.isFavorite = false,
     this.deletedAt,
     this.syncStatus = SyncStatus.synced,
@@ -49,6 +50,10 @@ class DiaryEntry {
   final List<String> mediaUrls;
   final List<String> tags;
 
+  /// 페이지(내지) 꾸미기 캔버스의 JSON 직렬화 문자열. null이면 꾸미기 없는
+  /// 순수 텍스트 기록(종전과 동일). 본문 [content]와 별도로 보관된다.
+  final String? pageCanvas;
+
   /// User-starred record (즐겨찾기). Independent of journal/sync.
   final bool isFavorite;
 
@@ -72,11 +77,13 @@ class DiaryEntry {
     DateTime? updatedAt,
     List<String>? mediaUrls,
     List<String>? tags,
+    String? pageCanvas,
     bool? isFavorite,
     DateTime? deletedAt,
     SyncStatus? syncStatus,
     bool clearMood = false,
     bool clearDeletedAt = false,
+    bool clearPageCanvas = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -95,6 +102,7 @@ class DiaryEntry {
       updatedAt: updatedAt ?? this.updatedAt,
       mediaUrls: mediaUrls ?? this.mediaUrls,
       tags: tags ?? this.tags,
+      pageCanvas: clearPageCanvas ? null : (pageCanvas ?? this.pageCanvas),
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
       syncStatus: syncStatus ?? this.syncStatus,
