@@ -22,17 +22,22 @@ class TextLayerInput {
 
 /// 문구·잉크 색·굵기를 고르는 "글자 넣기" 다이얼로그를 띄운다. 취소하거나 문구가
 /// 비어 있으면 null을 돌려준다. 색 스와치와 굵게 스위치는 입력칸 미리보기에 곧바로
-/// 반영된다. (page_deco_playground가 500줄 상한을 넘지 않도록 분리해 둔 파일.)
-Future<TextLayerInput?> showTextLayerDialog(BuildContext context) async {
-  final controller = TextEditingController();
-  var color = kTextInkColors.first;
-  var bold = false;
-  int? bg; // 형광펜 배경(null=없음)
+/// 반영된다. [initial]을 주면 그 값으로 채워 **편집 모드**로 연다(제목·버튼 라벨이
+/// 바뀐다). (page_deco_playground가 500줄 상한을 넘지 않도록 분리해 둔 파일.)
+Future<TextLayerInput?> showTextLayerDialog(
+  BuildContext context, {
+  TextLayerInput? initial,
+}) async {
+  final controller = TextEditingController(text: initial?.text ?? '');
+  final editing = initial != null;
+  var color = initial == null ? kTextInkColors.first : Color(initial.colorValue);
+  var bold = initial?.bold ?? false;
+  int? bg = initial?.bgColorValue; // 형광펜 배경(null=없음)
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setDialog) => AlertDialog(
-        title: const Text('글자 넣기'),
+        title: Text(editing ? '글자 편집' : '글자 넣기'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -123,7 +128,7 @@ Future<TextLayerInput?> showTextLayerDialog(BuildContext context) async {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('추가'),
+            child: Text(editing ? '저장' : '추가'),
           ),
         ],
       ),

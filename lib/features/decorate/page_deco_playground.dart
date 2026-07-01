@@ -11,6 +11,7 @@ import 'page_canvas.dart';
 import 'page_canvas_view.dart';
 import 'paper_selector.dart';
 import 'sticker_catalog.dart';
+import 'text_color_catalog.dart';
 import 'text_layer_dialog.dart';
 import 'washi_tape_catalog.dart';
 
@@ -137,6 +138,30 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         bgColorValue: input.bgColorValue,
       );
       _selectedId = id;
+    });
+  }
+
+  /// 이미 올린 글자 레이어의 문구·색·굵기·형광펜을 다시 골라 고친다(오타 수정 등).
+  Future<void> _editText(DecoLayer l) async {
+    final input = await showTextLayerDialog(
+      context,
+      initial: TextLayerInput(
+        l.value,
+        l.colorValue ?? kTextInkColors.first.toARGB32(),
+        l.bold,
+        l.bgColorValue,
+      ),
+    );
+    if (input == null) return;
+    setState(() {
+      _canvas = updateTextLayer(
+        _canvas,
+        l.id,
+        input.text,
+        colorValue: input.colorValue,
+        bold: input.bold,
+        bgColorValue: input.bgColorValue,
+      );
     });
   }
 
@@ -311,6 +336,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               l.copyWith(scale: (l.scale + 0.15).clamp(0.4, 4.0)))),
           _toolBtn(Icons.rotate_right, '회전', () => _editSelected((l) =>
               l.copyWith(rotation: (l.rotation + 15) % 360))),
+          if (_selected?.kind == DecoKind.text)
+            _toolBtn(Icons.edit_outlined, '편집', () => _editText(_selected!)),
           _toolBtn(Icons.copy_all_outlined, '복제', () {
             final id = _selectedId;
             if (id != null) {
@@ -346,7 +373,9 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        // 글자 레이어일 때 버튼이 8개(편집 포함)라 좁은 화면에서 넘치지 않도록
+        // 가로 여백을 작게 잡는다.
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

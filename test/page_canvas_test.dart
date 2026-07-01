@@ -419,6 +419,62 @@ void main() {
     });
   });
 
+  group('updateTextLayer (글자 편집)', () {
+    PageCanvas canvasWithText() => addTextLayer(
+          const PageCanvas(),
+          't',
+          '오타',
+          colorValue: 0xFF3A3A3A,
+          bold: false,
+          bgColorValue: 0xFFFFF1A8,
+        );
+
+    test('replaces text/color/bold, keeps position/scale/rotation/z', () {
+      final base = replaceLayer(
+        canvasWithText(),
+        addTextLayer(const PageCanvas(), 't', '오타').layers.single.copyWith(
+              x: 0.2,
+              y: 0.7,
+              scale: 1.8,
+              rotation: 30,
+              z: 5,
+            ),
+      );
+      final next = updateTextLayer(base, 't', '고침',
+          colorValue: 0xFF2F6FEB, bold: true, bgColorValue: null);
+      final l = next.layers.single;
+      expect(l.value, '고침');
+      expect(l.colorValue, 0xFF2F6FEB);
+      expect(l.bold, isTrue);
+      expect(l.bgColorValue, isNull); // 형광펜 제거(copyWith로는 불가)
+      expect(l.x, 0.2);
+      expect(l.y, 0.7);
+      expect(l.scale, 1.8);
+      expect(l.rotation, 30);
+      expect(l.z, 5);
+    });
+
+    test('trims text and ignores blank edits', () {
+      final base = canvasWithText();
+      expect(updateTextLayer(base, 't', '  다듬 ').layers.single.value, '다듬');
+      // 공백뿐이면 원본 그대로
+      expect(updateTextLayer(base, 't', '   ').layers.single.value, '오타');
+    });
+
+    test('unknown id or non-text layer is unchanged', () {
+      final base = canvasWithText();
+      expect(updateTextLayer(base, 'zzz', 'x').layers.single.value, '오타');
+      final sticker = PageCanvas(layers: [_layer('s')]);
+      expect(updateTextLayer(sticker, 's', 'x').layers.single.value, '🌸');
+    });
+
+    test('does not mutate the original canvas', () {
+      final base = canvasWithText();
+      updateTextLayer(base, 't', '고침', colorValue: 0xFF000000);
+      expect(base.layers.single.value, '오타');
+    });
+  });
+
   group('paper color (속지 바탕색)', () {
     test('defaults to null (기본 크림)', () {
       expect(const PageCanvas().paperColorValue, isNull);

@@ -375,6 +375,42 @@ PageCanvas duplicateLayer(
   );
 }
 
+/// 글자 레이어의 문구·잉크 색·굵기·형광펜 배경을 통째로 갈아끼운 새 캔버스를
+/// 반환한다(위치·크기·회전·z는 그대로). 오타 수정 등 이미 올린 글자를 고칠 때 쓴다.
+/// [bgColorValue]에 null을 주면 형광펜을 없앨 수 있다(copyWith로는 불가). [text]가
+/// 공백이면 잘못된 편집을 막기 위해 원본 그대로. id가 없거나 글자 레이어가 아니면
+/// 원본 그대로. 원본은 불변.
+PageCanvas updateTextLayer(
+  PageCanvas canvas,
+  String id,
+  String text, {
+  int? colorValue,
+  bool bold = false,
+  int? bgColorValue,
+}) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return canvas;
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty || matches.first.kind != DecoKind.text) return canvas;
+  final src = matches.first;
+  return replaceLayer(
+    canvas,
+    DecoLayer(
+      id: src.id,
+      kind: DecoKind.text,
+      value: trimmed,
+      x: src.x,
+      y: src.y,
+      scale: src.scale,
+      rotation: src.rotation,
+      z: src.z,
+      colorValue: colorValue,
+      bold: bold,
+      bgColorValue: bgColorValue,
+    ),
+  );
+}
+
 /// 캔버스 구성 요약 문구(예: "스티커 2 · 사진 1"). 레이어 종류별 개수를 세어
 /// 0인 종류는 빼고 이어 붙인다. 레이어가 하나도 없으면 null(무늬만 있는 경우
 /// 포함). 편집기를 열지 않고도 무엇이 올라가 있는지 한눈에 보여줄 때 쓴다.
