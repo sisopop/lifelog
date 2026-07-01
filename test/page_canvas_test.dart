@@ -115,6 +115,37 @@ void main() {
     });
   });
 
+  group('pageCanvasSummary', () {
+    test('counts stickers and photos, joins non-zero kinds', () {
+      final canvas = PageCanvas(layers: [
+        _layer('a', kind: DecoKind.sticker),
+        _layer('b', kind: DecoKind.sticker),
+        DecoLayer(id: 'p', kind: DecoKind.photo, value: 'x'),
+      ]);
+      expect(pageCanvasSummary(canvas), '스티커 2 · 사진 1');
+    });
+
+    test('shows only the present kind', () {
+      final canvas = PageCanvas(layers: [
+        DecoLayer(id: 'p', kind: DecoKind.photo, value: 'x'),
+      ]);
+      expect(pageCanvasSummary(canvas), '사진 1');
+    });
+
+    test('null when there are no layers (even with paper set)', () {
+      expect(pageCanvasSummary(const PageCanvas()), isNull);
+      expect(pageCanvasSummary(const PageCanvas(paper: PaperStyle.grid)), isNull);
+    });
+
+    test('counts text layers as 글자, ordered sticker·photo·text', () {
+      final canvas = PageCanvas(layers: [
+        DecoLayer(id: 't', kind: DecoKind.text, value: 'hi'),
+        _layer('a', kind: DecoKind.sticker),
+      ]);
+      expect(pageCanvasSummary(canvas), '스티커 1 · 글자 1');
+    });
+  });
+
   group('removeLayer', () {
     test('drops the matching id, keeps others', () {
       final base = PageCanvas(layers: [_layer('a'), _layer('b')]);

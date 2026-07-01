@@ -460,6 +460,7 @@ class _DecoratePageTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final canvas = decodePageCanvas(canvasJson);
     final decorated = canvas.layers.isNotEmpty || canvas.paper != PaperStyle.plain;
+    final summary = pageCanvasSummary(canvas);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -475,6 +476,11 @@ class _DecoratePageTile extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
+          if (summary != null) ...[
+            Text('🎨 $summary',
+                style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
+            const SizedBox(height: 6),
+          ],
         ],
         OutlinedButton.icon(
           onPressed: onEdit,

@@ -221,6 +221,29 @@ PageCanvas bringLayerToFront(PageCanvas canvas, String id) {
   return replaceLayer(canvas, target.first.copyWith(z: canvas.topZ + 1));
 }
 
+/// 캔버스 구성 요약 문구(예: "스티커 2 · 사진 1"). 레이어 종류별 개수를 세어
+/// 0인 종류는 빼고 이어 붙인다. 레이어가 하나도 없으면 null(무늬만 있는 경우
+/// 포함). 편집기를 열지 않고도 무엇이 올라가 있는지 한눈에 보여줄 때 쓴다.
+String? pageCanvasSummary(PageCanvas canvas) {
+  var stickers = 0, photos = 0, texts = 0;
+  for (final l in canvas.layers) {
+    switch (l.kind) {
+      case DecoKind.sticker:
+        stickers++;
+      case DecoKind.photo:
+        photos++;
+      case DecoKind.text:
+        texts++;
+    }
+  }
+  final parts = <String>[
+    if (stickers > 0) '스티커 $stickers',
+    if (photos > 0) '사진 $photos',
+    if (texts > 0) '글자 $texts',
+  ];
+  return parts.isEmpty ? null : parts.join(' · ');
+}
+
 /// 그리기 순서(아래→위)대로 정렬한 레이어 목록. z 동률은 원래 순서 유지.
 List<DecoLayer> layersByZ(PageCanvas canvas) {
   final sorted = [...canvas.layers];
