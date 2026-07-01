@@ -155,6 +155,18 @@ PageCanvas straightenLayer(PageCanvas canvas, String id) {
   return replaceLayer(canvas, matches.first.copyWith(rotation: 0));
 }
 
+/// id 레이어를 시계방향으로 90° 돌린 새 캔버스를 반환한다. 결과 각도는 항상
+/// 0~359° 범위로 정규화한다(음수·360° 이상 방지). 회전(+15° 미세)·똑바로(0°)의
+/// 짝으로, 사진·테이프를 직각으로 빠르게 세울 때 쓴다. 위치·크기·z는 그대로.
+/// id가 없으면 원본 그대로. 원본은 불변.
+PageCanvas rotateLayerQuarter(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final next = ((l.rotation + 90) % 360 + 360) % 360;
+  return replaceLayer(canvas, l.copyWith(rotation: next));
+}
+
 /// id 레이어의 크기를 기본(scale=1.0)으로 되돌린 새 캔버스를 반환한다. 위치·회전·z는
 /// 그대로. 여러 번 키우거나 줄인 레이어를 한 번에 원래 크기로 되돌릴 때 쓴다.
 /// 이미 1.0이거나 id가 없으면 원본 그대로. 원본은 불변.

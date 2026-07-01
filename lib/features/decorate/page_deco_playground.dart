@@ -361,6 +361,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
           }),
           _toolBtn(Icons.rotate_right, '회전', () => _editSelected((l) =>
               l.copyWith(rotation: (l.rotation + 15) % 360))),
+          _toolBtn(Icons.rotate_90_degrees_cw, '90°', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = rotateLayerQuarter(_canvas, id));
+            }
+          }),
           _toolBtn(Icons.straighten, '똑바로', () {
             final id = _selectedId;
             if (id != null) {
