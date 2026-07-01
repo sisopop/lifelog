@@ -323,6 +323,37 @@ PageCanvas sendLayerToBack(PageCanvas canvas, String id) {
   return replaceLayer(canvas, target.first.copyWith(z: canvas.bottomZ - 1));
 }
 
+/// id 레이어를 똑같이 복제한 새 캔버스를 반환한다(같은 스티커/테이프/글자를 도장처럼
+/// 여러 번 찍을 때). 복제본은 [newId]를 달고 살짝 어긋난 위치([dx],[dy] 만큼, 0~1로
+/// 가둠)에 맨 위로 얹힌다. 색·굵기·형광펜·크기·회전 등 모든 속성은 그대로 복사된다.
+/// id가 없으면 원본 그대로. 원본은 불변.
+PageCanvas duplicateLayer(
+  PageCanvas canvas,
+  String id,
+  String newId, {
+  double dx = 0.04,
+  double dy = 0.04,
+}) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final src = matches.first;
+  return addLayer(
+    canvas,
+    DecoLayer(
+      id: newId,
+      kind: src.kind,
+      value: src.value,
+      x: clampUnit(src.x + dx),
+      y: clampUnit(src.y + dy),
+      scale: src.scale,
+      rotation: src.rotation,
+      colorValue: src.colorValue,
+      bold: src.bold,
+      bgColorValue: src.bgColorValue,
+    ),
+  );
+}
+
 /// 캔버스 구성 요약 문구(예: "스티커 2 · 사진 1"). 레이어 종류별 개수를 세어
 /// 0인 종류는 빼고 이어 붙인다. 레이어가 하나도 없으면 null(무늬만 있는 경우
 /// 포함). 편집기를 열지 않고도 무엇이 올라가 있는지 한눈에 보여줄 때 쓴다.

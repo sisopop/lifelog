@@ -320,6 +320,52 @@ void main() {
     });
   });
 
+  group('duplicateLayer', () {
+    test('copies the layer with a new id, offset and on top', () {
+      const src = DecoLayer(
+        id: 'a',
+        kind: DecoKind.text,
+        value: '오늘',
+        x: 0.3,
+        y: 0.3,
+        scale: 1.5,
+        rotation: 20,
+        z: 4,
+        colorValue: 0xFFE5484D,
+        bold: true,
+        bgColorValue: 0xFFFFF1A8,
+      );
+      final base = PageCanvas(layers: [src]);
+      final next = duplicateLayer(base, 'a', 'a2');
+      expect(next.layers.length, 2);
+      final copy = next.layers.last;
+      expect(copy.id, 'a2');
+      expect(copy.kind, DecoKind.text);
+      expect(copy.value, '오늘');
+      expect(copy.scale, 1.5);
+      expect(copy.rotation, 20);
+      expect(copy.colorValue, 0xFFE5484D);
+      expect(copy.bold, isTrue);
+      expect(copy.bgColorValue, 0xFFFFF1A8);
+      expect(copy.x, closeTo(0.34, 1e-9)); // 0.3 + dx
+      expect(copy.y, closeTo(0.34, 1e-9));
+      expect(copy.z, 5); // topZ+1
+      expect(base.layers.length, 1); // input unchanged
+    });
+
+    test('clamps the offset position into 0..1', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(x: 0.99, y: 0.99)]);
+      final copy = duplicateLayer(base, 'a', 'a2').layers.last;
+      expect(copy.x, 1);
+      expect(copy.y, 1);
+    });
+
+    test('unknown id → unchanged', () {
+      final base = PageCanvas(layers: [_layer('a')]);
+      expect(identical(duplicateLayer(base, 'zzz', 'a2'), base), isTrue);
+    });
+  });
+
   group('bottomZ', () {
     test('0 when empty, else lowest z', () {
       expect(const PageCanvas().bottomZ, 0);

@@ -303,6 +303,16 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               l.copyWith(scale: (l.scale + 0.15).clamp(0.4, 4.0)))),
           _toolBtn(Icons.rotate_right, '회전', () => _editSelected((l) =>
               l.copyWith(rotation: (l.rotation + 15) % 360))),
+          _toolBtn(Icons.copy_all_outlined, '복제', () {
+            final id = _selectedId;
+            if (id != null) {
+              final newId = 'd${_seq++}';
+              setState(() {
+                _canvas = duplicateLayer(_canvas, id, newId);
+                _selectedId = newId;
+              });
+            }
+          }),
           _toolBtn(Icons.flip_to_front, '맨 앞', () {
             final id = _selectedId;
             if (id != null) {
