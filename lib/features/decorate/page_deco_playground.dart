@@ -353,6 +353,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               l.copyWith(scale: (l.scale - 0.15).clamp(0.4, 4.0)))),
           _toolBtn(Icons.add, '크게', () => _editSelected((l) =>
               l.copyWith(scale: (l.scale + 0.15).clamp(0.4, 4.0)))),
+          _toolBtn(Icons.aspect_ratio, '원래크기', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = resetLayerScale(_canvas, id));
+            }
+          }),
           _toolBtn(Icons.rotate_right, '회전', () => _editSelected((l) =>
               l.copyWith(rotation: (l.rotation + 15) % 360))),
           _toolBtn(Icons.straighten, '똑바로', () {

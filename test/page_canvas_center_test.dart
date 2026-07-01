@@ -48,4 +48,41 @@ void main() {
       expect([base.layers.single.x, base.layers.single.y], [0.2, 0.2]);
     });
   });
+
+  group('resetLayerScale', () {
+    test('resets scale to 1.0, keeps position/rotation/z', () {
+      final base = PageCanvas(layers: [
+        _layer('a').copyWith(x: 0.2, y: 0.3, scale: 2.5, rotation: 20, z: 4),
+      ]);
+      final l = resetLayerScale(base, 'a').layers.single;
+      expect(l.scale, 1.0);
+      expect([l.x, l.y, l.rotation, l.z], [0.2, 0.3, 20, 4]);
+    });
+
+    test('already default scale → unchanged (same instance)', () {
+      final base = PageCanvas(layers: [_layer('a')]); // 기본 scale = 1.0
+      expect(identical(resetLayerScale(base, 'a'), base), isTrue);
+    });
+
+    test('unknown id → unchanged (same instance)', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(scale: 2.0)]);
+      expect(identical(resetLayerScale(base, 'zzz'), base), isTrue);
+    });
+
+    test('only resets the target, leaves others put', () {
+      final base = PageCanvas(layers: [
+        _layer('a').copyWith(scale: 2.0),
+        _layer('b').copyWith(scale: 3.0),
+      ]);
+      final next = resetLayerScale(base, 'a');
+      expect(next.layers.firstWhere((l) => l.id == 'a').scale, 1.0);
+      expect(next.layers.firstWhere((l) => l.id == 'b').scale, 3.0);
+    });
+
+    test('does not mutate original', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(scale: 2.0)]);
+      resetLayerScale(base, 'a');
+      expect(base.layers.single.scale, 2.0);
+    });
+  });
 }
