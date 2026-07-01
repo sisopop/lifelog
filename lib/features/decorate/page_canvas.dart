@@ -122,6 +122,10 @@ class PageCanvas {
   int get topZ =>
       layers.isEmpty ? -1 : layers.map((l) => l.z).reduce((a, b) => a > b ? a : b);
 
+  /// 현재 가장 낮은 z(없으면 0). 레이어를 맨 뒤로 내릴 때 쓴다.
+  int get bottomZ =>
+      layers.isEmpty ? 0 : layers.map((l) => l.z).reduce((a, b) => a < b ? a : b);
+
   Map<String, dynamic> toJson() => {
         'version': version,
         'paper': paper.name,
@@ -219,6 +223,14 @@ PageCanvas bringLayerToFront(PageCanvas canvas, String id) {
   final target = canvas.layers.where((l) => l.id == id);
   if (target.isEmpty || target.first.z == canvas.topZ) return canvas;
   return replaceLayer(canvas, target.first.copyWith(z: canvas.topZ + 1));
+}
+
+/// id 레이어를 맨 뒤로 내린(z=bottomZ-1) 새 캔버스를 반환한다. 이미 맨 뒤이거나
+/// 없으면 원본 그대로. bringLayerToFront의 대칭. 원본은 불변.
+PageCanvas sendLayerToBack(PageCanvas canvas, String id) {
+  final target = canvas.layers.where((l) => l.id == id);
+  if (target.isEmpty || target.first.z == canvas.bottomZ) return canvas;
+  return replaceLayer(canvas, target.first.copyWith(z: canvas.bottomZ - 1));
 }
 
 /// 캔버스 구성 요약 문구(예: "스티커 2 · 사진 1"). 레이어 종류별 개수를 세어

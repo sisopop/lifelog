@@ -185,6 +185,33 @@ void main() {
     });
   });
 
+  group('sendLayerToBack', () {
+    test('lowers z below the current bottom', () {
+      final base = PageCanvas(layers: [_layer('a', z: 0), _layer('b', z: 1)]);
+      final next = sendLayerToBack(base, 'b');
+      expect(next.layers.firstWhere((l) => l.id == 'b').z, -1);
+    });
+
+    test('already at the back → unchanged', () {
+      final base = PageCanvas(layers: [_layer('a', z: 0), _layer('b', z: 1)]);
+      final next = sendLayerToBack(base, 'a');
+      expect(identical(next, base), isTrue);
+    });
+
+    test('unknown id → unchanged', () {
+      final base = PageCanvas(layers: [_layer('a', z: 0)]);
+      expect(identical(sendLayerToBack(base, 'zzz'), base), isTrue);
+    });
+  });
+
+  group('bottomZ', () {
+    test('0 when empty, else lowest z', () {
+      expect(const PageCanvas().bottomZ, 0);
+      expect(
+          PageCanvas(layers: [_layer('a', z: 2), _layer('b', z: 5)]).bottomZ, 2);
+    });
+  });
+
   group('layersByZ', () {
     test('sorts ascending for paint order', () {
       final base = PageCanvas(layers: [

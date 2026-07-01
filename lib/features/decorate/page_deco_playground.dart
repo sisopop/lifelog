@@ -269,6 +269,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               setState(() => _canvas = bringLayerToFront(_canvas, id));
             }
           }),
+          _toolBtn(Icons.flip_to_back, '맨 뒤', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = sendLayerToBack(_canvas, id));
+            }
+          }),
           _toolBtn(Icons.delete_outline, '삭제', _deleteSelected,
               color: AppColors.moodHard),
         ],
