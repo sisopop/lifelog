@@ -46,6 +46,7 @@ class DecoLayer {
     this.colorValue,
     this.bold = false,
     this.bgColorValue,
+    this.flipX = false,
   });
 
   final String id;
@@ -72,6 +73,10 @@ class DecoLayer {
   /// 레이어에만 쓰인다(옛 저장본·다른 종류는 null이라 종전과 동일).
   final int? bgColorValue;
 
+  /// 좌우로 뒤집어(거울상) 그릴지. 기본 false(옛 저장본 호환). 스티커·사진·테이프·
+  /// 글자 어디에나 적용된다(렌더는 decoLayerContent가 처리).
+  final bool flipX;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -83,6 +88,7 @@ class DecoLayer {
     int? colorValue,
     bool? bold,
     int? bgColorValue,
+    bool? flipX,
   }) =>
       DecoLayer(
         id: id,
@@ -96,6 +102,7 @@ class DecoLayer {
         colorValue: colorValue ?? this.colorValue,
         bold: bold ?? this.bold,
         bgColorValue: bgColorValue ?? this.bgColorValue,
+        flipX: flipX ?? this.flipX,
       );
 
   Map<String, dynamic> toJson() => {
@@ -113,6 +120,8 @@ class DecoLayer {
         if (bold) 'bold': true,
         // 배경이 없으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (bgColorValue != null) 'bg': bgColorValue,
+        // 뒤집지 않았으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
+        if (flipX) 'flipX': true,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -128,6 +137,7 @@ class DecoLayer {
         colorValue: (json['color'] as num?)?.toInt(),
         bold: json['bold'] == true,
         bgColorValue: (json['bg'] as num?)?.toInt(),
+        flipX: json['flipX'] == true,
       );
 }
 
@@ -391,8 +401,19 @@ PageCanvas duplicateLayer(
       colorValue: src.colorValue,
       bold: src.bold,
       bgColorValue: src.bgColorValue,
+      flipX: src.flipX,
     ),
   );
+}
+
+/// id 레이어의 좌우 뒤집힘(거울상)을 토글한 새 캔버스를 반환한다. 위치·크기·회전·z는
+/// 그대로. 방향이 있는 스티커·사진을 반대로 돌려 배치할 때 쓴다. id가 없으면 원본
+/// 그대로. 원본은 불변.
+PageCanvas flipLayerX(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  return replaceLayer(canvas, l.copyWith(flipX: !l.flipX));
 }
 
 /// 글자 레이어의 문구·잉크 색·굵기·형광펜 배경을 통째로 갈아끼운 새 캔버스를

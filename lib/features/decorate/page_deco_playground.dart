@@ -9,11 +9,10 @@ import '../../shared/widgets/photo.dart';
 import 'content_flow_demo.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
+import 'page_deco_palette.dart';
 import 'paper_selector.dart';
-import 'sticker_catalog.dart';
 import 'text_color_catalog.dart';
 import 'text_layer_dialog.dart';
-import 'washi_tape_catalog.dart';
 
 /// 기록 페이지 꾸미기 캔버스 에디터.
 ///
@@ -236,7 +235,14 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
             onColorChanged: (value) =>
                 setState(() => _canvas = setPaperColor(_canvas, value)),
           ),
-          _palette(),
+          DecoPalette(
+            categoryIndex: _categoryIndex,
+            onCategory: (i) => setState(() => _categoryIndex = i),
+            onAddPhoto: _addPhoto,
+            onAddText: _addText,
+            onAddTape: _addTape,
+            onAddSticker: _addSticker,
+          ),
         ],
       ),
     );
@@ -361,6 +367,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               setState(() => _canvas = centerLayer(_canvas, id));
             }
           }),
+          _toolBtn(Icons.flip, '뒤집기', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = flipLayerX(_canvas, id));
+            }
+          }),
           if (_selected?.kind == DecoKind.text)
             _toolBtn(Icons.edit_outlined, '편집', () => _editText(_selected!)),
           _toolBtn(Icons.copy_all_outlined, '복제', () {
@@ -413,93 +425,4 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     );
   }
 
-  Widget _palette() {
-    final category = kStickerCatalog[_categoryIndex];
-    return Container(
-      color: AppColors.surface,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              OutlinedButton.icon(
-                onPressed: _addPhoto,
-                icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
-                label: const Text('사진 추가'),
-              ),
-              const SizedBox(width: 8),
-              OutlinedButton.icon(
-                onPressed: _addText,
-                icon: const Icon(Icons.text_fields, size: 20),
-                label: const Text('글자'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                const Text('테이프',
-                    style: TextStyle(
-                        fontSize: 12, color: AppColors.textSecondary)),
-                const SizedBox(width: 8),
-                for (final t in kWashiTapes)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: InkWell(
-                      onTap: () => _addTape(t.id),
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        width: 46,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: t.color,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                for (var i = 0; i < kStickerCatalog.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(kStickerCatalog[i].label),
-                      selected: i == _categoryIndex,
-                      onSelected: (_) => setState(() => _categoryIndex = i),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final emoji in category.stickers)
-                InkWell(
-                  onTap: () => _addSticker(emoji),
-                  borderRadius: BorderRadius.circular(8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Text(emoji, style: const TextStyle(fontSize: 30)),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 }
