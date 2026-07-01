@@ -203,6 +203,7 @@ PageCanvas duplicateLayer(
       bold: src.bold,
       bgColorValue: src.bgColorValue,
       flipX: src.flipX,
+      flipY: src.flipY,
     ),
   );
 }
@@ -215,6 +216,16 @@ PageCanvas flipLayerX(PageCanvas canvas, String id) {
   if (matches.isEmpty) return canvas;
   final l = matches.first;
   return replaceLayer(canvas, l.copyWith(flipX: !l.flipX));
+}
+
+/// id 레이어의 위아래 뒤집힘을 토글한 새 캔버스를 반환한다. 위치·크기·회전·z는
+/// 그대로. flipLayerX의 세로판(둘 다 켜면 180° 돌린 것과 같다). id가 없으면 원본
+/// 그대로. 원본은 불변.
+PageCanvas flipLayerY(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  return replaceLayer(canvas, l.copyWith(flipY: !l.flipY));
 }
 
 /// 글자 레이어의 문구·잉크 색·굵기·형광펜 배경을 통째로 갈아끼운 새 캔버스를

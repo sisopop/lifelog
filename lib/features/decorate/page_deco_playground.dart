@@ -373,10 +373,16 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               setState(() => _canvas = centerLayer(_canvas, id));
             }
           }),
-          _toolBtn(Icons.flip, '뒤집기', () {
+          _toolBtn(Icons.flip, '좌우', () {
             final id = _selectedId;
             if (id != null) {
               setState(() => _canvas = flipLayerX(_canvas, id));
+            }
+          }),
+          _toolBtn(Icons.swap_vert, '상하', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = flipLayerY(_canvas, id));
             }
           }),
           if (_selected?.kind == DecoKind.text)

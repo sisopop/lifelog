@@ -88,8 +88,10 @@ class PageCanvasView extends StatelessWidget {
 /// 크기. 편집기와 읽기전용 뷰가 이 함수를 공유해 배치가 항상 일치한다.
 Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
   final content = _decoLayerBody(l, stickerSize);
-  // 좌우 뒤집기(거울상). 회전·배치는 상위에서 이미 적용된다.
-  return l.flipX ? Transform.flip(flipX: true, child: content) : content;
+  // 좌우/위아래 뒤집기(거울상). 회전·배치는 상위에서 이미 적용된다.
+  return (l.flipX || l.flipY)
+      ? Transform.flip(flipX: l.flipX, flipY: l.flipY, child: content)
+      : content;
 }
 
 Widget _decoLayerBody(DecoLayer l, double stickerSize) {

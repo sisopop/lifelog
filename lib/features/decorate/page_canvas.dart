@@ -49,6 +49,7 @@ class DecoLayer {
     this.bold = false,
     this.bgColorValue,
     this.flipX = false,
+    this.flipY = false,
   });
 
   final String id;
@@ -79,6 +80,10 @@ class DecoLayer {
   /// 글자 어디에나 적용된다(렌더는 decoLayerContent가 처리).
   final bool flipX;
 
+  /// 위아래로 뒤집어 그릴지. 기본 false(옛 저장본 호환). flipX와 독립이라 둘 다
+  /// true면 180° 돌린 것과 같다(렌더는 decoLayerContent가 처리).
+  final bool flipY;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -91,6 +96,7 @@ class DecoLayer {
     bool? bold,
     int? bgColorValue,
     bool? flipX,
+    bool? flipY,
   }) =>
       DecoLayer(
         id: id,
@@ -105,6 +111,7 @@ class DecoLayer {
         bold: bold ?? this.bold,
         bgColorValue: bgColorValue ?? this.bgColorValue,
         flipX: flipX ?? this.flipX,
+        flipY: flipY ?? this.flipY,
       );
 
   Map<String, dynamic> toJson() => {
@@ -124,6 +131,7 @@ class DecoLayer {
         if (bgColorValue != null) 'bg': bgColorValue,
         // 뒤집지 않았으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (flipX) 'flipX': true,
+        if (flipY) 'flipY': true,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -140,6 +148,7 @@ class DecoLayer {
         bold: json['bold'] == true,
         bgColorValue: (json['bg'] as num?)?.toInt(),
         flipX: json['flipX'] == true,
+        flipY: json['flipY'] == true,
       );
 }
 
