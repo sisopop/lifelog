@@ -129,6 +129,40 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     });
   }
 
+  /// 글자(메모) 조각을 올린다. 다이얼로그로 문구를 입력받아 중앙에 얹는다.
+  Future<void> _addText() async {
+    final controller = TextEditingController();
+    final text = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('글자 넣기'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 40,
+          decoration: const InputDecoration(hintText: '예: 오늘의 한마디'),
+          onSubmitted: (v) => Navigator.of(ctx).pop(v),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(controller.text),
+            child: const Text('추가'),
+          ),
+        ],
+      ),
+    );
+    if (text == null || text.trim().isEmpty) return;
+    final id = 'x${_seq++}';
+    setState(() {
+      _canvas = addTextLayer(_canvas, id, text);
+      _selectedId = id;
+    });
+  }
+
   void _editSelected(DecoLayer Function(DecoLayer) f) {
     final sel = _selected;
     if (sel == null) return;
@@ -359,13 +393,20 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              onPressed: _addPhoto,
-              icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
-              label: const Text('사진 추가'),
-            ),
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: _addPhoto,
+                icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
+                label: const Text('사진 추가'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: _addText,
+                icon: const Icon(Icons.text_fields, size: 20),
+                label: const Text('글자'),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           SingleChildScrollView(

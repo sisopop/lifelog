@@ -189,6 +189,30 @@ PageCanvas addPhotoLayer(
   );
 }
 
+/// 글자(메모) 레이어를 캔버스 맨 위에 추가한 새 캔버스를 반환한다. 공백뿐인
+/// 글자는 잘못된 추가를 막기 위해 원본을 그대로 돌려준다. 앞뒤 공백은 다듬는다.
+/// [x],[y]는 중심 비율(0~1로 가둠). 원본은 불변.
+PageCanvas addTextLayer(
+  PageCanvas canvas,
+  String id,
+  String text, {
+  double x = 0.5,
+  double y = 0.5,
+}) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return canvas;
+  return addLayer(
+    canvas,
+    DecoLayer(
+      id: id,
+      kind: DecoKind.text,
+      value: trimmed,
+      x: clampUnit(x),
+      y: clampUnit(y),
+    ),
+  );
+}
+
 /// 마스킹테이프(워시테이프) 레이어를 캔버스 맨 위에 추가한 새 캔버스를 반환한다.
 /// [styleId]가 비어 있으면 잘못된 추가를 막기 위해 원본을 그대로 돌려준다.
 /// 테이프는 살짝 기울여 붙이는 게 자연스러워 기본 각도([rotation])를 준다.

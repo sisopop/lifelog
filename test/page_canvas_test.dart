@@ -115,6 +115,31 @@ void main() {
     });
   });
 
+  group('addTextLayer', () {
+    test('adds a trimmed text layer on top', () {
+      final base = PageCanvas(layers: [_layer('a', z: 2)]);
+      final next = addTextLayer(base, 'x0', '  오늘의 한마디  ');
+      expect(next.layers.length, 2);
+      expect(next.layers.last.id, 'x0');
+      expect(next.layers.last.kind, DecoKind.text);
+      expect(next.layers.last.value, '오늘의 한마디'); // trimmed
+      expect(next.layers.last.z, 3); // topZ+1
+      expect(base.layers.length, 1); // input unchanged
+    });
+
+    test('empty or blank text returns the canvas unchanged', () {
+      final base = PageCanvas(layers: [_layer('a')]);
+      expect(addTextLayer(base, 'x0', '').layers.length, 1);
+      expect(addTextLayer(base, 'x0', '   ').layers.length, 1);
+    });
+
+    test('clamps the center position into 0..1', () {
+      final next = addTextLayer(const PageCanvas(), 'x0', 'hi', x: 1.7, y: -0.3);
+      expect(next.layers.single.x, 1);
+      expect(next.layers.single.y, 0);
+    });
+  });
+
   group('addTapeLayer', () {
     test('adds a tape layer on top with the given style and a tilt', () {
       final base = PageCanvas(layers: [_layer('a', z: 2)]);
