@@ -226,6 +226,24 @@ PageCanvas centerLayer(PageCanvas canvas, String id) {
   return replaceLayer(canvas, l.copyWith(x: 0.5, y: 0.5));
 }
 
+/// id 레이어를 가로(x=0.5)로만 가운데 정렬한 새 캔버스를 반환한다. 세로 위치·크기·
+/// 회전·z는 그대로. 가운데(x·y 둘 다)의 가로축판으로, 세로 위치는 유지한 채 좌우만
+/// 중앙에 맞출 때 쓴다. 이미 가운데이거나 id가 없으면 원본 그대로. 원본은 불변.
+PageCanvas centerLayerHorizontally(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty || matches.first.x == 0.5) return canvas;
+  return replaceLayer(canvas, matches.first.copyWith(x: 0.5));
+}
+
+/// id 레이어를 세로(y=0.5)로만 가운데 정렬한 새 캔버스를 반환한다. 가로 위치·크기·
+/// 회전·z는 그대로. centerLayerHorizontally의 세로축 짝으로, 가로 위치는 유지한 채
+/// 위아래만 중앙에 맞출 때 쓴다. 이미 가운데이거나 id가 없으면 원본 그대로. 원본은 불변.
+PageCanvas centerLayerVertically(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty || matches.first.y == 0.5) return canvas;
+  return replaceLayer(canvas, matches.first.copyWith(y: 0.5));
+}
+
 /// id 레이어를 똑같이 복제한 새 캔버스를 반환한다(같은 스티커/테이프/글자를 도장처럼
 /// 여러 번 찍을 때). 복제본은 [newId]를 달고 살짝 어긋난 위치([dx],[dy] 만큼, 0~1로
 /// 가둠)에 맨 위로 얹힌다. 색·굵기·형광펜·크기·회전 등 모든 속성은 그대로 복사된다.

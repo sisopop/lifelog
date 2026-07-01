@@ -85,4 +85,58 @@ void main() {
       expect(base.layers.single.scale, 2.0);
     });
   });
+
+  group('centerLayerHorizontally', () {
+    test('sets x to 0.5, keeps y/scale/rotation/z', () {
+      final base = PageCanvas(layers: [
+        _layer('a').copyWith(x: 0.1, y: 0.8, scale: 1.6, rotation: 30, z: 4),
+      ]);
+      final l = centerLayerHorizontally(base, 'a').layers.single;
+      expect(l.x, 0.5);
+      expect([l.y, l.scale, l.rotation, l.z], [0.8, 1.6, 30, 4]);
+    });
+
+    test('already horizontally centered → unchanged (same instance)', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(y: 0.2)]); // x=0.5
+      expect(identical(centerLayerHorizontally(base, 'a'), base), isTrue);
+    });
+
+    test('unknown id → unchanged (same instance)', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(x: 0.2)]);
+      expect(identical(centerLayerHorizontally(base, 'zzz'), base), isTrue);
+    });
+
+    test('does not mutate original', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(x: 0.2, y: 0.2)]);
+      centerLayerHorizontally(base, 'a');
+      expect([base.layers.single.x, base.layers.single.y], [0.2, 0.2]);
+    });
+  });
+
+  group('centerLayerVertically', () {
+    test('sets y to 0.5, keeps x/scale/rotation/z', () {
+      final base = PageCanvas(layers: [
+        _layer('a').copyWith(x: 0.8, y: 0.1, scale: 1.6, rotation: 30, z: 4),
+      ]);
+      final l = centerLayerVertically(base, 'a').layers.single;
+      expect(l.y, 0.5);
+      expect([l.x, l.scale, l.rotation, l.z], [0.8, 1.6, 30, 4]);
+    });
+
+    test('already vertically centered → unchanged (same instance)', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(x: 0.2)]); // y=0.5
+      expect(identical(centerLayerVertically(base, 'a'), base), isTrue);
+    });
+
+    test('unknown id → unchanged (same instance)', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(y: 0.2)]);
+      expect(identical(centerLayerVertically(base, 'zzz'), base), isTrue);
+    });
+
+    test('does not mutate original', () {
+      final base = PageCanvas(layers: [_layer('a').copyWith(x: 0.2, y: 0.2)]);
+      centerLayerVertically(base, 'a');
+      expect([base.layers.single.x, base.layers.single.y], [0.2, 0.2]);
+    });
+  });
 }

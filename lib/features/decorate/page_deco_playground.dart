@@ -407,6 +407,18 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               setState(() => _canvas = centerLayer(_canvas, id));
             }
           }),
+          _toolBtn(Icons.align_horizontal_center, '가로중앙', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = centerLayerHorizontally(_canvas, id));
+            }
+          }),
+          _toolBtn(Icons.align_vertical_center, '세로중앙', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = centerLayerVertically(_canvas, id));
+            }
+          }),
           _toolBtn(Icons.flip, '좌우', () {
             final id = _selectedId;
             if (id != null) {
