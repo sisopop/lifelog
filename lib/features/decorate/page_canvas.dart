@@ -43,6 +43,7 @@ class DecoLayer {
     this.scale = 1.0,
     this.rotation = 0.0,
     this.z = 0,
+    this.colorValue,
   });
 
   final String id;
@@ -57,6 +58,10 @@ class DecoLayer {
   final double rotation;
   final int z;
 
+  /// 글자 색(ARGB 정수). null이면 기본 잉크색으로 그린다. 지금은 text 레이어에만
+  /// 쓰인다(옛 저장본·다른 종류는 null이라 종전과 동일).
+  final int? colorValue;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -65,6 +70,7 @@ class DecoLayer {
     double? scale,
     double? rotation,
     int? z,
+    int? colorValue,
   }) =>
       DecoLayer(
         id: id,
@@ -75,6 +81,7 @@ class DecoLayer {
         scale: scale ?? this.scale,
         rotation: rotation ?? this.rotation,
         z: z ?? this.z,
+        colorValue: colorValue ?? this.colorValue,
       );
 
   Map<String, dynamic> toJson() => {
@@ -86,6 +93,8 @@ class DecoLayer {
         'scale': scale,
         'rotation': rotation,
         'z': z,
+        // 색이 없으면 아예 안 적어 옛 저장본과 바이트가 같게 유지한다.
+        if (colorValue != null) 'color': colorValue,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -98,6 +107,7 @@ class DecoLayer {
         scale: _toDouble(json['scale'], 1.0),
         rotation: _toDouble(json['rotation'], 0.0),
         z: (json['z'] as num?)?.toInt() ?? 0,
+        colorValue: (json['color'] as num?)?.toInt(),
       );
 }
 
@@ -191,13 +201,15 @@ PageCanvas addPhotoLayer(
 
 /// 글자(메모) 레이어를 캔버스 맨 위에 추가한 새 캔버스를 반환한다. 공백뿐인
 /// 글자는 잘못된 추가를 막기 위해 원본을 그대로 돌려준다. 앞뒤 공백은 다듬는다.
-/// [x],[y]는 중심 비율(0~1로 가둠). 원본은 불변.
+/// [colorValue]는 글자 색(ARGB, null이면 기본 잉크색). [x],[y]는 중심 비율(0~1로
+/// 가둠). 원본은 불변.
 PageCanvas addTextLayer(
   PageCanvas canvas,
   String id,
   String text, {
   double x = 0.5,
   double y = 0.5,
+  int? colorValue,
 }) {
   final trimmed = text.trim();
   if (trimmed.isEmpty) return canvas;
@@ -209,6 +221,7 @@ PageCanvas addTextLayer(
       value: trimmed,
       x: clampUnit(x),
       y: clampUnit(y),
+      colorValue: colorValue,
     ),
   );
 }

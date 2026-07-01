@@ -110,7 +110,13 @@ Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
       child: PhotoView(l.value, width: side, height: side, iconSize: side * 0.4),
     );
   }
-  return Text(l.value, style: TextStyle(fontSize: stickerSize));
+  return Text(
+    l.value,
+    style: TextStyle(
+      fontSize: stickerSize,
+      color: l.colorValue == null ? null : Color(l.colorValue!),
+    ),
+  );
 }
 
 /// 속지(배경) 무늬 페인터. 줄/모눈/도트를 일정 간격으로 채운다. plain은 아무것도

@@ -25,6 +25,7 @@ void main() {
           scale: 1.5,
           rotation: 30,
           z: 3,
+          colorValue: 0xFF2F6FEB,
         ),
         const DecoLayer(id: 'b', kind: DecoKind.sticker, value: '🌸'),
       ]);
@@ -39,11 +40,20 @@ void main() {
       expect(a.scale, 1.5);
       expect(a.rotation, 30);
       expect(a.z, 3);
+      expect(a.colorValue, 0xFF2F6FEB);
+      // 색이 없는 레이어는 colorValue null(옛 저장본 호환)
+      expect(back.layers[1].colorValue, isNull);
     });
 
     test('empty canvas round-trips', () {
       final back = decodePageCanvas(encodePageCanvas(const PageCanvas()));
       expect(back.isEmpty, isTrue);
+    });
+
+    test('layer without color omits the field (byte-compatible with old data)',
+        () {
+      const layer = DecoLayer(id: 'a', kind: DecoKind.sticker, value: '🌸');
+      expect(layer.toJson().containsKey('color'), isFalse);
     });
   });
 
@@ -137,6 +147,14 @@ void main() {
       final next = addTextLayer(const PageCanvas(), 'x0', 'hi', x: 1.7, y: -0.3);
       expect(next.layers.single.x, 1);
       expect(next.layers.single.y, 0);
+    });
+
+    test('carries the ink color when given, null by default', () {
+      final colored =
+          addTextLayer(const PageCanvas(), 'x0', 'hi', colorValue: 0xFFE5484D);
+      expect(colored.layers.single.colorValue, 0xFFE5484D);
+      final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
+      expect(plain.layers.single.colorValue, isNull);
     });
   });
 
