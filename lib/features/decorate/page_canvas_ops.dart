@@ -309,9 +309,10 @@ PageCanvas removeLastLayer(PageCanvas canvas) {
   return removeLayer(canvas, canvas.layers.last.id);
 }
 
-/// 캔버스 구성 요약 문구(예: "스티커 2 · 사진 1"). 레이어 종류별 개수를 세어
-/// 0인 종류는 빼고 이어 붙인다. 레이어가 하나도 없으면 null(무늬만 있는 경우
-/// 포함). 편집기를 열지 않고도 무엇이 올라가 있는지 한눈에 보여줄 때 쓴다.
+/// 캔버스 구성 요약 문구(예: "모눈 속지 · 스티커 2 · 사진 1"). 속지 무늬(무지 제외)와
+/// 바탕색을 앞에 두고, 이어서 레이어 종류별 개수를 0인 종류는 빼고 붙인다. 아무것도
+/// 없으면(레이어 0 · 무지 · 바탕색 없음) null. 편집기를 열지 않고도 무엇이 올라가
+/// 있는지 한눈에 보여줄 때 쓴다.
 String? pageCanvasSummary(PageCanvas canvas) {
   var stickers = 0, photos = 0, texts = 0, tapes = 0;
   for (final l in canvas.layers) {
@@ -327,12 +328,29 @@ String? pageCanvasSummary(PageCanvas canvas) {
     }
   }
   final parts = <String>[
+    if (canvas.paper != PaperStyle.plain) '${_paperStyleLabel(canvas.paper)} 속지',
+    if (canvas.paperColorValue != null) '바탕색',
     if (stickers > 0) '스티커 $stickers',
     if (photos > 0) '사진 $photos',
     if (tapes > 0) '테이프 $tapes',
     if (texts > 0) '글자 $texts',
   ];
   return parts.isEmpty ? null : parts.join(' · ');
+}
+
+/// 속지 무늬의 한글 라벨(요약 문구용). 무지는 요약에서 생략되므로 호출되지 않지만
+/// switch 완전성을 위해 값을 둔다.
+String _paperStyleLabel(PaperStyle style) {
+  switch (style) {
+    case PaperStyle.plain:
+      return '무지';
+    case PaperStyle.lined:
+      return '줄';
+    case PaperStyle.grid:
+      return '모눈';
+    case PaperStyle.dotted:
+      return '도트';
+  }
 }
 
 /// 그리기 순서(아래→위)대로 정렬한 레이어 목록. z 동률은 원래 순서 유지.

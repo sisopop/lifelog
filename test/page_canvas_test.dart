@@ -239,9 +239,13 @@ void main() {
       expect(pageCanvasSummary(canvas), '사진 1');
     });
 
-    test('null when there are no layers (even with paper set)', () {
+    test('null only when truly blank (no layers, plain, no bg color)', () {
       expect(pageCanvasSummary(const PageCanvas()), isNull);
-      expect(pageCanvasSummary(const PageCanvas(paper: PaperStyle.grid)), isNull);
+    });
+
+    test('paper pattern alone summarizes even with no layers', () {
+      expect(pageCanvasSummary(const PageCanvas(paper: PaperStyle.grid)),
+          '모눈 속지');
     });
 
     test('counts text layers as 글자, ordered sticker·photo·text', () {
