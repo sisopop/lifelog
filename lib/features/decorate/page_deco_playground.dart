@@ -10,7 +10,7 @@ import 'content_flow_demo.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
 import 'sticker_catalog.dart';
-import 'text_color_catalog.dart';
+import 'text_layer_dialog.dart';
 import 'washi_tape_catalog.dart';
 
 /// 기록 페이지 꾸미기 캔버스 에디터.
@@ -126,62 +126,19 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     });
   }
 
-  /// 글자(메모) 조각을 올린다. 다이얼로그로 문구·잉크 색을 골라 중앙에 얹는다.
+  /// 글자(메모) 조각을 올린다. 다이얼로그로 문구·잉크 색·굵기를 골라 중앙에 얹는다.
   Future<void> _addText() async {
-    final controller = TextEditingController();
-    var color = kTextInkColors.first;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialog) => AlertDialog(
-          title: const Text('글자 넣기'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: controller,
-                autofocus: true,
-                maxLength: 40,
-                style: TextStyle(color: color),
-                decoration: const InputDecoration(hintText: '예: 오늘의 한마디'),
-                onSubmitted: (_) => Navigator.of(ctx).pop(true),
-              ),
-              Wrap(
-                spacing: 10,
-                children: [
-                  for (final c in kTextInkColors)
-                    GestureDetector(
-                      onTap: () => setDialog(() => color = c),
-                      child: CircleAvatar(
-                        radius: 15,
-                        backgroundColor: c,
-                        child: color == c
-                            ? const Icon(Icons.check, size: 16, color: Colors.white)
-                            : null,
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
-              child: const Text('취소'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(true),
-              child: const Text('추가'),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (ok != true || controller.text.trim().isEmpty) return;
+    final input = await showTextLayerDialog(context);
+    if (input == null) return;
     final id = 'x${_seq++}';
     setState(() {
-      _canvas = addTextLayer(_canvas, id, controller.text,
-          colorValue: color.toARGB32());
+      _canvas = addTextLayer(
+        _canvas,
+        id,
+        input.text,
+        colorValue: input.colorValue,
+        bold: input.bold,
+      );
       _selectedId = id;
     });
   }

@@ -26,6 +26,7 @@ void main() {
           rotation: 30,
           z: 3,
           colorValue: 0xFF2F6FEB,
+          bold: true,
         ),
         const DecoLayer(id: 'b', kind: DecoKind.sticker, value: '🌸'),
       ]);
@@ -41,8 +42,10 @@ void main() {
       expect(a.rotation, 30);
       expect(a.z, 3);
       expect(a.colorValue, 0xFF2F6FEB);
-      // 색이 없는 레이어는 colorValue null(옛 저장본 호환)
+      expect(a.bold, isTrue);
+      // 색이 없는 레이어는 colorValue null·bold false(옛 저장본 호환)
       expect(back.layers[1].colorValue, isNull);
+      expect(back.layers[1].bold, isFalse);
     });
 
     test('empty canvas round-trips', () {
@@ -54,6 +57,15 @@ void main() {
         () {
       const layer = DecoLayer(id: 'a', kind: DecoKind.sticker, value: '🌸');
       expect(layer.toJson().containsKey('color'), isFalse);
+    });
+
+    test('non-bold layer omits the bold field (byte-compatible with old data)',
+        () {
+      const layer = DecoLayer(id: 'a', kind: DecoKind.text, value: 'hi');
+      expect(layer.toJson().containsKey('bold'), isFalse);
+      const boldLayer =
+          DecoLayer(id: 'b', kind: DecoKind.text, value: 'hi', bold: true);
+      expect(boldLayer.toJson()['bold'], true);
     });
   });
 
@@ -155,6 +167,13 @@ void main() {
       expect(colored.layers.single.colorValue, 0xFFE5484D);
       final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
       expect(plain.layers.single.colorValue, isNull);
+    });
+
+    test('carries the bold flag when given, false by default', () {
+      final bold = addTextLayer(const PageCanvas(), 'x0', 'hi', bold: true);
+      expect(bold.layers.single.bold, isTrue);
+      final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
+      expect(plain.layers.single.bold, isFalse);
     });
   });
 

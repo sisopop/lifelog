@@ -115,6 +115,7 @@ Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
     style: TextStyle(
       fontSize: stickerSize,
       color: l.colorValue == null ? null : Color(l.colorValue!),
+      fontWeight: l.bold ? FontWeight.w700 : null,
     ),
   );
 }
