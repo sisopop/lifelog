@@ -11,7 +11,8 @@
 import 'dart:convert';
 
 /// 페이지 위에 놓을 수 있는 요소의 종류.
-enum DecoKind { text, sticker, photo }
+/// tape=마스킹테이프(워시테이프) 색 조각.
+enum DecoKind { text, sticker, photo, tape }
 
 DecoKind _kindFromName(String? name) => DecoKind.values.firstWhere(
       (k) => k.name == name,
@@ -47,7 +48,8 @@ class DecoLayer {
   final String id;
   final DecoKind kind;
 
-  /// text → 글 내용, sticker → 이모지/스티커 키, photo → 미디어 URL.
+  /// text → 글 내용, sticker → 이모지/스티커 키, photo → 미디어 URL,
+  /// tape → 테이프 스타일 id(색은 washi_tape_catalog에서 매핑).
   final String value;
   final double x;
   final double y;
@@ -187,6 +189,32 @@ PageCanvas addPhotoLayer(
   );
 }
 
+/// 마스킹테이프(워시테이프) 레이어를 캔버스 맨 위에 추가한 새 캔버스를 반환한다.
+/// [styleId]가 비어 있으면 잘못된 추가를 막기 위해 원본을 그대로 돌려준다.
+/// 테이프는 살짝 기울여 붙이는 게 자연스러워 기본 각도([rotation])를 준다.
+/// [x],[y]는 중심 비율(0~1로 가둠). 원본은 불변.
+PageCanvas addTapeLayer(
+  PageCanvas canvas,
+  String id,
+  String styleId, {
+  double x = 0.5,
+  double y = 0.3,
+  double rotation = -8,
+}) {
+  if (styleId.trim().isEmpty) return canvas;
+  return addLayer(
+    canvas,
+    DecoLayer(
+      id: id,
+      kind: DecoKind.tape,
+      value: styleId,
+      x: clampUnit(x),
+      y: clampUnit(y),
+      rotation: rotation,
+    ),
+  );
+}
+
 /// 레이어를 맨 위(topZ+1)에 추가한 새 캔버스를 반환한다. 원본은 불변.
 PageCanvas addLayer(PageCanvas canvas, DecoLayer layer) => PageCanvas(
       version: canvas.version,
@@ -237,7 +265,7 @@ PageCanvas sendLayerToBack(PageCanvas canvas, String id) {
 /// 0인 종류는 빼고 이어 붙인다. 레이어가 하나도 없으면 null(무늬만 있는 경우
 /// 포함). 편집기를 열지 않고도 무엇이 올라가 있는지 한눈에 보여줄 때 쓴다.
 String? pageCanvasSummary(PageCanvas canvas) {
-  var stickers = 0, photos = 0, texts = 0;
+  var stickers = 0, photos = 0, texts = 0, tapes = 0;
   for (final l in canvas.layers) {
     switch (l.kind) {
       case DecoKind.sticker:
@@ -246,11 +274,14 @@ String? pageCanvasSummary(PageCanvas canvas) {
         photos++;
       case DecoKind.text:
         texts++;
+      case DecoKind.tape:
+        tapes++;
     }
   }
   final parts = <String>[
     if (stickers > 0) '스티커 $stickers',
     if (photos > 0) '사진 $photos',
+    if (tapes > 0) '테이프 $tapes',
     if (texts > 0) '글자 $texts',
   ];
   return parts.isEmpty ? null : parts.join(' · ');

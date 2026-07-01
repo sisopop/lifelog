@@ -10,6 +10,7 @@ import 'content_flow_demo.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
 import 'sticker_catalog.dart';
+import 'washi_tape_catalog.dart';
 
 /// 기록 페이지 꾸미기 캔버스 에디터.
 ///
@@ -111,6 +112,21 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         );
       }
     }
+  }
+
+  /// 마스킹테이프 한 조각을 살짝 어긋난 위치에 얹는다.
+  void _addTape(String styleId) {
+    final id = 't${_seq++}';
+    setState(() {
+      _canvas = addTapeLayer(
+        _canvas,
+        id,
+        styleId,
+        x: 0.5 + (math.Random().nextDouble() - 0.5) * 0.3,
+        y: 0.3 + (math.Random().nextDouble() - 0.5) * 0.3,
+      );
+      _selectedId = id;
+    });
   }
 
   void _editSelected(DecoLayer Function(DecoLayer) f) {
@@ -349,6 +365,34 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               onPressed: _addPhoto,
               icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
               label: const Text('사진 추가'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                const Text('테이프',
+                    style: TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                const SizedBox(width: 8),
+                for (final t in kWashiTapes)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: InkWell(
+                      onTap: () => _addTape(t.id),
+                      borderRadius: BorderRadius.circular(4),
+                      child: Container(
+                        width: 46,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: t.color,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 8),

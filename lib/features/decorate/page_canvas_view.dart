@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../shared/widgets/photo.dart';
 import 'page_canvas.dart';
+import 'washi_tape_catalog.dart';
 
 // 캔버스 색 토큰 — 디자인 가이드 v1.0 캔버스(아날로그 질감) 팔레트.
 const Color kCanvasPaperCream = Color(0xFFFFF8F0); // 속지 크림 바탕
@@ -84,6 +85,14 @@ class PageCanvasView extends StatelessWidget {
 /// (텍스트·스티커)는 글자로 그린다. [stickerSize]는 scale이 이미 반영된 글자
 /// 크기. 편집기와 읽기전용 뷰가 이 함수를 공유해 배치가 항상 일치한다.
 Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
+  if (l.kind == DecoKind.tape) {
+    // 반투명 색 띠(가로로 길쭉). 회전(rotation)은 상위에서 이미 적용된다.
+    return Container(
+      width: stickerSize * 3.4,
+      height: stickerSize * 0.8,
+      color: washiTapeColor(l.value),
+    );
+  }
   if (l.kind == DecoKind.photo) {
     final side = stickerSize * 2.6; // 사진은 글자보다 크게
     return Container(

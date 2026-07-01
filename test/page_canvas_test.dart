@@ -115,6 +115,32 @@ void main() {
     });
   });
 
+  group('addTapeLayer', () {
+    test('adds a tape layer on top with the given style and a tilt', () {
+      final base = PageCanvas(layers: [_layer('a', z: 2)]);
+      final next = addTapeLayer(base, 't0', 'pink');
+      expect(next.layers.length, 2);
+      expect(next.layers.last.id, 't0');
+      expect(next.layers.last.kind, DecoKind.tape);
+      expect(next.layers.last.value, 'pink');
+      expect(next.layers.last.z, 3); // topZ+1
+      expect(next.layers.last.rotation, -8); // default tilt preserved
+      expect(base.layers.length, 1); // input unchanged
+    });
+
+    test('empty or blank style returns the canvas unchanged', () {
+      final base = PageCanvas(layers: [_layer('a')]);
+      expect(addTapeLayer(base, 't0', '').layers.length, 1);
+      expect(addTapeLayer(base, 't0', '   ').layers.length, 1);
+    });
+
+    test('clamps the center position into 0..1', () {
+      final next = addTapeLayer(const PageCanvas(), 't0', 'mint', x: 1.7, y: -0.3);
+      expect(next.layers.single.x, 1);
+      expect(next.layers.single.y, 0);
+    });
+  });
+
   group('pageCanvasSummary', () {
     test('counts stickers and photos, joins non-zero kinds', () {
       final canvas = PageCanvas(layers: [
@@ -143,6 +169,15 @@ void main() {
         _layer('a', kind: DecoKind.sticker),
       ]);
       expect(pageCanvasSummary(canvas), '스티커 1 · 글자 1');
+    });
+
+    test('counts tape layers as 테이프, ordered after 사진', () {
+      final canvas = PageCanvas(layers: [
+        DecoLayer(id: 't', kind: DecoKind.tape, value: 'pink'),
+        DecoLayer(id: 'p', kind: DecoKind.photo, value: 'x'),
+        _layer('a', kind: DecoKind.sticker),
+      ]);
+      expect(pageCanvasSummary(canvas), '스티커 1 · 사진 1 · 테이프 1');
     });
   });
 
