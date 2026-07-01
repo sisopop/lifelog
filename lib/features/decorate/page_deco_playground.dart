@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/photo.dart';
+import 'content_flow_demo.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
 import 'sticker_catalog.dart';
@@ -134,6 +135,14 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
+          if (widget.onDone == null)
+            IconButton(
+              tooltip: '글 흐름 미리보기',
+              icon: const Icon(Icons.view_agenda_outlined),
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ContentFlowDemo()),
+              ),
+            ),
           if (_canvas.layers.isNotEmpty)
             IconButton(
               tooltip: '모두 지우기',
