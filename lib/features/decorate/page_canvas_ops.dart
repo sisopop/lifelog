@@ -150,6 +150,30 @@ PageCanvas sendLayerToBack(PageCanvas canvas, String id) {
   return replaceLayer(canvas, target.first.copyWith(z: canvas.bottomZ - 1));
 }
 
+/// id 레이어를 쌓임 순서에서 딱 한 칸 위로 올린 새 캔버스를 반환한다. 바로 위 이웃과
+/// z를 맞바꿔 한 단계만 이동한다(맨 앞으로 보내기의 "한 칸"판). 이미 맨 위이거나 id가
+/// 없으면 원본 그대로(동일 인스턴스). 원본은 불변.
+PageCanvas stepLayerForward(PageCanvas canvas, String id) {
+  final ordered = layersByZ(canvas);
+  final idx = ordered.indexWhere((l) => l.id == id);
+  if (idx < 0 || idx == ordered.length - 1) return canvas;
+  final a = ordered[idx];
+  final b = ordered[idx + 1];
+  return replaceLayer(replaceLayer(canvas, a.copyWith(z: b.z)), b.copyWith(z: a.z));
+}
+
+/// id 레이어를 쌓임 순서에서 딱 한 칸 아래로 내린 새 캔버스를 반환한다. 바로 아래 이웃과
+/// z를 맞바꿔 한 단계만 이동한다(맨 뒤로 보내기의 "한 칸"판, stepLayerForward의 대칭).
+/// 이미 맨 아래이거나 id가 없으면 원본 그대로(동일 인스턴스). 원본은 불변.
+PageCanvas stepLayerBackward(PageCanvas canvas, String id) {
+  final ordered = layersByZ(canvas);
+  final idx = ordered.indexWhere((l) => l.id == id);
+  if (idx <= 0) return canvas;
+  final a = ordered[idx];
+  final b = ordered[idx - 1];
+  return replaceLayer(replaceLayer(canvas, a.copyWith(z: b.z)), b.copyWith(z: a.z));
+}
+
 /// id 레이어의 회전을 0°로 되돌린(똑바로 세운) 새 캔버스를 반환한다. 위치·크기·z는
 /// 그대로. 여러 번 돌리거나 기울여 붙인 테이프를 한 번에 반듯하게 펼 때 쓴다.
 /// 이미 0°이거나 id가 없으면 원본 그대로. 원본은 불변.

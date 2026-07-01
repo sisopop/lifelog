@@ -431,6 +431,18 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               });
             }
           }),
+          _toolBtn(Icons.arrow_upward, '앞으로', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = stepLayerForward(_canvas, id));
+            }
+          }),
+          _toolBtn(Icons.arrow_downward, '뒤로', () {
+            final id = _selectedId;
+            if (id != null) {
+              setState(() => _canvas = stepLayerBackward(_canvas, id));
+            }
+          }),
           _toolBtn(Icons.flip_to_front, '맨 앞', () {
             final id = _selectedId;
             if (id != null) {
