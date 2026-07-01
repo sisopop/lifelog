@@ -42,6 +42,7 @@ DiaryEntry _entry({
   DateTime? at,
   DateTime? deletedAt,
   String? pageCanvas,
+  String? flowPhotos,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -60,6 +61,7 @@ DiaryEntry _entry({
       mediaUrls: mediaUrls,
       tags: tags,
       pageCanvas: pageCanvas,
+      flowPhotos: flowPhotos,
       isFavorite: isFavorite,
       deletedAt: deletedAt,
     );
@@ -133,6 +135,16 @@ void main() {
       final data = parseBackupJson(exportBackupJson(
           [_journal()], [_entry(pageCanvas: canvas)], DateTime(2026, 6, 29)));
       expect(data.entries.first.pageCanvas, canvas);
+    });
+
+    test('flowPhotos JSON survives export → parse (null stays null)', () {
+      const flow = '[{"path":"data:image/png;base64,AA","afterParagraph":1}]';
+      final data = parseBackupJson(exportBackupJson(
+          [_journal()], [_entry(flowPhotos: flow)], DateTime(2026, 6, 29)));
+      expect(data.entries.first.flowPhotos, flow);
+      final none = parseBackupJson(
+          exportBackupJson([_journal()], [_entry()], DateTime(2026, 6, 29)));
+      expect(none.entries.first.flowPhotos, isNull);
     });
 
     test('null optional fields stay null', () {

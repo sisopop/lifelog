@@ -10,6 +10,8 @@ import '../../shared/models/journal.dart';
 import '../decorate/cover_paper.dart';
 import '../decorate/cover_paper_color.dart';
 import '../decorate/cover_paper_painter.dart';
+import '../decorate/content_flow.dart';
+import '../decorate/content_flow_view.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import 'entry_gallery.dart';
@@ -117,8 +119,15 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   PageCanvasView(decodePageCanvas(entry.pageCanvas)),
                   const SizedBox(height: 20),
                 ],
-                Text(entry.content,
-                    style: TextStyle(fontSize: 16 * scale, height: 1.6)),
+                if (entry.flowPhotos != null)
+                  ContentFlowView(
+                    content: entry.content,
+                    photos: decodeInlinePhotos(entry.flowPhotos),
+                    textStyle: TextStyle(fontSize: 16 * scale, height: 1.6),
+                  )
+                else
+                  Text(entry.content,
+                      style: TextStyle(fontSize: 16 * scale, height: 1.6)),
                 Builder(builder: (_) {
                   final meta = readingMetaLabel(entry.content);
                   final ord = entryOrdinal(entries, widget.entryId);

@@ -7,6 +7,8 @@
 // 렌더할 때 합친다. 즉 글 조각 수 = (끼운 사진 수 + 1) 이하이지, 문단마다 블록이
 // 되는 게 아니다.
 
+import 'dart:convert';
+
 /// 본문 흐름 안에 끼우는 사진 한 장.
 /// [path]는 이미지 경로(데이터 URL·http·file 등), [afterParagraph]는 이 사진
 /// *앞에 오는 문단 수*(0=맨 위, 전체 문단 수=맨 아래)를 뜻한다.
@@ -15,6 +17,37 @@ class InlinePhoto {
 
   final String path;
   final int afterParagraph;
+
+  Map<String, dynamic> toJson() =>
+      {'path': path, 'afterParagraph': afterParagraph};
+
+  /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
+  factory InlinePhoto.fromJson(Map<String, dynamic> json) => InlinePhoto(
+        path: (json['path'] as String?) ?? '',
+        afterParagraph: (json['afterParagraph'] as num?)?.toInt() ?? 0,
+      );
+}
+
+/// 인라인 사진 목록을 저장용 JSON 배열 문자열로 직렬화한다.
+String encodeInlinePhotos(List<InlinePhoto> photos) =>
+    jsonEncode(photos.map((p) => p.toJson()).toList());
+
+/// 저장된 문자열을 인라인 사진 목록으로 복원한다. null/빈/깨진 입력은 빈 목록으로
+/// 폴백해 절대 예외를 던지지 않는다(끼운 사진 없는 기존 기록과 호환).
+List<InlinePhoto> decodeInlinePhotos(String? raw) {
+  if (raw == null || raw.trim().isEmpty) return const [];
+  try {
+    final decoded = jsonDecode(raw);
+    if (decoded is List) {
+      return decoded
+          .whereType<Map>()
+          .map((m) => InlinePhoto.fromJson(m.cast<String, dynamic>()))
+          .toList();
+    }
+  } catch (_) {
+    // 깨진 JSON → 빈 목록
+  }
+  return const [];
 }
 
 /// 흐름 블록의 종류.
@@ -37,6 +70,9 @@ class FlowBlock {
 }
 
 /// 문단(빈 줄 경계)으로 나눈 뒤 앞뒤 공백을 다듬은 비어있지 않은 문단 목록.
+/// 편집기가 "사진 끼울 자리"(문단 사이 틈)를 그리는 데도 쓴다.
+List<String> splitContentParagraphs(String text) => _splitParagraphs(text);
+
 List<String> _splitParagraphs(String text) => text
     .split(RegExp(r'\n[ \t]*\n'))
     .map((p) => p.trim())

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../decorate/inline_photo_editor.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import '../decorate/page_deco_playground.dart';
@@ -55,8 +56,7 @@ class WriteScreen extends ConsumerStatefulWidget {
   /// After saving, advance the exchange-journal turn to the next member.
   final bool advanceTurn;
 
-  /// Pre-selects a calendar day for a new entry (e.g. writing from a past day
-  /// on the calendar). Ignored when editing. Null → today.
+  /// Pre-selects a calendar day for a new entry. Ignored when editing.
   final DateTime? initialDate;
 
   @override
@@ -72,13 +72,14 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   final List<String> _photoPaths = [];
   List<String> _tags = [];
 
-  /// 페이지(내지) 꾸미기 캔버스 JSON. null이면 꾸미기 없는 순수 텍스트 기록.
+  /// 내지 꾸미기 캔버스 JSON(null=꾸미기 없음).
   String? _pageCanvas;
+  /// 본문 흐름 사이에 끼운 사진들(InlinePhoto JSON, null=없음).
+  String? _flowPhotos;
   DiaryEntry? _editing;
   bool _prefilled = false;
 
-  /// Selected calendar day for the entry (lets you back-date past diaries).
-  /// Only the date part matters; the time-of-day is preserved on save.
+  /// Selected calendar day (date part only; time-of-day preserved on save).
   DateTime _date = DateTime.now();
 
   @override
@@ -89,14 +90,12 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     }
   }
 
-  /// Target journal for a new entry. Defaults to the route param / default
-  /// journal, but can be changed via the journal selector at the top.
+  /// Target journal for a new entry; changeable via the selector at the top.
   String? _journalId;
 
   bool get _isEditing => widget.editId != null;
 
-  /// Whether the user can change the target journal here. Editing keeps the
-  /// entry's own journal; exchange-turn writes are pinned to keep turn order.
+  /// Editing keeps the entry's journal; exchange-turn writes are pinned.
   bool get _canSwitchJournal => !_isEditing && !widget.advanceTurn;
 
   String get _targetJournalId =>
@@ -122,6 +121,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           ..clear()
           ..addAll(entry.tags);
         _pageCanvas = entry.pageCanvas;
+        _flowPhotos = entry.flowPhotos;
         _prefilled = true;
       }
     }
@@ -138,8 +138,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     try {
       final picked = await _picker.pickMultiImage();
       if (picked.isEmpty) return;
-      // Encode as base64 data URLs so photos persist in the local DB and
-      // render on every platform (web included). See shared/widgets/photo.dart.
+      // base64 data URLs so photos persist in the DB (see shared/widgets/photo.dart).
       final encoded = <String>[];
       for (final x in picked) {
         final bytes = await x.readAsBytes();
@@ -155,7 +154,6 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       }
     }
   }
-
 
   Future<void> _addTag() async {
     final tag = await showTagInputSheet(
@@ -183,8 +181,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     if (picked != null) setState(() => _date = picked);
   }
 
-  /// Manually attach/edit a place name for the entry (no GPS needed). Offers
-  /// one-tap chips for places used before.
+  /// Attach/edit a place name (no GPS); offers chips for places used before.
   Future<void> _editLocation() async {
     final result = await showLocationDialog(
       context: context,
@@ -211,6 +208,13 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     ));
   }
 
+  /// 본문 흐름 사이에 끼울 사진을 고르는 편집기를 연다.
+  Future<void> _editInlinePhotos() async {
+    final v = await editInlinePhotosFlow(context,
+        content: _contentCtrl.text, current: _flowPhotos);
+    if (mounted) setState(() => _flowPhotos = v);
+  }
+
   Future<void> _save({required EntryVisibility visibility}) async {
     if (_contentCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -228,13 +232,14 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           content: tidyEntryContent(_contentCtrl.text),
           mood: _mood,
           visibility: visibility,
-          // Pass '' (not null) so clearing the place persists — copyWith keeps
-          // the old value when given null.
+          // '' (not null) so clearing the place persists (copyWith ignores null).
           location: _location ?? '',
           mediaUrls: List.of(_photoPaths),
           tags: tidyTags(_tags),
           pageCanvas: _pageCanvas,
           clearPageCanvas: _pageCanvas == null,
+          flowPhotos: _flowPhotos,
+          clearFlowPhotos: _flowPhotos == null,
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -254,6 +259,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           mediaUrls: List.of(_photoPaths),
           tags: tidyTags(_tags),
           pageCanvas: _pageCanvas,
+          flowPhotos: _flowPhotos,
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
@@ -293,8 +299,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Shared journals (커플/교환) record entries as shared by default;
-    // personal journals keep the private-first flow.
+    // Shared journals (커플/교환) default to shared; personal stays private-first.
     final journals =
         ref.watch(journalsProvider).asData?.value ?? const <Journal>[];
     final jid = _targetJournalId;
@@ -448,6 +453,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           ),
           const SizedBox(height: 16),
           _DecoratePageTile(canvasJson: _pageCanvas, onEdit: _editPageCanvas),
+          const SizedBox(height: 12),
+          InlinePhotoTile(flowPhotos: _flowPhotos, onEdit: _editInlinePhotos),
           const SizedBox(height: 28),
           if (_isEditing)
             ElevatedButton(

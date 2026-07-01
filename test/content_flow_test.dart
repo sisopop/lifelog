@@ -102,4 +102,47 @@ void main() {
       expect(blocks.single.kind, FlowBlockKind.photo);
     });
   });
+
+  group('splitContentParagraphs', () {
+    test('splits on blank lines, trims, drops empties', () {
+      expect(splitContentParagraphs('a\n\nb'), ['a', 'b']);
+      expect(splitContentParagraphs('  a  \n\n\n  b '), ['a', 'b']);
+      expect(splitContentParagraphs('single line'), ['single line']);
+      expect(splitContentParagraphs('   '), isEmpty);
+    });
+  });
+
+  group('encode/decode inline photos', () {
+    test('round-trips path and afterParagraph', () {
+      final photos = [
+        const InlinePhoto(path: 'data:image/png;base64,AAAA', afterParagraph: 2),
+        const InlinePhoto(path: 'http://x/y.jpg', afterParagraph: 0),
+      ];
+      final back = decodeInlinePhotos(encodeInlinePhotos(photos));
+      expect(back.length, 2);
+      expect(back[0].path, 'data:image/png;base64,AAAA');
+      expect(back[0].afterParagraph, 2);
+      expect(back[1].path, 'http://x/y.jpg');
+      expect(back[1].afterParagraph, 0);
+    });
+
+    test('empty list round-trips', () {
+      expect(decodeInlinePhotos(encodeInlinePhotos(const [])), isEmpty);
+    });
+
+    test('null / blank / garbage → empty list (never throws)', () {
+      expect(decodeInlinePhotos(null), isEmpty);
+      expect(decodeInlinePhotos('   '), isEmpty);
+      expect(decodeInlinePhotos('not json {{{'), isEmpty);
+      expect(decodeInlinePhotos('{"not":"a list"}'), isEmpty);
+    });
+
+    test('missing fields default (path empty, afterParagraph 0)', () {
+      final back = decodeInlinePhotos('[{"path":"x"},{"afterParagraph":3}]');
+      expect(back.length, 2);
+      expect(back[0].afterParagraph, 0);
+      expect(back[1].path, '');
+      expect(back[1].afterParagraph, 3);
+    });
+  });
 }
