@@ -56,10 +56,30 @@ int longestStreak(Set<DateTime> days) {
   return best;
 }
 
+/// How many of the last [windowDays] calendar days (ending on [today],
+/// inclusive) carry a record — a measure of very recent consistency that
+/// complements the streak (which needs the days to be *consecutive*). Result is
+/// clamped to 0..windowDays. Replies are already excluded by [recordedDates].
+/// Returns 0 when [windowDays] <= 0.
+int recordedDaysInWindow(Set<DateTime> days, DateTime today,
+    {int windowDays = 7}) {
+  if (windowDays <= 0) return 0;
+  final t = _dayOnly(today);
+  var count = 0;
+  for (var i = 0; i < windowDays; i++) {
+    if (days.contains(t.subtract(Duration(days: i)))) count++;
+  }
+  return count;
+}
+
 class StreakInfo {
-  const StreakInfo({required this.current, required this.longest});
+  const StreakInfo(
+      {required this.current, required this.longest, this.recentActive = 0});
   final int current;
   final int longest;
+
+  /// Distinct recorded days within the last 7 (see [recordedDaysInWindow]).
+  final int recentActive;
 }
 
 /// Streak across the entire history of the selected review journal
@@ -67,9 +87,11 @@ class StreakInfo {
 final streakProvider = Provider<StreakInfo>((ref) {
   final entries = ref.watch(reviewEntriesProvider);
   final days = recordedDates(entries);
+  final now = DateTime.now();
   return StreakInfo(
-    current: currentStreak(days, DateTime.now()),
+    current: currentStreak(days, now),
     longest: longestStreak(days),
+    recentActive: recordedDaysInWindow(days, now),
   );
 });
 

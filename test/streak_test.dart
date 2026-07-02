@@ -90,4 +90,45 @@ void main() {
       expect(longestStreak(const {}), 0);
     });
   });
+
+  group('recordedDaysInWindow', () {
+    final today = DateTime(2026, 6, 30, 21);
+
+    test('counts distinct days within the last 7 (today inclusive)', () {
+      final days = _days([
+        DateTime(2026, 6, 30), // today
+        DateTime(2026, 6, 28),
+        DateTime(2026, 6, 24), // exactly 6 days back -> in window
+        DateTime(2026, 6, 23), // 7 days back -> outside default window
+      ]);
+      expect(recordedDaysInWindow(days, today), 3);
+    });
+
+    test('ignores days in the future or beyond the window', () {
+      final days = _days([
+        DateTime(2026, 7, 1), // tomorrow -> not counted
+        DateTime(2026, 6, 30), // today
+        DateTime(2026, 6, 1), // long past
+      ]);
+      expect(recordedDaysInWindow(days, today), 1);
+    });
+
+    test('honors a custom window and clamps to it', () {
+      final days = _days([
+        DateTime(2026, 6, 30),
+        DateTime(2026, 6, 29),
+        DateTime(2026, 6, 28),
+      ]);
+      expect(recordedDaysInWindow(days, today, windowDays: 2), 2);
+      expect(recordedDaysInWindow(days, today, windowDays: 30), 3);
+    });
+
+    test('empty days or non-positive window is 0', () {
+      expect(recordedDaysInWindow(const {}, today), 0);
+      expect(
+          recordedDaysInWindow(_days([DateTime(2026, 6, 30)]), today,
+              windowDays: 0),
+          0);
+    });
+  });
 }

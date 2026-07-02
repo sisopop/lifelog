@@ -229,7 +229,8 @@ class _StreakBanner extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
-          Text('최장 연속 기록 ${streak.longest}일',
+          Text(
+              '최장 연속 기록 ${streak.longest}일 · 최근 7일 중 ${streak.recentActive}일 기록',
               style: const TextStyle(color: Colors.white70, fontSize: 13)),
         ],
       ),
