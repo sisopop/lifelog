@@ -375,6 +375,19 @@ PageCanvas removeLastLayer(PageCanvas canvas) {
   return removeLayer(canvas, canvas.layers.last.id);
 }
 
+/// [kind]에 해당하는 레이어를 모두 지운 새 캔버스를 반환한다(예: 테이프만 한 번에
+/// 정리, 스티커는 그대로 둠). 해당 종류가 하나도 없으면 원본 그대로(동일 인스턴스).
+/// 속지 무늬·바탕색과 다른 종류 레이어는 보존. 원본은 불변.
+PageCanvas removeLayersOfKind(PageCanvas canvas, DecoKind kind) {
+  if (!canvas.layers.any((l) => l.kind == kind)) return canvas;
+  return PageCanvas(
+    version: canvas.version,
+    paper: canvas.paper,
+    paperColorValue: canvas.paperColorValue,
+    layers: canvas.layers.where((l) => l.kind != kind).toList(),
+  );
+}
+
 /// 캔버스 구성 요약 문구(예: "모눈 속지 · 스티커 2 · 사진 1"). 속지 무늬(무지 제외)와
 /// 바탕색을 앞에 두고, 이어서 레이어 종류별 개수를 0인 종류는 빼고 붙인다. 아무것도
 /// 없으면(레이어 0 · 무지 · 바탕색 없음) null. 편집기를 열지 않고도 무엇이 올라가

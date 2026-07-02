@@ -191,6 +191,16 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     });
   }
 
+  // 선택 레이어와 같은 종류(스티커/사진/테이프/글자)를 한 번에 모두 지운다.
+  void _deleteSameKind() {
+    final sel = _selected;
+    if (sel == null) return;
+    setState(() {
+      _canvas = removeLayersOfKind(_canvas, sel.kind);
+      _selectedId = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -415,6 +425,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               () => _applyToSelected(bringLayerToFront)),
           _toolBtn(Icons.flip_to_back, '맨 뒤',
               () => _applyToSelected(sendLayerToBack)),
+          _toolBtn(Icons.delete_sweep_outlined, '종류 삭제', _deleteSameKind,
+              color: AppColors.moodHard),
           _toolBtn(Icons.delete_outline, '삭제', _deleteSelected,
               color: AppColors.moodHard),
         ],
