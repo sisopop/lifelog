@@ -136,6 +136,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         bold: input.bold,
         italic: input.italic,
         underline: input.underline,
+        strike: input.strike,
         bgColorValue: input.bgColorValue,
       );
       _selectedId = id;
@@ -153,6 +154,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         l.bgColorValue,
         italic: l.italic,
         underline: l.underline,
+        strike: l.strike,
       ),
     );
     if (input == null) return;
@@ -165,6 +167,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         bold: input.bold,
         italic: input.italic,
         underline: input.underline,
+        strike: input.strike,
         bgColorValue: input.bgColorValue,
       );
     });

@@ -44,6 +44,7 @@ PageCanvas addTextLayer(
   bool bold = false,
   bool italic = false,
   bool underline = false,
+  bool strike = false,
   int? bgColorValue,
 }) {
   final trimmed = text.trim();
@@ -60,6 +61,7 @@ PageCanvas addTextLayer(
       bold: bold,
       italic: italic,
       underline: underline,
+      strike: strike,
       bgColorValue: bgColorValue,
     ),
   );
@@ -336,6 +338,7 @@ PageCanvas duplicateLayer(
       opacity: src.opacity,
       italic: src.italic,
       underline: src.underline,
+      strike: src.strike,
     ),
   );
 }
@@ -395,6 +398,7 @@ PageCanvas updateTextLayer(
   bool bold = false,
   bool italic = false,
   bool underline = false,
+  bool strike = false,
   int? bgColorValue,
 }) {
   final trimmed = text.trim();
@@ -417,6 +421,7 @@ PageCanvas updateTextLayer(
       bold: bold,
       italic: italic,
       underline: underline,
+      strike: strike,
       bgColorValue: bgColorValue,
     ),
   );

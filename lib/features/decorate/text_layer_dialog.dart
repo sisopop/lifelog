@@ -12,6 +12,7 @@ class TextLayerInput {
     this.bgColorValue, {
     this.italic = false,
     this.underline = false,
+    this.strike = false,
   });
 
   /// 앞뒤 공백을 다듬은 글 내용(빈 문구면 다이얼로그가 null을 돌려주므로 항상 비지 않음).
@@ -28,6 +29,9 @@ class TextLayerInput {
 
   /// 밑줄을 그을지.
   final bool underline;
+
+  /// 취소선을 그을지.
+  final bool strike;
 
   /// 형광펜(배경) 색(ARGB 정수). null이면 배경 없음.
   final int? bgColorValue;
@@ -47,6 +51,7 @@ Future<TextLayerInput?> showTextLayerDialog(
   var bold = initial?.bold ?? false;
   var italic = initial?.italic ?? false;
   var underline = initial?.underline ?? false;
+  var strike = initial?.strike ?? false;
   int? bg = initial?.bgColorValue; // 형광펜 배경(null=없음)
   final ok = await showDialog<bool>(
     context: context,
@@ -64,7 +69,10 @@ Future<TextLayerInput?> showTextLayerDialog(
                 color: color,
                 fontWeight: bold ? FontWeight.w700 : null,
                 fontStyle: italic ? FontStyle.italic : null,
-                decoration: underline ? TextDecoration.underline : null,
+                decoration: TextDecoration.combine([
+                  if (underline) TextDecoration.underline,
+                  if (strike) TextDecoration.lineThrough,
+                ]),
               ),
               decoration: InputDecoration(
                 hintText: '예: 오늘의 한마디',
@@ -126,6 +134,18 @@ Future<TextLayerInput?> showTextLayerDialog(
                 ),
               ],
             ),
+            Row(
+              children: [
+                const Icon(Icons.strikethrough_s, size: 20),
+                const SizedBox(width: 8),
+                const Text('취소선'),
+                const Spacer(),
+                Switch(
+                  value: strike,
+                  onChanged: (v) => setDialog(() => strike = v),
+                ),
+              ],
+            ),
             const Align(
               alignment: Alignment.centerLeft,
               child: Text('형광펜', style: TextStyle(fontSize: 12)),
@@ -179,5 +199,5 @@ Future<TextLayerInput?> showTextLayerDialog(
   final text = controller.text.trim();
   if (text.isEmpty) return null;
   return TextLayerInput(text, color.toARGB32(), bold, bg,
-      italic: italic, underline: underline);
+      italic: italic, underline: underline, strike: strike);
 }
