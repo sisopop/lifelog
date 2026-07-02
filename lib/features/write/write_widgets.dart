@@ -408,10 +408,9 @@ class _AttachRow extends StatelessWidget {
     required this.onPhoto,
     required this.onLocation,
     required this.onTag,
+    required this.onEmoji,
   });
-  final VoidCallback onPhoto;
-  final VoidCallback onLocation;
-  final VoidCallback onTag;
+  final VoidCallback onPhoto, onLocation, onTag, onEmoji;
 
   @override
   Widget build(BuildContext context) {
@@ -419,7 +418,7 @@ class _AttachRow extends StatelessWidget {
       spacing: 8,
       children: [
         _AttachButton(Icons.photo_outlined, '사진', onPhoto),
-        const _AttachButton(Icons.mic_none, '음성', null),
+        _AttachButton(Icons.emoji_emotions_outlined, '이모지', onEmoji),
         _AttachButton(Icons.place_outlined, '위치', onLocation),
         _AttachButton(Icons.tag, '태그', onTag),
       ],

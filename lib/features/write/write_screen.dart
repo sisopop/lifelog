@@ -10,6 +10,7 @@ import '../decorate/inline_photo_editor.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import '../decorate/page_deco_playground.dart';
+import 'emoji_picker.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/mood_chip.dart';
@@ -362,8 +363,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             return Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(nudge,
-                  style:
-                      const TextStyle(fontSize: 12, color: AppColors.textHint)),
+                  style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
             );
           }),
           const SizedBox(height: 20),
@@ -385,8 +385,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
               onUse: () {
                 final p = ref.read(writingPromptProvider);
                 _contentCtrl.text = '$p\n';
-                _contentCtrl.selection = TextSelection.collapsed(
-                    offset: _contentCtrl.text.length);
+                _contentCtrl.selection = TextSelection.collapsed(offset: _contentCtrl.text.length);
                 setState(() {});
               },
               onRefresh: () =>
@@ -450,6 +449,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             onPhoto: _pickPhotos,
             onLocation: _editLocation,
             onTag: _addTag,
+            onEmoji: () => pickAndInsertEmoji(context, _contentCtrl).then((_) => mounted ? setState(() {}) : null),
           ),
           const SizedBox(height: 16),
           _DecoratePageTile(canvasJson: _pageCanvas, onEdit: _editPageCanvas),
