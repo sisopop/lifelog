@@ -425,8 +425,13 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
           _toolBtn(Icons.swap_vert, '상하', () => _applyToSelected(flipLayerY)),
           _toolBtn(Icons.restart_alt, '변형 초기화',
               () => _applyToSelected(resetLayerTransform)),
-          if (_selected?.kind == DecoKind.text)
+          if (_selected?.kind == DecoKind.text) ...[
             _toolBtn(Icons.edit_outlined, '편집', () => _editText(_selected!)),
+            _toolBtn(Icons.format_indent_decrease, '자간-',
+                () => _applyToSelected((c, id) => stepLayerLetterSpacing(c, id, -1))),
+            _toolBtn(Icons.format_indent_increase, '자간+',
+                () => _applyToSelected((c, id) => stepLayerLetterSpacing(c, id, 1))),
+          ],
           _toolBtn(Icons.copy_all_outlined, '복제', () {
             final id = _selectedId;
             if (id != null) {

@@ -130,6 +130,8 @@ Widget _decoLayerBody(DecoLayer l, double stickerSize) {
       color: l.colorValue == null ? null : Color(l.colorValue!),
       fontWeight: l.bold ? FontWeight.w700 : null,
       fontStyle: l.italic ? FontStyle.italic : null,
+      letterSpacing:
+          l.letterSpacing == 0.0 ? null : stickerSize * l.letterSpacing * 0.06,
       decoration: TextDecoration.combine([
         if (l.underline) TextDecoration.underline,
         if (l.strike) TextDecoration.lineThrough,

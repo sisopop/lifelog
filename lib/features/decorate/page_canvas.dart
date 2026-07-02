@@ -56,6 +56,7 @@ class DecoLayer {
     this.flipX = false,
     this.flipY = false,
     this.opacity = 1.0,
+    this.letterSpacing = 0.0,
   });
 
   final String id;
@@ -113,6 +114,11 @@ class DecoLayer {
   /// 어디에나 적용된다(렌더는 decoLayerContent가 처리).
   final double opacity;
 
+  /// 글자 자간(letterSpacing, 논리픽셀). 기본 0.0=기본 간격. 양수면 글자 사이가
+  /// 넓어지고 음수면 좁아진다. text 레이어에만 쓰인다(옛 저장본은 0.0이라 종전과
+  /// 동일). 자간-/자간+ 툴바 버튼이 조절한다. bold·italic 등 다른 글자 속성과 독립.
+  final double letterSpacing;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -131,6 +137,7 @@ class DecoLayer {
     bool? flipX,
     bool? flipY,
     double? opacity,
+    double? letterSpacing,
   }) =>
       DecoLayer(
         id: id,
@@ -151,6 +158,7 @@ class DecoLayer {
         flipX: flipX ?? this.flipX,
         flipY: flipY ?? this.flipY,
         opacity: opacity ?? this.opacity,
+        letterSpacing: letterSpacing ?? this.letterSpacing,
       );
 
   Map<String, dynamic> toJson() => {
@@ -181,6 +189,8 @@ class DecoLayer {
         if (flipY) 'flipY': true,
         // 불투명(기본 1.0)이면 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (opacity != 1.0) 'opacity': opacity,
+        // 자간이 기본(0.0)이면 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
+        if (letterSpacing != 0.0) 'ls': letterSpacing,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -203,6 +213,7 @@ class DecoLayer {
         flipX: json['flipX'] == true,
         flipY: json['flipY'] == true,
         opacity: _toDouble(json['opacity'], 1.0),
+        letterSpacing: _toDouble(json['ls'], 0.0),
       );
 }
 

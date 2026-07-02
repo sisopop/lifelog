@@ -237,6 +237,26 @@ PageCanvas stepLayerScale(PageCanvas canvas, String id, double delta) {
   return replaceLayer(canvas, l.copyWith(scale: next));
 }
 
+/// 글자 자간을 조절할 때 허용하는 단계 범위. 너무 좁혀 겹치거나 너무 벌려
+/// 흩어지는 것을 막는다. 자간-/자간+ 버튼이 공유한다(글자 크기에 비례해 렌더).
+const double kMinLetterSpacing = -3.0;
+const double kMaxLetterSpacing = 10.0;
+
+/// id 레이어의 글자 자간을 [delta]만큼 넓히거나 좁힌 새 캔버스를 반환한다
+/// (자간- -, 자간+ +). 결과는 [kMinLetterSpacing]~[kMaxLetterSpacing]로 가둔다.
+/// 위치·크기·회전·z·다른 글자 속성은 그대로. id가 없거나 가둔 뒤 값이 그대로면
+/// (한계) 원본 그대로(동일 인스턴스). 글자 아닌 레이어에 써도 무해하다(렌더에
+/// 반영 안 됨). 원본은 불변.
+PageCanvas stepLayerLetterSpacing(PageCanvas canvas, String id, double delta) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final next =
+      (l.letterSpacing + delta).clamp(kMinLetterSpacing, kMaxLetterSpacing);
+  if (next == l.letterSpacing) return canvas;
+  return replaceLayer(canvas, l.copyWith(letterSpacing: next));
+}
+
 /// id 레이어의 *변형*을 한 번에 기본값으로 되돌린 새 캔버스를 반환한다.
 /// 크기(scale→1.0)·회전(rotation→0)·좌우 뒤집기(flipX→false)·상하 뒤집기
 /// (flipY→false)·투명도(opacity→1.0)를 모두 초기화한다. 위치(x·y)·z·글자 속성
@@ -342,6 +362,7 @@ PageCanvas duplicateLayer(
       underline: src.underline,
       strike: src.strike,
       shadow: src.shadow,
+      letterSpacing: src.letterSpacing,
     ),
   );
 }
