@@ -57,4 +57,29 @@ void main() {
     final list = entriesAtLocation([_entry(id: 'a', location: null)], '제주');
     expect(list, isEmpty);
   });
+
+  group('placeDateSpan', () {
+    test('earliest and latest date-only, case-insensitive, replies excluded',
+        () {
+      final s = placeDateSpan([
+        _entry(id: 'a', location: '제주', day: 10),
+        _entry(id: 'b', location: '  제주  ', day: 20),
+        _entry(id: 'r', location: '제주', day: 25, replyTo: 'a'), // reply ignored
+        _entry(id: 'c', location: '서울', day: 5), // other place
+      ], '제주');
+      expect(s!.first, DateTime(2026, 6, 10));
+      expect(s.last, DateTime(2026, 6, 20));
+    });
+
+    test('single day spans that one date', () {
+      final s = placeDateSpan([_entry(id: 'a', location: '제주', day: 13)], '제주');
+      expect(s!.first, DateTime(2026, 6, 13));
+      expect(s.first, s.last);
+    });
+
+    test('null for blank query or no match', () {
+      expect(placeDateSpan([_entry(id: 'a', location: '제주')], '  '), isNull);
+      expect(placeDateSpan([_entry(id: 'a', location: '서울')], '제주'), isNull);
+    });
+  });
 }
