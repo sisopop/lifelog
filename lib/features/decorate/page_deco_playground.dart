@@ -421,6 +421,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               () => _applyToSelected(centerLayerHorizontally)),
           _toolBtn(Icons.align_vertical_center, '세로중앙',
               () => _applyToSelected(centerLayerVertically)),
+          _toolBtn(Icons.swap_horiz, '좌우반전',
+              () => _applyToSelected(mirrorLayerX)),
           _toolBtn(Icons.flip, '좌우', () => _applyToSelected(flipLayerX)),
           _toolBtn(Icons.swap_vert, '상하', () => _applyToSelected(flipLayerY)),
           _toolBtn(Icons.restart_alt, '변형 초기화',

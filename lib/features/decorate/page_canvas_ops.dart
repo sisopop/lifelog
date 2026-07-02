@@ -315,6 +315,19 @@ PageCanvas centerLayerVertically(PageCanvas canvas, String id) {
   return replaceLayer(canvas, matches.first.copyWith(y: 0.5));
 }
 
+/// id 레이어를 페이지 세로 중심선을 기준으로 좌우 반대 위치로 옮긴 새 캔버스를 반환한다
+/// (x → 1-x). 왼쪽에 놓은 레이어를 대칭인 오른쪽 자리로(또는 그 반대로) 한 번에 보낼 때
+/// 쓴다. 세로 위치·크기·회전·z는 그대로. 이미 중앙(x=0.5)이거나 id가 없으면 원본 그대로.
+/// 원본은 불변. (좌우 뒤집기 flipLayerX는 겉모습만, 이건 위치만 반전.)
+PageCanvas mirrorLayerX(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final nx = clampUnit(1.0 - l.x);
+  if (nx == l.x) return canvas;
+  return replaceLayer(canvas, l.copyWith(x: nx));
+}
+
 /// id 레이어를 [dx],[dy] 만큼 미세하게 옮긴 새 캔버스를 반환한다(작은 캔버스에서
 /// 드래그로는 정밀하게 못 놓을 때 화살표로 한 칸씩). 위치는 0~1로 가둔다. 크기·회전·
 /// z는 그대로. id가 없거나 가둔 뒤 위치가 그대로면(가장자리) 원본 그대로. 원본은 불변.
