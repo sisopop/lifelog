@@ -7,6 +7,7 @@ DiaryEntry _entry({
   String? location,
   int day = 10,
   String? replyTo,
+  List<String> tags = const [],
 }) {
   final t = DateTime(2026, 6, day);
   return DiaryEntry(
@@ -14,7 +15,7 @@ DiaryEntry _entry({
     userId: 'me',
     journalId: 'jr_default',
     content: 'c',
-    tags: const [],
+    tags: tags,
     location: location,
     replyToEntryId: replyTo,
     createdAt: t,
@@ -80,6 +81,33 @@ void main() {
     test('null for blank query or no match', () {
       expect(placeDateSpan([_entry(id: 'a', location: '제주')], '  '), isNull);
       expect(placeDateSpan([_entry(id: 'a', location: '서울')], '제주'), isNull);
+    });
+  });
+
+  group('tagsAtLocation', () {
+    test('counts tags at the place by frequency, case-insensitive & trimmed',
+        () {
+      final r = tagsAtLocation([
+        _entry(id: 'a', location: '제주', tags: ['추억', '가족']),
+        _entry(id: 'b', location: '  제주  ', tags: ['추억']),
+        _entry(id: 'r', location: '제주', tags: ['추억'], replyTo: 'a'), // reply
+        _entry(id: 'c', location: '서울', tags: ['일']), // other place
+      ], '제주');
+      expect(r.map((e) => e.key).toList(), ['추억', '가족']);
+      expect(r.first.value, 2);
+    });
+
+    test('ties resolve alphabetically and respect the limit', () {
+      final r = tagsAtLocation([
+        _entry(id: 'a', location: '제주', tags: ['다', '나', '가']),
+      ], '제주', limit: 2);
+      expect(r.map((e) => e.key).toList(), ['가', '나']);
+    });
+
+    test('empty for blank query, no match, or no tags', () {
+      expect(tagsAtLocation([_entry(id: 'a', location: '제주')], '  '), isEmpty);
+      expect(tagsAtLocation([_entry(id: 'a', location: '서울')], '제주'), isEmpty);
+      expect(tagsAtLocation([_entry(id: 'a', location: '제주')], '제주'), isEmpty);
     });
   });
 }

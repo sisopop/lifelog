@@ -25,6 +25,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
     final journalMap = {for (final j in journals) j.journalId: j};
     final replyCounts = replyCountsByParent(all);
     final span = placeDateSpan(all, location);
+    final tags = tagsAtLocation(all, location, limit: 6);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -70,6 +71,13 @@ class PlaceEntriesScreen extends ConsumerWidget {
                         if (spanText != null) ...[
                           const SizedBox(height: 4),
                           Text(spanText,
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (tags.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                              '🏷 ${tags.map((t) => '#${t.key}').join(' ')}',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

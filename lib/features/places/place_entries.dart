@@ -34,3 +34,30 @@ List<DiaryEntry> entriesAtLocation(List<DiaryEntry> entries, String location) {
   }
   return first == null ? null : (first: first, last: last!);
 }
+
+/// Tags most often recorded at [location] (case-insensitive, trimmed;
+/// replies excluded), most-frequent first with ties resolved alphabetically.
+/// Capped at [limit]. Empty when the place carries no tags or [location] is
+/// blank. Lets the place view surface what the visits are usually about.
+List<MapEntry<String, int>> tagsAtLocation(
+  List<DiaryEntry> entries,
+  String location, {
+  int limit = 8,
+}) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return const [];
+  final counts = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    for (final t in e.tags) {
+      counts[t] = (counts[t] ?? 0) + 1;
+    }
+  }
+  final sorted = counts.entries.toList()
+    ..sort((a, b) {
+      final byCount = b.value.compareTo(a.value);
+      return byCount != 0 ? byCount : a.key.compareTo(b.key);
+    });
+  return limit <= 0 ? sorted : sorted.take(limit).toList();
+}
