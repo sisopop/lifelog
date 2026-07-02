@@ -176,6 +176,13 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     if (id != null) setState(() => _canvas = op(_canvas, id));
   }
 
+  // 겹쳐 놓아 탭으로 고르기 힘든 레이어를 z 순서(아래→위)로 순회 선택한다.
+  // 맨 위 다음은 다시 맨 아래로 순환한다.
+  void _selectNextLayer() {
+    final next = nextLayerId(_canvas, _selectedId);
+    if (next != null) setState(() => _selectedId = next);
+  }
+
   void _deleteSelected() {
     final id = _selectedId;
     if (id == null) return;
@@ -365,6 +372,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         scrollDirection: Axis.horizontal,
         child: Row(
         children: [
+          _toolBtn(Icons.layers_outlined, '다음 레이어', _selectNextLayer),
           _toolBtn(Icons.remove, '작게',
               () => _applyToSelected((c, id) => stepLayerScale(c, id, -0.15))),
           _toolBtn(Icons.add, '크게',

@@ -11,6 +11,7 @@
 import 'dart:convert';
 
 part 'page_canvas_ops.dart';
+part 'page_canvas_query.dart';
 
 /// 페이지 위에 놓을 수 있는 요소의 종류.
 /// tape=마스킹테이프(워시테이프) 색 조각.
