@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -34,6 +33,7 @@ import '../journals/journals_provider.dart';
 import '../journals/turn_provider.dart';
 
 part 'write_widgets.dart';
+part 'write_deco_tile.dart';
 
 class WriteScreen extends ConsumerStatefulWidget {
   const WriteScreen({

@@ -1,0 +1,52 @@
+part of 'write_screen.dart';
+
+/// Entry point to the page-decoration canvas. Shows a read-only preview of the
+/// saved canvas (if any) plus a button to open the editor. Tapping either the
+/// preview or the button opens [PageDecoPlayground].
+class _DecoratePageTile extends StatelessWidget {
+  const _DecoratePageTile({required this.canvasJson, required this.onEdit});
+
+  final String? canvasJson;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final canvas = decodePageCanvas(canvasJson);
+    final decorated = canvas.layers.isNotEmpty || canvas.paper != PaperStyle.plain;
+    final summary = pageCanvasSummary(canvas);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (decorated) ...[
+          GestureDetector(
+            onTap: onEdit,
+            child: SizedBox(
+              height: 160,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: PageCanvasView(canvas, stickerBaseSize: 28),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (summary != null) ...[
+            Text('🎨 $summary',
+                style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
+            const SizedBox(height: 6),
+          ],
+        ],
+        OutlinedButton.icon(
+          onPressed: onEdit,
+          icon: const Icon(Icons.brush_outlined, size: 18, color: AppColors.primary),
+          label: Text(decorated ? '페이지 꾸미기 수정' : '페이지 꾸미기',
+              style: const TextStyle(color: AppColors.primary)),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            side: const BorderSide(color: AppColors.primary),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+    );
+  }
+}
