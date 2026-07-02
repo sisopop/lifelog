@@ -425,6 +425,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               () => _applyToSelected(mirrorLayerX)),
           _toolBtn(Icons.swap_vert_outlined, '상하반전',
               () => _applyToSelected(mirrorLayerY)),
+          _toolBtn(Icons.transform, '대각반전',
+              () => _applyToSelected(mirrorLayerPoint)),
           _toolBtn(Icons.flip, '좌우', () => _applyToSelected(flipLayerX)),
           _toolBtn(Icons.swap_vert, '상하', () => _applyToSelected(flipLayerY)),
           _toolBtn(Icons.restart_alt, '변형 초기화',

@@ -58,3 +58,17 @@ PageCanvas mirrorLayerY(PageCanvas canvas, String id) {
   if (ny == l.y) return canvas;
   return replaceLayer(canvas, l.copyWith(y: ny));
 }
+
+/// id 레이어를 페이지 정중앙을 기준으로 점 대칭(180°) 위치로 옮긴 새 캔버스를 반환한다
+/// (x→1-x, y→1-y). mirrorLayerX·mirrorLayerY를 한 번에 적용한 것과 같아, 대각선 반대
+/// 자리로 보낼 때 쓴다. 크기·회전·z는 그대로. 이미 정중앙(x=0.5,y=0.5)이거나 id가 없으면
+/// 원본 그대로. 원본은 불변.
+PageCanvas mirrorLayerPoint(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final nx = clampUnit(1.0 - l.x);
+  final ny = clampUnit(1.0 - l.y);
+  if (nx == l.x && ny == l.y) return canvas;
+  return replaceLayer(canvas, l.copyWith(x: nx, y: ny));
+}
