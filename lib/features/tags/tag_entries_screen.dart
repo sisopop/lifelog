@@ -26,6 +26,7 @@ class TagEntriesScreen extends ConsumerWidget {
     final replyCounts = replyCountsByParent(all);
     final related = coOccurringTags(all, tag);
     final span = tagDateSpan(all, tag);
+    final mood = tagMood(all, tag);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -62,6 +63,12 @@ class TagEntriesScreen extends ConsumerWidget {
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textSecondary)),
+                        if (mood != null) ...[
+                          const SizedBox(height: 4),
+                          Text('${mood.emoji} 이 태그엔 주로 ${mood.label}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
                         if (related.isNotEmpty) ...[
                           const SizedBox(height: 12),
                           _CoOccurringRow(tags: related),

@@ -1,12 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifelog/features/tags/tag_entries.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
+import 'package:lifelog/shared/models/enums.dart';
 
 DiaryEntry _e({
   required String id,
   required DateTime at,
   List<String> tags = const [],
   String? replyTo,
+  Mood? mood,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -15,6 +17,7 @@ DiaryEntry _e({
       replyToEntryId: replyTo,
       content: 'x',
       tags: tags,
+      mood: mood,
       createdAt: at,
       updatedAt: at,
     );
@@ -102,6 +105,39 @@ void main() {
         ], '답'),
         isNull,
       );
+    });
+  });
+
+  group('tagMood', () {
+    test('most frequent mood, replies excluded', () {
+      final m = tagMood([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], mood: Mood.good),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행'], mood: Mood.good),
+        _e(id: 'c', at: DateTime(2026, 6, 3), tags: ['여행'], mood: Mood.hard),
+        _e(
+            id: 'r',
+            at: DateTime(2026, 6, 4),
+            tags: ['여행'],
+            mood: Mood.hard,
+            replyTo: 'a'),
+        _e(id: 'o', at: DateTime(2026, 6, 5), tags: ['일'], mood: Mood.hard),
+      ], '여행');
+      expect(m, Mood.good);
+    });
+
+    test('ties resolve to the earlier Mood.values entry', () {
+      final m = tagMood([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], mood: Mood.hard),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행'], mood: Mood.good),
+      ], '여행');
+      expect(m, Mood.good);
+    });
+
+    test('null when the tag has no records with a mood', () {
+      expect(
+          tagMood([_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
+          isNull);
+      expect(tagMood(entries, '운동'), isNull);
     });
   });
 }

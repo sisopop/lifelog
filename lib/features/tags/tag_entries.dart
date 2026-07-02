@@ -1,4 +1,5 @@
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/enums.dart';
 
 /// Top-level records tagged with [tag], newest first.
 /// 답장(reply) records are excluded so the list mirrors the timeline.
@@ -50,4 +51,27 @@ List<MapEntry<String, int>> coOccurringTags(
       return byCount != 0 ? byCount : a.key.compareTo(b.key);
     });
   return limit <= 0 ? sorted : sorted.take(limit).toList();
+}
+
+/// The mood most often attached to top-level records carrying [tag] (replies
+/// excluded), or null when no such record has a mood. Ties resolve to the
+/// earlier mood in [Mood.values]. Lets the tag view show how that theme feels.
+Mood? tagMood(List<DiaryEntry> entries, String tag) {
+  final counts = <Mood, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (!e.tags.contains(tag)) continue;
+    if (e.mood == null) continue;
+    counts.update(e.mood!, (c) => c + 1, ifAbsent: () => 1);
+  }
+  Mood? best;
+  var bestCount = 0;
+  for (final m in Mood.values) {
+    final c = counts[m] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = m;
+    }
+  }
+  return best;
 }
