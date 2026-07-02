@@ -84,12 +84,24 @@ class DayEntriesScreen extends ConsumerWidget {
                     if (mood != null) mood.emoji,
                     if (chars > 0) '총 $chars자',
                   ].join(' · ');
+                  final tags = tagsOfDay(entries);
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(header,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(header,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary)),
+                        if (tags.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('🏷 ${tags.take(6).map((t) => '#$t').join(' ')}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                      ],
+                    ),
                   );
                 }
                 final e = entries[i - 1];

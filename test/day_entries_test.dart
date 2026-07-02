@@ -165,6 +165,30 @@ void main() {
     });
   });
 
+  group('tagsOfDay', () {
+    test('distinct tags ordered by frequency, ties keep first-seen', () {
+      final r = tagsOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), tags: ['가족', '추억']),
+        _e(id: '2', at: DateTime(2026, 6, 1), tags: ['추억', '여행']),
+        _e(id: '3', at: DateTime(2026, 6, 1), tags: ['추억']),
+      ]);
+      // 추억 x3, then 가족 & 여행 tie at 1 -> first-seen order (가족 before 여행)
+      expect(r, ['추억', '가족', '여행']);
+    });
+
+    test('empty when no record carries a tag', () {
+      final r = tagsOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1)),
+        _e(id: '2', at: DateTime(2026, 6, 1)),
+      ]);
+      expect(r, isEmpty);
+    });
+
+    test('empty list is empty', () {
+      expect(tagsOfDay(const []), isEmpty);
+    });
+  });
+
   group('totalContentChars', () {
     test('sums grapheme-aware trimmed length across records', () {
       final n = totalContentChars([

@@ -90,6 +90,28 @@ int totalContentChars(List<DiaryEntry> entries) {
   return n;
 }
 
+/// Pure: the distinct tags used across [entries] (a day's already-filtered
+/// records), most frequent first. Ties keep first-seen order (the caller passes
+/// entries newest-first, so ties follow that display order). Empty when no
+/// record carries a tag. Lets the day view surface the day's themes at a glance.
+List<String> tagsOfDay(List<DiaryEntry> entries) {
+  final counts = <String, int>{};
+  final firstSeen = <String, int>{};
+  var idx = 0;
+  for (final e in entries) {
+    for (final t in e.tags) {
+      if (!counts.containsKey(t)) firstSeen[t] = idx++;
+      counts.update(t, (c) => c + 1, ifAbsent: () => 1);
+    }
+  }
+  final tags = counts.keys.toList();
+  tags.sort((a, b) {
+    final byCount = counts[b]!.compareTo(counts[a]!);
+    return byCount != 0 ? byCount : firstSeen[a]!.compareTo(firstSeen[b]!);
+  });
+  return tags;
+}
+
 /// Pure: the mood that appears most across [entries], or null when none carry
 /// a mood. Ties resolve to the earlier mood in [Mood.values] order. Operates
 /// on whatever list is passed (caller decides whether replies are included).
