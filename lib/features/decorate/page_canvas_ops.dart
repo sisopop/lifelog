@@ -210,6 +210,23 @@ PageCanvas stepLayerRotation(PageCanvas canvas, String id, double deltaDegrees) 
   return replaceLayer(canvas, l.copyWith(rotation: next));
 }
 
+/// id 레이어의 회전을 가장 가까운 직각(0·90·180·270°)에 맞춰 반올림한 새 캔버스를
+/// 반환한다(예 75°→90°, 30°→0°, 135°→180°). 먼저 0~359°로 정규화한 뒤 90° 눈금으로
+/// 스냅해 다시 0~359°로 감싼다(315°→360→0). 45°처럼 정확히 중간이면 위 눈금으로
+/// 올린다(→90°). 미세회전(±15°)으로 어정쩡하게 기운 레이어를 한 번에 반듯한 직각으로
+/// 정돈할 때 쓴다(똑바로는 무조건 0°, 90°회전은 현재 각도에 +90°—이건 가장 가까운
+/// 직각으로 스냅). 위치·크기·z는 그대로. 이미 직각 위(바뀔 게 없음)이거나 id가 없으면
+/// 원본 그대로. 원본은 불변.
+PageCanvas snapLayerRotation(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final norm = (l.rotation % 360 + 360) % 360;
+  final snapped = ((norm / 90).round() * 90) % 360;
+  if (snapped == l.rotation) return canvas;
+  return replaceLayer(canvas, l.copyWith(rotation: snapped.toDouble()));
+}
+
 /// id 레이어의 크기를 기본(scale=1.0)으로 되돌린 새 캔버스를 반환한다. 위치·회전·z는
 /// 그대로. 여러 번 키우거나 줄인 레이어를 한 번에 원래 크기로 되돌릴 때 쓴다.
 /// 이미 1.0이거나 id가 없으면 원본 그대로. 원본은 불변.

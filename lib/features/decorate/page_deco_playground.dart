@@ -415,6 +415,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               () => _applyToSelected(rotateLayerQuarter)),
           _toolBtn(Icons.straighten, '똑바로',
               () => _applyToSelected(straightenLayer)),
+          _toolBtn(Icons.screen_rotation_alt, '직각 정렬',
+              () => _applyToSelected(snapLayerRotation)),
           _toolBtn(Icons.center_focus_strong_outlined, '가운데',
               () => _applyToSelected(centerLayer)),
           _toolBtn(Icons.align_horizontal_center, '가로중앙',
