@@ -51,6 +51,7 @@ class DecoLayer {
     this.italic = false,
     this.underline = false,
     this.strike = false,
+    this.shadow = false,
     this.bgColorValue,
     this.flipX = false,
     this.flipY = false,
@@ -90,6 +91,11 @@ class DecoLayer {
   /// 둘 다 그어진다. bold·italic·underline과 독립.
   final bool strike;
 
+  /// 글자에 옅은 그림자를 드리울지. text 레이어에만 쓰인다(기본 false=그림자 없음,
+  /// 옛 저장본 호환). true면 오른쪽·아래로 살짝 어긋난 반투명 [Shadow]를 그려
+  /// 입체감을 준다. bold·italic·underline·strike와 독립.
+  final bool shadow;
+
   /// 글자 뒤에 깔리는 형광펜(배경) 색(ARGB 정수). null이면 배경 없음. text
   /// 레이어에만 쓰인다(옛 저장본·다른 종류는 null이라 종전과 동일).
   final int? bgColorValue;
@@ -120,6 +126,7 @@ class DecoLayer {
     bool? italic,
     bool? underline,
     bool? strike,
+    bool? shadow,
     int? bgColorValue,
     bool? flipX,
     bool? flipY,
@@ -139,6 +146,7 @@ class DecoLayer {
         italic: italic ?? this.italic,
         underline: underline ?? this.underline,
         strike: strike ?? this.strike,
+        shadow: shadow ?? this.shadow,
         bgColorValue: bgColorValue ?? this.bgColorValue,
         flipX: flipX ?? this.flipX,
         flipY: flipY ?? this.flipY,
@@ -164,6 +172,8 @@ class DecoLayer {
         if (underline) 'underline': true,
         // 취소선이 아니면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (strike) 'strike': true,
+        // 그림자가 아니면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
+        if (shadow) 'shadow': true,
         // 배경이 없으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (bgColorValue != null) 'bg': bgColorValue,
         // 뒤집지 않았으면(기본) 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
@@ -188,6 +198,7 @@ class DecoLayer {
         italic: json['italic'] == true,
         underline: json['underline'] == true,
         strike: json['strike'] == true,
+        shadow: json['shadow'] == true,
         bgColorValue: (json['bg'] as num?)?.toInt(),
         flipX: json['flipX'] == true,
         flipY: json['flipY'] == true,

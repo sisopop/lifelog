@@ -134,6 +134,15 @@ Widget _decoLayerBody(DecoLayer l, double stickerSize) {
         if (l.underline) TextDecoration.underline,
         if (l.strike) TextDecoration.lineThrough,
       ]),
+      shadows: l.shadow
+          ? [
+              Shadow(
+                offset: Offset(stickerSize * 0.06, stickerSize * 0.06),
+                blurRadius: stickerSize * 0.08,
+                color: Colors.black.withValues(alpha: 0.35),
+              ),
+            ]
+          : null,
     ),
   );
   if (l.bgColorValue == null) return text;
