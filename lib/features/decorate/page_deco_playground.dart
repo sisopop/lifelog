@@ -389,6 +389,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               () => _applyToSelected((c, id) => stepLayerOpacity(c, id, -0.2))),
           _toolBtn(Icons.opacity_outlined, '진하게',
               () => _applyToSelected((c, id) => stepLayerOpacity(c, id, 0.2))),
+          _toolBtn(Icons.format_color_reset_outlined, '또렷하게',
+              () => _applyToSelected(resetLayerOpacity)),
           _toolBtn(Icons.rotate_left, '왼쪽',
               () => _applyToSelected((c, id) => stepLayerRotation(c, id, -15))),
           _toolBtn(Icons.rotate_right, '오른쪽',
