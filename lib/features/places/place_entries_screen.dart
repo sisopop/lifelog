@@ -27,6 +27,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
     final span = placeDateSpan(all, location);
     final tags = tagsAtLocation(all, location, limit: 6);
     final mood = placeMood(all, location);
+    final avgChars = averageCharsAtLocation(all, location);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -85,6 +86,12 @@ class PlaceEntriesScreen extends ConsumerWidget {
                         if (mood != null) ...[
                           const SizedBox(height: 4),
                           Text('${mood.emoji} 이곳에선 주로 ${mood.label}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (avgChars > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('✍️ 평균 $avgChars자',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

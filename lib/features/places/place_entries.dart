@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 
@@ -87,4 +89,23 @@ Mood? placeMood(List<DiaryEntry> entries, String location) {
     }
   }
   return best;
+}
+
+/// Average content length (grapheme count) across top-level records at
+/// [location] (case-insensitive, trimmed; replies excluded), rounded to the
+/// nearest whole number. Returns 0 when no matching record exists or
+/// [location] is blank. Lets the place view hint how much tends to get
+/// written there.
+int averageCharsAtLocation(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return 0;
+  var total = 0;
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    total += e.content.trim().characters.length;
+    n++;
+  }
+  return n == 0 ? 0 : (total / n).round();
 }

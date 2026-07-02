@@ -10,13 +10,14 @@ DiaryEntry _entry({
   String? replyTo,
   List<String> tags = const [],
   Mood? mood,
+  String content = 'c',
 }) {
   final t = DateTime(2026, 6, day);
   return DiaryEntry(
     entryId: id,
     userId: 'me',
     journalId: 'jr_default',
-    content: 'c',
+    content: content,
     tags: tags,
     location: location,
     mood: mood,
@@ -141,6 +142,39 @@ void main() {
       expect(placeMood([_entry(id: 'a', location: '서울', mood: Mood.good)], '제주'),
           isNull);
       expect(placeMood([_entry(id: 'a', location: '제주')], '제주'), isNull);
+    });
+  });
+
+  group('averageCharsAtLocation', () {
+    test('rounds the mean grapheme length, case-insensitive, replies excluded',
+        () {
+      final r = averageCharsAtLocation([
+        _entry(id: 'a', location: '제주', content: '가나다'), // 3
+        _entry(id: 'b', location: '  제주  ', content: '  Diary😊  '), // trim → 6
+        _entry(id: 'r', location: '제주', content: '길다길다', replyTo: 'a'), // reply
+        _entry(id: 'c', location: '서울', content: '아주아주긴글'), // other place
+      ], '제주');
+      expect(r, 5); // (3 + 6) / 2 = 4.5 → 5
+    });
+
+    test('single record yields its own length', () {
+      expect(
+        averageCharsAtLocation(
+            [_entry(id: 'a', location: '제주', content: '안녕😊')], '제주'),
+        3,
+      );
+    });
+
+    test('zero for blank query, no match, or no records', () {
+      expect(averageCharsAtLocation(const [], '제주'), 0);
+      expect(
+          averageCharsAtLocation(
+              [_entry(id: 'a', location: '제주', content: 'x')], '  '),
+          0);
+      expect(
+          averageCharsAtLocation(
+              [_entry(id: 'a', location: '서울', content: 'x')], '제주'),
+          0);
     });
   });
 }
