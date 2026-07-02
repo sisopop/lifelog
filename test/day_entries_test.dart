@@ -164,4 +164,26 @@ void main() {
       expect(dominantMoodOf(const []), isNull);
     });
   });
+
+  group('totalContentChars', () {
+    test('sums grapheme-aware trimmed length across records', () {
+      final n = totalContentChars([
+        _e(id: '1', at: DateTime(2026, 6, 1), content: '  안녕  '), // 2
+        _e(id: '2', at: DateTime(2026, 6, 1), content: 'Diary😊'), // 6
+      ]);
+      expect(n, 8);
+    });
+
+    test('blank or empty content contributes 0', () {
+      final n = totalContentChars([
+        _e(id: '1', at: DateTime(2026, 6, 1), content: '   '),
+        _e(id: '2', at: DateTime(2026, 6, 1), content: ''),
+      ]);
+      expect(n, 0);
+    });
+
+    test('empty list is 0', () {
+      expect(totalContentChars(const []), 0);
+    });
+  });
 }

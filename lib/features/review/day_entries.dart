@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 
@@ -75,6 +77,17 @@ AdjacentDays adjacentRecordedDays(List<DiaryEntry> entries, DateTime day) {
     }
   }
   return AdjacentDays(previous: prev, next: next);
+}
+
+/// Pure: total number of (grapheme-aware, trimmed) characters written across
+/// [entries] — the caller passes a day's already-filtered records. Empty or
+/// blank content contributes 0, so the sum is 0 when nothing carries text.
+int totalContentChars(List<DiaryEntry> entries) {
+  var n = 0;
+  for (final e in entries) {
+    n += e.content.trim().characters.length;
+  }
+  return n;
 }
 
 /// Pure: the mood that appears most across [entries], or null when none carry
