@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/enums.dart';
@@ -24,6 +25,14 @@ class MoodEntriesScreen extends ConsumerWidget {
     final journals = ref.watch(journalsProvider).asData?.value ?? const [];
     final journalMap = {for (final j in journals) j.journalId: j};
     final replyCounts = replyCountsByParent(all);
+    final span = moodDateSpan(all, mood);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final md = DateFormat.MMMMd(locale);
+    final spanText = span == null
+        ? null
+        : span.first == span.last
+            ? '📅 ${md.format(span.first)}'
+            : '📅 ${md.format(span.first)} – ${md.format(span.last)}';
 
     return Scaffold(
       appBar: AppBar(
@@ -49,10 +58,21 @@ class MoodEntriesScreen extends ConsumerWidget {
                 if (i == 0) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Text('${mood.label} 기록 ${entries.length}개',
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textSecondary)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${mood.label} 기록 ${entries.length}개',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary)),
+                        if (spanText != null) ...[
+                          const SizedBox(height: 4),
+                          Text(spanText,
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                      ],
+                    ),
                   );
                 }
                 final e = entries[i - 1];

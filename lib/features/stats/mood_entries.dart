@@ -43,6 +43,22 @@ Map<Mood, DateTime> lastUseByMood(List<DiaryEntry> entries) {
   return result;
 }
 
+/// The earliest and latest record dates (date-only) among top-level records
+/// carrying [mood] (replies excluded), or null when the mood has no records.
+/// `first <= last`. Lets the mood view show the span of days that mood spans.
+({DateTime first, DateTime last})? moodDateSpan(
+    List<DiaryEntry> entries, Mood mood) {
+  DateTime? first;
+  DateTime? last;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    final d = DateTime(e.createdAt.year, e.createdAt.month, e.createdAt.day);
+    if (first == null || d.isBefore(first)) first = d;
+    if (last == null || d.isAfter(last)) last = d;
+  }
+  return first == null ? null : (first: first, last: last!);
+}
+
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are
 /// excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {

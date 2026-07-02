@@ -140,4 +140,37 @@ void main() {
       expect(entriesWithMood(entries, Mood.hard), isEmpty);
     });
   });
+
+  group('moodDateSpan', () {
+    test('earliest and latest date-only, replies & other moods excluded', () {
+      final s = moodDateSpan([
+        _entry('a', mood: Mood.good, created: DateTime(2026, 6, 10, 23, 59)),
+        _entry('b', mood: Mood.good, created: DateTime(2026, 6, 20, 1, 0)),
+        _entry('r',
+            mood: Mood.good, replyTo: 'a', created: DateTime(2026, 6, 25)),
+        _entry('h', mood: Mood.hard, created: DateTime(2026, 6, 5)),
+      ], Mood.good);
+      expect(s!.first, DateTime(2026, 6, 10));
+      expect(s.last, DateTime(2026, 6, 20));
+    });
+
+    test('single record spans that one date', () {
+      final s = moodDateSpan(
+          [_entry('a', mood: Mood.good, created: DateTime(2026, 6, 13))],
+          Mood.good);
+      expect(s!.first, DateTime(2026, 6, 13));
+      expect(s.first, s.last);
+    });
+
+    test('null when the mood has no top-level records', () {
+      expect(
+          moodDateSpan([_entry('a', mood: Mood.good)], Mood.hard), isNull);
+      expect(
+        moodDateSpan([
+          _entry('r', mood: Mood.good, replyTo: 'x'),
+        ], Mood.good),
+        isNull,
+      );
+    });
+  });
 }
