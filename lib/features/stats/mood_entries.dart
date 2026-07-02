@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 
@@ -105,6 +107,21 @@ List<String> placesWithMood(
       return byCount != 0 ? byCount : a.compareTo(b);
     });
   return limit <= 0 ? places : places.take(limit).toList();
+}
+
+/// Average content length (grapheme count) across top-level records carrying
+/// [mood] (replies excluded), rounded to the nearest whole number. Returns 0
+/// when the mood has no top-level records. Lets the mood view hint how much
+/// tends to get written in that feeling.
+int averageCharsWithMood(List<DiaryEntry> entries, Mood mood) {
+  var total = 0;
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    total += e.content.trim().characters.length;
+    n++;
+  }
+  return n == 0 ? 0 : (total / n).round();
 }
 
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are

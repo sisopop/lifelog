@@ -11,6 +11,7 @@ DiaryEntry _entry(
   DateTime? created,
   List<String> tags = const [],
   String? location,
+  String? content,
 }) {
   final ts = created ?? DateTime(2026, 6, 1);
   return DiaryEntry(
@@ -18,7 +19,7 @@ DiaryEntry _entry(
     userId: 'me',
     journalId: 'jr_default',
     replyToEntryId: replyTo,
-    content: id,
+    content: content ?? id,
     mood: mood,
     tags: tags,
     location: location,
@@ -235,6 +236,37 @@ void main() {
           placesWithMood(
               [_entry('a', mood: Mood.hard, location: '제주')], Mood.good),
           isEmpty);
+    });
+  });
+
+  group('averageCharsWithMood', () {
+    test('rounds the mean grapheme length, replies & other moods excluded', () {
+      final r = averageCharsWithMood([
+        _entry('a', mood: Mood.good, content: '가나다'), // 3
+        _entry('b', mood: Mood.good, content: '  Diary😊  '), // trims → 6
+        _entry('r', mood: Mood.good, content: '길다길다길다', replyTo: 'a'), // reply
+        _entry('h', mood: Mood.hard, content: '아주아주긴글'), // other mood
+      ], Mood.good);
+      expect(r, 5); // (3 + 6) / 2 = 4.5 → 5
+    });
+
+    test('single record yields its own length', () {
+      expect(
+        averageCharsWithMood(
+            [_entry('a', mood: Mood.good, content: '안녕😊')], Mood.good),
+        3,
+      );
+    });
+
+    test('zero when the mood has no top-level records', () {
+      expect(averageCharsWithMood(const [], Mood.good), 0);
+      expect(
+          averageCharsWithMood([_entry('a', mood: Mood.hard)], Mood.good), 0);
+      expect(
+        averageCharsWithMood(
+            [_entry('r', mood: Mood.good, replyTo: 'x')], Mood.good),
+        0,
+      );
     });
   });
 }
