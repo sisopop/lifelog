@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifelog/features/write/emoji_picker.dart';
 import 'package:lifelog/features/write/text_stats.dart';
 
 void main() {
@@ -293,6 +294,37 @@ void main() {
     test('zero when there are no questions', () {
       expect(countQuestions('그냥 평범한 하루였다.'), 0);
       expect(countQuestions(''), 0);
+    });
+  });
+
+  group('countEmojis', () {
+    test('counts a single emoji mixed into text', () {
+      expect(countEmojis('Hello😊'), 1);
+      expect(countEmojis('오늘 😎 좋았다'), 1);
+    });
+
+    test('counts several distinct emojis', () {
+      expect(countEmojis('😊😍🥰'), 3);
+    });
+
+    test('counts symbol-block and star emojis (❤️ ⭐ ☀️ ✈️)', () {
+      expect(countEmojis('❤️⭐☀️✈️'), 4);
+    });
+
+    test('a variation-selector emoji still counts once', () {
+      expect(countEmojis('❤️'), 1);
+    });
+
+    test('zero for plain text and empty', () {
+      expect(countEmojis('그냥 평범한 하루였다.'), 0);
+      expect(countEmojis('hello world 123'), 0);
+      expect(countEmojis(''), 0);
+    });
+
+    test('every picker-catalog emoji is detected', () {
+      for (final e in kDiaryEmojis) {
+        expect(countEmojis(e), greaterThanOrEqualTo(1), reason: e);
+      }
     });
   });
 

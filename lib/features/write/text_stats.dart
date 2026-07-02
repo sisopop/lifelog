@@ -163,6 +163,24 @@ int countQuestions(String text) {
   return RegExp(r'[?？]+').allMatches(text).length;
 }
 
+/// Rough emoji count for the body: grapheme clusters holding at least one
+/// codepoint in the common emoji ranges (`>= U+1F000`, the U+2600–U+27BF
+/// symbols/dingbats block that carries ☀ ❤ ✈ ✨, and the ⭐ star at U+2B50).
+/// Covers every entry in the write screen's picker catalog. A cluster counts
+/// once even when built from several codepoints (e.g. ❤️ = heart + variation
+/// selector). Pure & top-level so it is unit-testable; the write meta appends
+/// `· 이모지 N` to the count line only when there is at least one.
+int countEmojis(String text) {
+  var n = 0;
+  for (final g in text.characters) {
+    if (g.runes.any((r) =>
+        r >= 0x1F000 || (r >= 0x2600 && r <= 0x27BF) || r == 0x2B50)) {
+      n++;
+    }
+  }
+  return n;
+}
+
 /// Average characters per sentence for the body — a rough writing-pace hint.
 /// Returns null until there are at least 2 sentences (a single sentence is not
 /// informative) or when the body is empty. Uses the grapheme char count over

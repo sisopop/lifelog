@@ -158,6 +158,7 @@ class _ContentMeta extends StatelessWidget {
     final sentences = countSentences(text);
     final paragraphs = countParagraphs(text);
     final questions = countQuestions(text);
+    final emojis = countEmojis(text);
     final avgSentence = averageSentenceLength(text);
     final avgWord = averageWordLength(text);
     final longestSentence = longestSentenceLength(text);
@@ -172,7 +173,8 @@ class _ContentMeta extends StatelessWidget {
             '글자 ${s.chars} · 단어 ${s.words}'
             '${sentences > 0 ? ' · 문장 $sentences' : ''}'
             '${paragraphs > 1 ? ' · 문단 $paragraphs' : ''}'
-            '${questions > 0 ? ' · 질문 $questions' : ''}',
+            '${questions > 0 ? ' · 질문 $questions' : ''}'
+            '${emojis > 0 ? ' · 이모지 $emojis' : ''}',
             style: const TextStyle(fontSize: 12, color: AppColors.textHint),
           ),
         ),
