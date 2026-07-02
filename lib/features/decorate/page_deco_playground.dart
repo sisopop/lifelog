@@ -431,6 +431,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
                 () => _applyToSelected((c, id) => stepLayerLetterSpacing(c, id, -1))),
             _toolBtn(Icons.format_indent_increase, '자간+',
                 () => _applyToSelected((c, id) => stepLayerLetterSpacing(c, id, 1))),
+            _toolBtn(Icons.format_clear, '자간 초기화',
+                () => _applyToSelected(resetLayerLetterSpacing)),
           ],
           _toolBtn(Icons.copy_all_outlined, '복제', () {
             final id = _selectedId;

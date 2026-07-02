@@ -389,6 +389,15 @@ PageCanvas resetLayerOpacity(PageCanvas canvas, String id) {
   return replaceLayer(canvas, matches.first.copyWith(opacity: 1.0));
 }
 
+/// stepLayerLetterSpacing의 리셋판—자간을 여러 번 넓히거나 좁힌 글자를 한 번에
+/// 기본 간격(0.0)으로 되돌린다. 위치·크기·회전·z·다른 글자 속성은 그대로. 이미
+/// 0.0이거나 id가 없으면 원본 그대로(동일 인스턴스). 원본은 불변.
+PageCanvas resetLayerLetterSpacing(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty || matches.first.letterSpacing == 0.0) return canvas;
+  return replaceLayer(canvas, matches.first.copyWith(letterSpacing: 0.0));
+}
+
 /// id 레이어의 좌우 뒤집힘(거울상)을 토글한 새 캔버스를 반환한다. 위치·크기·회전·z는
 /// 그대로. 방향이 있는 스티커·사진을 반대로 돌려 배치할 때 쓴다. id가 없으면 원본
 /// 그대로. 원본은 불변.
