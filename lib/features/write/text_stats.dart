@@ -72,14 +72,29 @@ String? suggestTitleFromContent(String content) {
 /// Pure & top-level so it is unit-testable; the decorate tile overlays it on
 /// the canvas preview.
 String contentPreview(String content, {int maxChars = 40}) {
+  final lines = contentPreviewLines(content, maxLines: 1, maxChars: maxChars);
+  return lines.isEmpty ? '' : lines.first;
+}
+
+/// Up to [maxLines] non-empty body lines for a multi-line page-decoration
+/// preview, each trimmed and clipped to [maxChars] graphemes (an ellipsis … is
+/// appended when a line is longer), reusing the same rule as [contentPreview].
+/// Blank lines are skipped; the list is empty when [content] holds no visible
+/// text. Grapheme-aware, so Korean syllables and emoji each count as one. Pure
+/// & top-level so it is unit-testable; the decorate tile overlays these lines
+/// over the canvas preview.
+List<String> contentPreviewLines(String content,
+    {int maxLines = 2, int maxChars = 40}) {
+  final out = <String>[];
+  if (maxLines <= 0) return out;
   for (final line in content.split('\n')) {
     final t = line.trim();
     if (t.isEmpty) continue;
     final chars = t.characters;
-    if (chars.length <= maxChars) return t;
-    return '${chars.take(maxChars)}…';
+    out.add(chars.length <= maxChars ? t : '${chars.take(maxChars)}…');
+    if (out.length >= maxLines) break;
   }
-  return '';
+  return out;
 }
 
 /// Whether a title is long enough to risk being clipped where titles show on a

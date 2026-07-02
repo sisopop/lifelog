@@ -519,4 +519,33 @@ void main() {
       expect(contentPreview('😀😀😀', maxChars: 2), '😀😀…');
     });
   });
+
+  group('contentPreviewLines', () {
+    test('returns up to maxLines non-empty trimmed lines, skipping blanks', () {
+      expect(
+        contentPreviewLines('\n  첫 줄 \n\n 둘째 줄\n셋째', maxLines: 2),
+        ['첫 줄', '둘째 줄'],
+      );
+    });
+
+    test('empty or whitespace-only content is an empty list', () {
+      expect(contentPreviewLines(''), isEmpty);
+      expect(contentPreviewLines('  \n\t\n '), isEmpty);
+    });
+
+    test('fewer lines than maxLines returns all of them', () {
+      expect(contentPreviewLines('하나', maxLines: 3), ['하나']);
+    });
+
+    test('each line is clipped grapheme-aware with an ellipsis', () {
+      expect(
+        contentPreviewLines('가나다라마바\n짧다', maxLines: 2, maxChars: 5),
+        ['가나다라마…', '짧다'],
+      );
+    });
+
+    test('maxLines of zero or less yields an empty list', () {
+      expect(contentPreviewLines('첫 줄\n둘째', maxLines: 0), isEmpty);
+    });
+  });
 }

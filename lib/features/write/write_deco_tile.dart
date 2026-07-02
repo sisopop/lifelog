@@ -17,7 +17,7 @@ class _DecoratePageTile extends StatelessWidget {
     final canvas = decodePageCanvas(canvasJson);
     final decorated = canvas.layers.isNotEmpty || canvas.paper != PaperStyle.plain;
     final summary = pageCanvasSummary(canvas);
-    final preview = contentPreview(content);
+    final previewLines = contentPreviewLines(content);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -31,7 +31,7 @@ class _DecoratePageTile extends StatelessWidget {
                 child: Stack(
                   children: [
                     PageCanvasView(canvas, stickerBaseSize: 28),
-                    if (preview.isNotEmpty)
+                    if (previewLines.isNotEmpty)
                       Positioned(
                         left: 8,
                         right: 8,
@@ -43,8 +43,8 @@ class _DecoratePageTile extends StatelessWidget {
                             color: Colors.black.withValues(alpha: 0.45),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Text(preview,
-                              maxLines: 1,
+                          child: Text(previewLines.join('\n'),
+                              maxLines: previewLines.length,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontSize: 12, color: Colors.white)),
