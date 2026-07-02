@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifelog/features/places/place_entries.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
+import 'package:lifelog/shared/models/enums.dart';
 
 DiaryEntry _entry({
   required String id,
@@ -8,6 +9,7 @@ DiaryEntry _entry({
   int day = 10,
   String? replyTo,
   List<String> tags = const [],
+  Mood? mood,
 }) {
   final t = DateTime(2026, 6, day);
   return DiaryEntry(
@@ -17,6 +19,7 @@ DiaryEntry _entry({
     content: 'c',
     tags: tags,
     location: location,
+    mood: mood,
     replyToEntryId: replyTo,
     createdAt: t,
     updatedAt: t,
@@ -108,6 +111,36 @@ void main() {
       expect(tagsAtLocation([_entry(id: 'a', location: '제주')], '  '), isEmpty);
       expect(tagsAtLocation([_entry(id: 'a', location: '서울')], '제주'), isEmpty);
       expect(tagsAtLocation([_entry(id: 'a', location: '제주')], '제주'), isEmpty);
+    });
+  });
+
+  group('placeMood', () {
+    test('most frequent mood, case-insensitive, replies & other place excluded',
+        () {
+      final m = placeMood([
+        _entry(id: 'a', location: '제주', mood: Mood.good),
+        _entry(id: 'b', location: '  제주  ', mood: Mood.good),
+        _entry(id: 'c', location: '제주', mood: Mood.hard),
+        _entry(id: 'r', location: '제주', mood: Mood.hard, replyTo: 'a'),
+        _entry(id: 'x', location: '서울', mood: Mood.hard),
+      ], '제주');
+      expect(m, Mood.good);
+    });
+
+    test('ties resolve to the earlier Mood.values entry', () {
+      final m = placeMood([
+        _entry(id: 'a', location: '제주', mood: Mood.hard),
+        _entry(id: 'b', location: '제주', mood: Mood.good),
+      ], '제주');
+      expect(m, Mood.good); // good precedes hard
+    });
+
+    test('null for blank query, no match, or no moods', () {
+      expect(placeMood([_entry(id: 'a', location: '제주', mood: Mood.good)], '  '),
+          isNull);
+      expect(placeMood([_entry(id: 'a', location: '서울', mood: Mood.good)], '제주'),
+          isNull);
+      expect(placeMood([_entry(id: 'a', location: '제주')], '제주'), isNull);
     });
   });
 }

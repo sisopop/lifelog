@@ -1,4 +1,5 @@
 import '../../shared/models/diary_entry.dart';
+import '../../shared/models/enums.dart';
 
 /// Top-level records whose location matches [location] (case-insensitive,
 /// trimmed), newest first. 답장(reply) records are excluded so the list
@@ -60,4 +61,30 @@ List<MapEntry<String, int>> tagsAtLocation(
       return byCount != 0 ? byCount : a.key.compareTo(b.key);
     });
   return limit <= 0 ? sorted : sorted.take(limit).toList();
+}
+
+/// The mood most often recorded at [location] (case-insensitive, trimmed;
+/// replies excluded), or null when no matching record carries a mood or
+/// [location] is blank. Ties resolve to the earlier mood in [Mood.values].
+/// Lets the place view show how that place usually feels.
+Mood? placeMood(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return null;
+  final counts = <Mood, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    if (e.mood == null) continue;
+    counts.update(e.mood!, (c) => c + 1, ifAbsent: () => 1);
+  }
+  Mood? best;
+  var bestCount = 0;
+  for (final m in Mood.values) {
+    final c = counts[m] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = m;
+    }
+  }
+  return best;
 }
