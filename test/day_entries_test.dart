@@ -89,6 +89,23 @@ void main() {
       ], '6월 13일 (토)');
       expect(t, contains('a\n\nb'));
     });
+
+    test('meta line shows the day time span and places', () {
+      final t = dayShareText([
+        _e(id: '1', at: DateTime(2026, 6, 13, 9), place: '제주', content: 'a'),
+        _e(id: '2', at: DateTime(2026, 6, 13, 21), place: '서울', content: 'b'),
+      ], '6월 13일 (토)');
+      expect(t, contains('🕘 09:00–21:00'));
+      expect(t, contains('📍 제주 · 서울'));
+    });
+
+    test('single record meta shows one time and omits place when absent', () {
+      final t = dayShareText([
+        _e(id: '1', at: DateTime(2026, 6, 13, 8, 5), content: 'hi'),
+      ], '6월 13일 (토)');
+      expect(t, contains('🕘 08:05'));
+      expect(t, isNot(contains('📍')));
+    });
   });
 
   group('adjacentRecordedDays', () {

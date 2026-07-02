@@ -19,12 +19,25 @@ List<DiaryEntry> entriesOfDay(List<DiaryEntry> entries, DateTime day) {
 
 /// Pure: a shareable plain-text summary of one day's [entries] (already
 /// filtered to that day by the caller). [dateLabel] is a pre-formatted date
-/// string. Mood emoji + title head, content, then #tags per record.
+/// string. A header line + a meta line (active time span, places) mirroring the
+/// day view, then per record: mood emoji + title head, content, and #tags.
 String dayShareText(List<DiaryEntry> entries, String dateLabel) {
   if (entries.isEmpty) {
     return '📔 $dateLabel\n\n이 날의 기록이 없어요\n\n— lifelog';
   }
-  final blocks = <String>['📔 $dateLabel · 기록 ${entries.length}개'];
+  final headLine = '📔 $dateLabel · 기록 ${entries.length}개';
+  final span = dayTimeSpan(entries);
+  final places = placesOfDay(entries);
+  String hhmm(DateTime d) =>
+      '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  final meta = [
+    if (span != null)
+      span.first == span.last
+          ? '🕘 ${hhmm(span.first)}'
+          : '🕘 ${hhmm(span.first)}–${hhmm(span.last)}',
+    if (places.isNotEmpty) '📍 ${places.take(4).join(' · ')}',
+  ].join(' · ');
+  final blocks = <String>[meta.isEmpty ? headLine : '$headLine\n$meta'];
   for (final e in entries) {
     final lines = <String>[];
     final emoji = e.mood?.emoji;
