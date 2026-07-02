@@ -72,3 +72,17 @@ PageCanvas mirrorLayerPoint(PageCanvas canvas, String id) {
   if (nx == l.x && ny == l.y) return canvas;
   return replaceLayer(canvas, l.copyWith(x: nx, y: ny));
 }
+
+/// id 레이어의 위치(x,y)를 가장 가까운 0.1 격자에 맞춰 반올림한 새 캔버스를 반환한다
+/// (예 0.23→0.2, 0.27→0.3). 드래그로 대충 놓은 레이어를 가지런한 격자 위치로 정돈할 때
+/// 쓴다. 크기·회전·z는 그대로. 이미 격자 위(바뀔 게 없음)이거나 id가 없으면 원본 그대로.
+/// 원본은 불변.
+PageCanvas snapLayerToGrid(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final nx = clampUnit((l.x * 10).round() / 10);
+  final ny = clampUnit((l.y * 10).round() / 10);
+  if (nx == l.x && ny == l.y) return canvas;
+  return replaceLayer(canvas, l.copyWith(x: nx, y: ny));
+}
