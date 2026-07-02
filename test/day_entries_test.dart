@@ -11,6 +11,7 @@ DiaryEntry _e({
   String? title,
   String content = 'x',
   List<String> tags = const [],
+  String? place,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -21,6 +22,7 @@ DiaryEntry _e({
       content: content,
       mood: mood,
       tags: tags,
+      location: place,
       createdAt: at,
       updatedAt: at,
     );
@@ -162,6 +164,31 @@ void main() {
     test('null when nothing carries a mood', () {
       expect(dominantMoodOf([_e(id: '1', at: DateTime(2026, 6, 1))]), isNull);
       expect(dominantMoodOf(const []), isNull);
+    });
+  });
+
+  group('placesOfDay', () {
+    test('distinct places ordered by frequency, ties keep first-seen', () {
+      final r = placesOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), place: '서울'),
+        _e(id: '2', at: DateTime(2026, 6, 1), place: '제주'),
+        _e(id: '3', at: DateTime(2026, 6, 1), place: '제주'),
+      ]);
+      // 제주 x2, then 서울 x1
+      expect(r, ['제주', '서울']);
+    });
+
+    test('trims and ignores blank or missing locations', () {
+      final r = placesOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), place: '  부산  '),
+        _e(id: '2', at: DateTime(2026, 6, 1), place: '   '),
+        _e(id: '3', at: DateTime(2026, 6, 1)),
+      ]);
+      expect(r, ['부산']);
+    });
+
+    test('empty list is empty', () {
+      expect(placesOfDay(const []), isEmpty);
     });
   });
 

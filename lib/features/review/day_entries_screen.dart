@@ -91,6 +91,7 @@ class DayEntriesScreen extends ConsumerWidget {
                           : '🕘 ${hm.format(span.first)}–${hm.format(span.last)}',
                   ].join(' · ');
                   final tags = tagsOfDay(entries);
+                  final places = placesOfDay(entries);
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Column(
@@ -100,6 +101,12 @@ class DayEntriesScreen extends ConsumerWidget {
                             style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.textSecondary)),
+                        if (places.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('📍 ${places.take(4).join(' · ')}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
                         if (tags.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text('🏷 ${tags.take(6).map((t) => '#$t').join(' ')}',

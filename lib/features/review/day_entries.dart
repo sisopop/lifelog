@@ -126,6 +126,28 @@ List<String> tagsOfDay(List<DiaryEntry> entries) {
   return tags;
 }
 
+/// Pure: the distinct non-empty locations across [entries] (a day's
+/// already-filtered records), most frequent first. Ties keep first-seen order
+/// (caller passes entries newest-first). Empty when no record carries a place.
+/// Lets the day view show where the day happened.
+List<String> placesOfDay(List<DiaryEntry> entries) {
+  final counts = <String, int>{};
+  final firstSeen = <String, int>{};
+  var idx = 0;
+  for (final e in entries) {
+    final p = e.location?.trim() ?? '';
+    if (p.isEmpty) continue;
+    if (!counts.containsKey(p)) firstSeen[p] = idx++;
+    counts.update(p, (c) => c + 1, ifAbsent: () => 1);
+  }
+  final places = counts.keys.toList();
+  places.sort((a, b) {
+    final byCount = counts[b]!.compareTo(counts[a]!);
+    return byCount != 0 ? byCount : firstSeen[a]!.compareTo(firstSeen[b]!);
+  });
+  return places;
+}
+
 /// Pure: the mood that appears most across [entries], or null when none carry
 /// a mood. Ties resolve to the earlier mood in [Mood.values] order. Operates
 /// on whatever list is passed (caller decides whether replies are included).
