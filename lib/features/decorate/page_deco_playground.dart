@@ -170,12 +170,6 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     });
   }
 
-  void _editSelected(DecoLayer Function(DecoLayer) f) {
-    final sel = _selected;
-    if (sel == null) return;
-    setState(() => _canvas = replaceLayer(_canvas, f(sel)));
-  }
-
   // 선택된 레이어 id에 캔버스 순수함수를 적용해 상태를 갱신한다. 툴바 버튼들이 공유.
   void _applyToSelected(PageCanvas Function(PageCanvas, String) op) {
     final id = _selectedId;
@@ -371,10 +365,10 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         scrollDirection: Axis.horizontal,
         child: Row(
         children: [
-          _toolBtn(Icons.remove, '작게', () => _editSelected((l) =>
-              l.copyWith(scale: (l.scale - 0.15).clamp(0.4, 4.0)))),
-          _toolBtn(Icons.add, '크게', () => _editSelected((l) =>
-              l.copyWith(scale: (l.scale + 0.15).clamp(0.4, 4.0)))),
+          _toolBtn(Icons.remove, '작게',
+              () => _applyToSelected((c, id) => stepLayerScale(c, id, -0.15))),
+          _toolBtn(Icons.add, '크게',
+              () => _applyToSelected((c, id) => stepLayerScale(c, id, 0.15))),
           _toolBtn(Icons.aspect_ratio, '원래크기',
               () => _applyToSelected(resetLayerScale)),
           _toolBtn(Icons.keyboard_arrow_up, '위로',

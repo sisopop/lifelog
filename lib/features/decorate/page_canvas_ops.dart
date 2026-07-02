@@ -215,6 +215,24 @@ PageCanvas resetLayerScale(PageCanvas canvas, String id) {
   return replaceLayer(canvas, matches.first.copyWith(scale: 1.0));
 }
 
+/// 캔버스에서 허용하는 레이어 크기(scale) 범위. 너무 작아 사라지거나 너무 커져
+/// 페이지를 벗어나는 것을 막는다. 작게/크게 버튼이 공유한다.
+const double kMinLayerScale = 0.4;
+const double kMaxLayerScale = 4.0;
+
+/// id 레이어의 크기를 [delta]만큼 키우거나 줄인 새 캔버스를 반환한다(작게 -,
+/// 크게 +). 결과는 [kMinLayerScale]~[kMaxLayerScale]로 가둔다. 위치·회전·z는
+/// 그대로. id가 없거나 가둔 뒤 크기가 그대로면(한계) 원본 그대로(동일 인스턴스).
+/// 원본은 불변.
+PageCanvas stepLayerScale(PageCanvas canvas, String id, double delta) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  final next = (l.scale + delta).clamp(kMinLayerScale, kMaxLayerScale);
+  if (next == l.scale) return canvas;
+  return replaceLayer(canvas, l.copyWith(scale: next));
+}
+
 /// id 레이어를 페이지 정중앙(x=0.5, y=0.5)으로 옮긴 새 캔버스를 반환한다. 위치만
 /// 바꾸고 크기·회전·z는 그대로. 가장자리로 밀려난 레이어를 한 번에 가운데로 모을
 /// 때 쓴다. 이미 정중앙이거나 id가 없으면 원본 그대로. 원본은 불변.
