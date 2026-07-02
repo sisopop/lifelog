@@ -69,3 +69,17 @@ String? nextLayerId(PageCanvas canvas, String? currentId) {
   if (i < 0) return ordered.first.id;
   return ordered[(i + 1) % ordered.length].id;
 }
+
+/// 쌓임 순서(z, 아래→위)를 따라 [currentId] *이전*(한 칸 아래) 레이어의 id를
+/// 돌려준다. [nextLayerId]의 대칭으로, 맨 아래 이전은 다시 맨 위로 순환한다.
+/// "다음 레이어"로 지나쳤을 때 되돌아올 때 쓴다. 규칙:
+/// - 레이어가 없으면 null.
+/// - [currentId]가 null이거나 캔버스에 없으면 맨 위(z 최대) 레이어 id.
+/// - 레이어가 하나뿐이면 그 하나의 id(제자리).
+String? previousLayerId(PageCanvas canvas, String? currentId) {
+  final ordered = layersByZ(canvas);
+  if (ordered.isEmpty) return null;
+  final i = ordered.indexWhere((l) => l.id == currentId);
+  if (i < 0) return ordered.last.id;
+  return ordered[(i - 1 + ordered.length) % ordered.length].id;
+}

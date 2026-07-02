@@ -183,6 +183,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     if (next != null) setState(() => _selectedId = next);
   }
 
+  // "다음 레이어"의 역방향. 지나친 레이어로 z 순서를 거슬러 되돌아온다.
+  void _selectPreviousLayer() {
+    final prev = previousLayerId(_canvas, _selectedId);
+    if (prev != null) setState(() => _selectedId = prev);
+  }
+
   void _deleteSelected() {
     final id = _selectedId;
     if (id == null) return;
@@ -373,6 +379,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         child: Row(
         children: [
           _toolBtn(Icons.layers_outlined, '다음 레이어', _selectNextLayer),
+          _toolBtn(Icons.layers_clear_outlined, '이전 레이어',
+              _selectPreviousLayer),
           _toolBtn(Icons.remove, '작게',
               () => _applyToSelected((c, id) => stepLayerScale(c, id, -0.15))),
           _toolBtn(Icons.add, '크게',
