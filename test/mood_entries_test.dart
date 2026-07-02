@@ -10,6 +10,7 @@ DiaryEntry _entry(
   String? replyTo,
   DateTime? created,
   List<String> tags = const [],
+  String? location,
 }) {
   final ts = created ?? DateTime(2026, 6, 1);
   return DiaryEntry(
@@ -20,6 +21,7 @@ DiaryEntry _entry(
     content: id,
     mood: mood,
     tags: tags,
+    location: location,
     createdAt: ts,
     updatedAt: ts,
   );
@@ -200,6 +202,38 @@ void main() {
       expect(tagsWithMood([_entry('a', mood: Mood.good)], Mood.good), isEmpty);
       expect(
           tagsWithMood([_entry('a', mood: Mood.hard, tags: ['x'])], Mood.good),
+          isEmpty);
+    });
+  });
+
+  group('placesWithMood', () {
+    test('counts places for the mood, replies & other mood & blanks excluded',
+        () {
+      final r = placesWithMood([
+        _entry('a', mood: Mood.good, location: '제주'),
+        _entry('b', mood: Mood.good, location: '제주'),
+        _entry('c', mood: Mood.good, location: '서울'),
+        _entry('d', mood: Mood.good, location: '  '), // blank ignored
+        _entry('r', mood: Mood.good, location: '제주', replyTo: 'a'), // reply
+        _entry('h', mood: Mood.hard, location: '부산'), // other mood
+      ], Mood.good);
+      expect(r, ['제주', '서울']);
+    });
+
+    test('ties resolve alphabetically and respect the limit', () {
+      final r = placesWithMood([
+        _entry('a', mood: Mood.good, location: '다'),
+        _entry('b', mood: Mood.good, location: '나'),
+        _entry('c', mood: Mood.good, location: '가'),
+      ], Mood.good, limit: 2);
+      expect(r, ['가', '나']);
+    });
+
+    test('empty when no matching record carries a place', () {
+      expect(placesWithMood([_entry('a', mood: Mood.good)], Mood.good), isEmpty);
+      expect(
+          placesWithMood(
+              [_entry('a', mood: Mood.hard, location: '제주')], Mood.good),
           isEmpty);
     });
   });

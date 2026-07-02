@@ -27,6 +27,7 @@ class MoodEntriesScreen extends ConsumerWidget {
     final replyCounts = replyCountsByParent(all);
     final span = moodDateSpan(all, mood);
     final tags = tagsWithMood(all, mood, limit: 6);
+    final places = placesWithMood(all, mood, limit: 4);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -75,6 +76,12 @@ class MoodEntriesScreen extends ConsumerWidget {
                         if (tags.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text('🏷 ${tags.map((t) => '#${t.key}').join(' ')}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (places.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('📍 ${places.join(' · ')}',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

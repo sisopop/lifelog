@@ -83,6 +83,30 @@ List<MapEntry<String, int>> tagsWithMood(
   return limit <= 0 ? sorted : sorted.take(limit).toList();
 }
 
+/// Distinct non-empty places recorded with [mood] (top-level records; replies
+/// excluded), most-frequent first with ties resolved alphabetically. Capped at
+/// [limit]. Empty when no matching record carries a place. Lets the mood view
+/// show where that feeling tends to happen.
+List<String> placesWithMood(
+  List<DiaryEntry> entries,
+  Mood mood, {
+  int limit = 4,
+}) {
+  final counts = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    final p = e.location?.trim() ?? '';
+    if (p.isEmpty) continue;
+    counts[p] = (counts[p] ?? 0) + 1;
+  }
+  final places = counts.keys.toList()
+    ..sort((a, b) {
+      final byCount = counts[b]!.compareTo(counts[a]!);
+      return byCount != 0 ? byCount : a.compareTo(b);
+    });
+  return limit <= 0 ? places : places.take(limit).toList();
+}
+
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are
 /// excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {
