@@ -77,4 +77,31 @@ void main() {
       expect(r, isEmpty);
     });
   });
+
+  group('tagDateSpan', () {
+    test('earliest and latest date-only, replies excluded', () {
+      final s = tagDateSpan(entries, '여행');
+      expect(s!.first, DateTime(2026, 6, 10));
+      expect(s.last, DateTime(2026, 6, 15));
+    });
+
+    test('drops the time component to date-only', () {
+      final s = tagDateSpan([
+        _e(id: '1', at: DateTime(2026, 6, 10, 23, 59), tags: ['여행']),
+      ], '여행');
+      expect(s!.first, DateTime(2026, 6, 10));
+      expect(s.first, s.last);
+    });
+
+    test('null when the tag has no top-level records', () {
+      expect(tagDateSpan(entries, '운동'), isNull);
+      // a tag that appears only on a reply
+      expect(
+        tagDateSpan([
+          _e(id: 'r', at: DateTime(2026, 6, 1), tags: ['답'], replyTo: 'x'),
+        ], '답'),
+        isNull,
+      );
+    });
+  });
 }

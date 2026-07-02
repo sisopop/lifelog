@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
@@ -24,6 +25,14 @@ class TagEntriesScreen extends ConsumerWidget {
     final journalMap = {for (final j in journals) j.journalId: j};
     final replyCounts = replyCountsByParent(all);
     final related = coOccurringTags(all, tag);
+    final span = tagDateSpan(all, tag);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final md = DateFormat.MMMMd(locale);
+    final spanText = span == null
+        ? null
+        : span.first == span.last
+            ? '📅 ${md.format(span.first)}'
+            : '📅 ${md.format(span.first)} – ${md.format(span.last)}';
 
     return Scaffold(
       appBar: AppBar(
@@ -38,13 +47,30 @@ class TagEntriesScreen extends ConsumerWidget {
             )
           : ListView.separated(
               padding: const EdgeInsets.all(20),
-              itemCount: entries.length + (related.isEmpty ? 0 : 1),
+              itemCount: entries.length + 1,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (_, i) {
-                if (related.isNotEmpty && i == 0) {
-                  return _CoOccurringRow(tags: related);
+                if (i == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (spanText != null)
+                          Text(spanText,
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary)),
+                        if (related.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          _CoOccurringRow(tags: related),
+                        ],
+                      ],
+                    ),
+                  );
                 }
-                final e = entries[i - (related.isEmpty ? 0 : 1)];
+                final e = entries[i - 1];
                 final j = journalMap[e.journalId];
                 return EntryCard(
                   e,
