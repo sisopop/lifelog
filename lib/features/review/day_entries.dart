@@ -90,6 +90,20 @@ int totalContentChars(List<DiaryEntry> entries) {
   return n;
 }
 
+/// Pure: the earliest and latest record time among [entries] (a day's
+/// already-filtered records), or null when empty. `first <= last` always.
+/// Lets the day view show the span of hours the day was active.
+({DateTime first, DateTime last})? dayTimeSpan(List<DiaryEntry> entries) {
+  if (entries.isEmpty) return null;
+  var first = entries.first.createdAt;
+  var last = entries.first.createdAt;
+  for (final e in entries) {
+    if (e.createdAt.isBefore(first)) first = e.createdAt;
+    if (e.createdAt.isAfter(last)) last = e.createdAt;
+  }
+  return (first: first, last: last);
+}
+
 /// Pure: the distinct tags used across [entries] (a day's already-filtered
 /// records), most frequent first. Ties keep first-seen order (the caller passes
 /// entries newest-first, so ties follow that display order). Empty when no

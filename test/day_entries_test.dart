@@ -165,6 +165,28 @@ void main() {
     });
   });
 
+  group('dayTimeSpan', () {
+    test('earliest and latest regardless of list order', () {
+      final s = dayTimeSpan([
+        _e(id: '1', at: DateTime(2026, 6, 12, 21)),
+        _e(id: '2', at: DateTime(2026, 6, 12, 9)),
+        _e(id: '3', at: DateTime(2026, 6, 12, 14)),
+      ]);
+      expect(s!.first, DateTime(2026, 6, 12, 9));
+      expect(s.last, DateTime(2026, 6, 12, 21));
+    });
+
+    test('single record spans a single instant', () {
+      final s = dayTimeSpan([_e(id: '1', at: DateTime(2026, 6, 12, 8, 30))]);
+      expect(s!.first, DateTime(2026, 6, 12, 8, 30));
+      expect(s.first, s.last);
+    });
+
+    test('null when empty', () {
+      expect(dayTimeSpan(const []), isNull);
+    });
+  });
+
   group('tagsOfDay', () {
     test('distinct tags ordered by frequency, ties keep first-seen', () {
       final r = tagsOfDay([

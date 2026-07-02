@@ -79,10 +79,16 @@ class DayEntriesScreen extends ConsumerWidget {
                 if (i == 0) {
                   final mood = dominantMoodOf(entries);
                   final chars = totalContentChars(entries);
+                  final span = dayTimeSpan(entries);
+                  final hm = DateFormat.Hm(locale);
                   final header = [
                     '이 날의 기록 ${entries.length}개',
                     if (mood != null) mood.emoji,
                     if (chars > 0) '총 $chars자',
+                    if (span != null)
+                      span.first == span.last
+                          ? '🕘 ${hm.format(span.first)}'
+                          : '🕘 ${hm.format(span.first)}–${hm.format(span.last)}',
                   ].join(' · ');
                   final tags = tagsOfDay(entries);
                   return Padding(
