@@ -401,6 +401,8 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               () => _applyToSelected(centerLayerVertically)),
           _toolBtn(Icons.flip, '좌우', () => _applyToSelected(flipLayerX)),
           _toolBtn(Icons.swap_vert, '상하', () => _applyToSelected(flipLayerY)),
+          _toolBtn(Icons.restart_alt, '변형 초기화',
+              () => _applyToSelected(resetLayerTransform)),
           if (_selected?.kind == DecoKind.text)
             _toolBtn(Icons.edit_outlined, '편집', () => _editText(_selected!)),
           _toolBtn(Icons.copy_all_outlined, '복제', () {

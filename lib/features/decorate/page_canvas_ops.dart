@@ -233,6 +233,35 @@ PageCanvas stepLayerScale(PageCanvas canvas, String id, double delta) {
   return replaceLayer(canvas, l.copyWith(scale: next));
 }
 
+/// id 레이어의 *변형*을 한 번에 기본값으로 되돌린 새 캔버스를 반환한다.
+/// 크기(scale→1.0)·회전(rotation→0)·좌우 뒤집기(flipX→false)·상하 뒤집기
+/// (flipY→false)·투명도(opacity→1.0)를 모두 초기화한다. 위치(x·y)·z·글자 속성
+/// (색·굵기·기울임·밑줄·형광펜)은 그대로 둔다. 원래크기·똑바로·또렷하게를 따로
+/// 누르지 않고 한 번에 정리할 때 쓴다. 이미 전부 기본값이거나 id가 없으면 원본
+/// 그대로(동일 인스턴스). 원본은 불변.
+PageCanvas resetLayerTransform(PageCanvas canvas, String id) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty) return canvas;
+  final l = matches.first;
+  if (l.scale == 1.0 &&
+      l.rotation == 0.0 &&
+      !l.flipX &&
+      !l.flipY &&
+      l.opacity == 1.0) {
+    return canvas;
+  }
+  return replaceLayer(
+    canvas,
+    l.copyWith(
+      scale: 1.0,
+      rotation: 0.0,
+      flipX: false,
+      flipY: false,
+      opacity: 1.0,
+    ),
+  );
+}
+
 /// id 레이어를 페이지 정중앙(x=0.5, y=0.5)으로 옮긴 새 캔버스를 반환한다. 위치만
 /// 바꾸고 크기·회전·z는 그대로. 가장자리로 밀려난 레이어를 한 번에 가운데로 모을
 /// 때 쓴다. 이미 정중앙이거나 id가 없으면 원본 그대로. 원본은 불변.
