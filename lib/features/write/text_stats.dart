@@ -63,6 +63,25 @@ String? suggestTitleFromContent(String content) {
   return null;
 }
 
+/// A one-line preview of the diary body for the page-decoration header, so the
+/// writer can see their words laid over the decorated page as they type. Takes
+/// the first non-empty line (trimmed); if it exceeds [maxChars] graphemes it is
+/// clipped to [maxChars] and an ellipsis (…) is appended. Returns an empty
+/// string when [content] holds no visible text (the caller then overlays
+/// nothing). Grapheme-aware, so Korean syllables and emoji each count as one.
+/// Pure & top-level so it is unit-testable; the decorate tile overlays it on
+/// the canvas preview.
+String contentPreview(String content, {int maxChars = 40}) {
+  for (final line in content.split('\n')) {
+    final t = line.trim();
+    if (t.isEmpty) continue;
+    final chars = t.characters;
+    if (chars.length <= maxChars) return t;
+    return '${chars.take(maxChars)}…';
+  }
+  return '';
+}
+
 /// Whether a title is long enough to risk being clipped where titles show on a
 /// single line (entry lists, cards). Trims first, then compares the grapheme
 /// length against [max] (default 40, so Korean syllables and emoji each count

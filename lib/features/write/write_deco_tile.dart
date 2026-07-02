@@ -1,12 +1,15 @@
 part of 'write_screen.dart';
 
 /// Entry point to the page-decoration canvas. Shows a read-only preview of the
-/// saved canvas (if any) plus a button to open the editor. Tapping either the
-/// preview or the button opens [PageDecoPlayground].
+/// saved canvas (if any) — with a one-line overlay of the body text, so the
+/// writer sees their words laid over the decorated page — plus a button to open
+/// the editor. Tapping either the preview or the button opens [PageDecoPlayground].
 class _DecoratePageTile extends StatelessWidget {
-  const _DecoratePageTile({required this.canvasJson, required this.onEdit});
+  const _DecoratePageTile(
+      {required this.canvasJson, required this.onEdit, this.content = ''});
 
   final String? canvasJson;
+  final String content;
   final VoidCallback onEdit;
 
   @override
@@ -14,6 +17,7 @@ class _DecoratePageTile extends StatelessWidget {
     final canvas = decodePageCanvas(canvasJson);
     final decorated = canvas.layers.isNotEmpty || canvas.paper != PaperStyle.plain;
     final summary = pageCanvasSummary(canvas);
+    final preview = contentPreview(content);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -24,7 +28,30 @@ class _DecoratePageTile extends StatelessWidget {
               height: 160,
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: PageCanvasView(canvas, stickerBaseSize: 28),
+                child: Stack(
+                  children: [
+                    PageCanvasView(canvas, stickerBaseSize: 28),
+                    if (preview.isNotEmpty)
+                      Positioned(
+                        left: 8,
+                        right: 8,
+                        bottom: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(preview,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.white)),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -493,4 +493,30 @@ void main() {
       expect(tidyEntryTitle('   \n\t '), isNull);
     });
   });
+
+  group('contentPreview', () {
+    test('takes the first non-empty trimmed line', () {
+      expect(contentPreview('\n\n  오늘 제주 바다  \n둘째 줄'), '오늘 제주 바다');
+    });
+
+    test('empty or whitespace-only content is an empty string', () {
+      expect(contentPreview(''), '');
+      expect(contentPreview('   \n\t\n  '), '');
+    });
+
+    test('short line under the cap is returned whole', () {
+      expect(contentPreview('안녕하세요', maxChars: 40), '안녕하세요');
+    });
+
+    test('a line at exactly maxChars keeps no ellipsis', () {
+      expect(contentPreview('가나다라마', maxChars: 5), '가나다라마');
+    });
+
+    test('a long line is clipped grapheme-aware with an ellipsis', () {
+      // 6 graphemes, cap 5 -> first 5 + …
+      expect(contentPreview('가나다라마바', maxChars: 5), '가나다라마…');
+      // emoji counts as one grapheme
+      expect(contentPreview('😀😀😀', maxChars: 2), '😀😀…');
+    });
+  });
 }

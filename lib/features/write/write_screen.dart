@@ -452,7 +452,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             onEmoji: () => pickAndInsertEmoji(context, _contentCtrl).then((_) => mounted ? setState(() {}) : null),
           ),
           const SizedBox(height: 16),
-          _DecoratePageTile(canvasJson: _pageCanvas, onEdit: _editPageCanvas),
+          _DecoratePageTile(canvasJson: _pageCanvas, content: _contentCtrl.text, onEdit: _editPageCanvas),
           const SizedBox(height: 12),
           InlinePhotoTile(flowPhotos: _flowPhotos, onEdit: _editInlinePhotos),
           const SizedBox(height: 28),
