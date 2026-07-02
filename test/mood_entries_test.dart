@@ -9,6 +9,7 @@ DiaryEntry _entry(
   Mood? mood,
   String? replyTo,
   DateTime? created,
+  List<String> tags = const [],
 }) {
   final ts = created ?? DateTime(2026, 6, 1);
   return DiaryEntry(
@@ -18,6 +19,7 @@ DiaryEntry _entry(
     replyToEntryId: replyTo,
     content: id,
     mood: mood,
+    tags: tags,
     createdAt: ts,
     updatedAt: ts,
   );
@@ -171,6 +173,34 @@ void main() {
         ], Mood.good),
         isNull,
       );
+    });
+  });
+
+  group('tagsWithMood', () {
+    test('counts tags for the mood by frequency, replies & other mood excluded',
+        () {
+      final r = tagsWithMood([
+        _entry('a', mood: Mood.good, tags: ['여행', '가족']),
+        _entry('b', mood: Mood.good, tags: ['여행']),
+        _entry('r', mood: Mood.good, tags: ['여행'], replyTo: 'a'), // reply
+        _entry('h', mood: Mood.hard, tags: ['일']), // other mood
+      ], Mood.good);
+      expect(r.map((e) => e.key).toList(), ['여행', '가족']);
+      expect(r.first.value, 2);
+    });
+
+    test('ties resolve alphabetically and respect the limit', () {
+      final r = tagsWithMood([
+        _entry('a', mood: Mood.good, tags: ['다', '나', '가']),
+      ], Mood.good, limit: 2);
+      expect(r.map((e) => e.key).toList(), ['가', '나']);
+    });
+
+    test('empty when no matching record carries a tag', () {
+      expect(tagsWithMood([_entry('a', mood: Mood.good)], Mood.good), isEmpty);
+      expect(
+          tagsWithMood([_entry('a', mood: Mood.hard, tags: ['x'])], Mood.good),
+          isEmpty);
     });
   });
 }

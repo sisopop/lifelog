@@ -59,6 +59,30 @@ Map<Mood, DateTime> lastUseByMood(List<DiaryEntry> entries) {
   return first == null ? null : (first: first, last: last!);
 }
 
+/// Tags most often recorded with [mood] (top-level records; replies excluded),
+/// most-frequent first with ties resolved alphabetically. Capped at [limit].
+/// Empty when no such record carries a tag. Lets the mood view surface what
+/// that feeling is usually about.
+List<MapEntry<String, int>> tagsWithMood(
+  List<DiaryEntry> entries,
+  Mood mood, {
+  int limit = 8,
+}) {
+  final counts = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    for (final t in e.tags) {
+      counts[t] = (counts[t] ?? 0) + 1;
+    }
+  }
+  final sorted = counts.entries.toList()
+    ..sort((a, b) {
+      final byCount = b.value.compareTo(a.value);
+      return byCount != 0 ? byCount : a.key.compareTo(b.key);
+    });
+  return limit <= 0 ? sorted : sorted.take(limit).toList();
+}
+
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are
 /// excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {

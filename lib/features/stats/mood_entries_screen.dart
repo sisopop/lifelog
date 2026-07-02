@@ -26,6 +26,7 @@ class MoodEntriesScreen extends ConsumerWidget {
     final journalMap = {for (final j in journals) j.journalId: j};
     final replyCounts = replyCountsByParent(all);
     final span = moodDateSpan(all, mood);
+    final tags = tagsWithMood(all, mood, limit: 6);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -68,6 +69,12 @@ class MoodEntriesScreen extends ConsumerWidget {
                         if (spanText != null) ...[
                           const SizedBox(height: 4),
                           Text(spanText,
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (tags.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('🏷 ${tags.map((t) => '#${t.key}').join(' ')}',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
