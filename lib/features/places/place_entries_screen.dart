@@ -28,6 +28,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
     final tags = tagsAtLocation(all, location, limit: 6);
     final mood = placeMood(all, location);
     final avgChars = averageCharsAtLocation(all, location);
+    final favorites = favoriteCountAtLocation(all, location);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -92,6 +93,12 @@ class PlaceEntriesScreen extends ConsumerWidget {
                         if (avgChars > 0) ...[
                           const SizedBox(height: 4),
                           Text('✍️ 평균 $avgChars자',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (favorites > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('⭐ 즐겨찾기 $favorites개',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

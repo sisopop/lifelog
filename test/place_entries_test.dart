@@ -11,6 +11,7 @@ DiaryEntry _entry({
   List<String> tags = const [],
   Mood? mood,
   String content = 'c',
+  bool favorite = false,
 }) {
   final t = DateTime(2026, 6, day);
   return DiaryEntry(
@@ -21,6 +22,7 @@ DiaryEntry _entry({
     tags: tags,
     location: location,
     mood: mood,
+    isFavorite: favorite,
     replyToEntryId: replyTo,
     createdAt: t,
     updatedAt: t,
@@ -174,6 +176,35 @@ void main() {
       expect(
           averageCharsAtLocation(
               [_entry(id: 'a', location: '서울', content: 'x')], '제주'),
+          0);
+    });
+  });
+
+  group('favoriteCountAtLocation', () {
+    test('counts favorited records, case-insensitive, replies excluded', () {
+      final n = favoriteCountAtLocation([
+        _entry(id: 'a', location: '제주', favorite: true),
+        _entry(id: 'b', location: '  제주  ', favorite: true), // trim match
+        _entry(id: 'c', location: '제주'), // not favorite
+        _entry(id: 'r', location: '제주', favorite: true, replyTo: 'a'), // reply
+        _entry(id: 'o', location: '서울', favorite: true), // other place
+      ], '제주');
+      expect(n, 2);
+    });
+
+    test('zero for blank query, no match, or none favorited', () {
+      expect(favoriteCountAtLocation(const [], '제주'), 0);
+      expect(
+          favoriteCountAtLocation(
+              [_entry(id: 'a', location: '제주', favorite: true)], '  '),
+          0);
+      expect(
+          favoriteCountAtLocation(
+              [_entry(id: 'a', location: '서울', favorite: true)], '제주'),
+          0);
+      expect(
+          favoriteCountAtLocation(
+              [_entry(id: 'a', location: '제주')], '제주'),
           0);
     });
   });

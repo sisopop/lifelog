@@ -109,3 +109,19 @@ int averageCharsAtLocation(List<DiaryEntry> entries, String location) {
   }
   return n == 0 ? 0 : (total / n).round();
 }
+
+/// How many top-level records at [location] (case-insensitive, trimmed; replies
+/// excluded) are marked favorite. 0 when none are starred, nothing matches, or
+/// [location] is blank. Lets the place view show how many records of that place
+/// were kept as favorites.
+int favoriteCountAtLocation(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return 0;
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    if (e.isFavorite) n++;
+  }
+  return n;
+}
