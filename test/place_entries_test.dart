@@ -66,6 +66,40 @@ void main() {
     expect(list, isEmpty);
   });
 
+  group('busiestWeekdayAtLocation', () {
+    test('picks the weekday with the most records, case-insensitive & trimmed',
+        () {
+      final r = busiestWeekdayAtLocation([
+        _entry(id: 'a', location: '제주', day: 13), // Sat
+        _entry(id: 'b', location: '  제주  ', day: 20), // Sat, trim match
+        _entry(id: 'c', location: '제주', day: 8), // Mon
+        _entry(id: 'r', location: '제주', day: 8, replyTo: 'a'), // reply
+        _entry(id: 'o', location: '서울', day: 8), // other place
+      ], '제주');
+      expect(r, DateTime.saturday);
+    });
+
+    test('ties resolve to the earlier weekday (Mon first)', () {
+      final r = busiestWeekdayAtLocation([
+        _entry(id: 'a', location: '제주', day: 13), // Sat
+        _entry(id: 'b', location: '제주', day: 8), // Mon
+      ], '제주');
+      expect(r, DateTime.monday);
+    });
+
+    test('null for blank query, no match, or no records', () {
+      expect(busiestWeekdayAtLocation(const [], '제주'), isNull);
+      expect(
+          busiestWeekdayAtLocation(
+              [_entry(id: 'a', location: '제주', day: 13)], '  '),
+          isNull);
+      expect(
+          busiestWeekdayAtLocation(
+              [_entry(id: 'a', location: '서울', day: 13)], '제주'),
+          isNull);
+    });
+  });
+
   group('placeDateSpan', () {
     test('earliest and latest date-only, case-insensitive, replies excluded',
         () {

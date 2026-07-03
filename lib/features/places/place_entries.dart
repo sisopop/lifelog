@@ -18,6 +18,32 @@ List<DiaryEntry> entriesAtLocation(List<DiaryEntry> entries, String location) {
   return result;
 }
 
+/// The weekday (DateTime.monday=1 .. sunday=7) that the most top-level records
+/// at [location] (case-insensitive, trimmed; replies excluded) fall on, or null
+/// when none match or [location] is blank. Ties resolve to the earlier weekday
+/// (Mon first). Lets the place view show which day of the week visits tend to
+/// land on (mirrors busiestWeekdayWithMood/WithTag).
+int? busiestWeekdayAtLocation(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return null;
+  final counts = <int, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    counts.update(e.createdAt.weekday, (c) => c + 1, ifAbsent: () => 1);
+  }
+  int? best;
+  var bestCount = 0;
+  for (var wd = DateTime.monday; wd <= DateTime.sunday; wd++) {
+    final c = counts[wd] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = wd;
+    }
+  }
+  return best;
+}
+
 /// The earliest and latest record dates (date-only) among top-level records at
 /// [location] (case-insensitive, trimmed; replies excluded), or null when none
 /// match or [location] is blank. `first <= last`. Lets the place view show the
