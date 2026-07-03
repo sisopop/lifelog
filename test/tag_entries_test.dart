@@ -295,6 +295,41 @@ void main() {
     });
   });
 
+  group('busiestDayPartWithTag', () {
+    test('picks the busiest time bucket, replies & other tag excluded', () {
+      final r = busiestDayPartWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 13, 14), tags: ['여행']), // 오후=2
+        _e(id: 'b', at: DateTime(2026, 6, 20, 17), tags: ['여행']), // 오후=2
+        _e(id: 'c', at: DateTime(2026, 6, 8, 9), tags: ['여행']), // 아침=1
+        _e(id: 'r', at: DateTime(2026, 6, 8, 14), tags: ['여행'], replyTo: 'a'),
+        _e(id: 'o', at: DateTime(2026, 6, 8, 14), tags: ['일']), // other tag
+      ], '여행');
+      expect(r, 2); // 오후
+    });
+
+    test('ties resolve to the earlier bucket (새벽 first)', () {
+      final r = busiestDayPartWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 13, 3), tags: ['여행']), // 새벽=0
+        _e(id: 'b', at: DateTime(2026, 6, 8, 20), tags: ['여행']), // 저녁=3
+      ], '여행');
+      expect(r, 0); // 새벽
+    });
+
+    test('null when the tag has no top-level records', () {
+      expect(busiestDayPartWithTag(const [], '여행'), isNull);
+      expect(
+          busiestDayPartWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 8, 9), tags: ['일'])], '여행'),
+          isNull);
+      expect(
+        busiestDayPartWithTag([
+          _e(id: 'r', at: DateTime(2026, 6, 8, 9), tags: ['여행'], replyTo: 'x'),
+        ], '여행'),
+        isNull,
+      );
+    });
+  });
+
   group('placesWithTag', () {
     test('counts places for the tag by frequency, replies & other tag excluded',
         () {

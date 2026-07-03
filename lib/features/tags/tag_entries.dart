@@ -26,6 +26,30 @@ int? busiestWeekdayWithTag(List<DiaryEntry> entries, String tag) {
   return best;
 }
 
+/// The time-of-day bucket the most top-level records carrying [tag] fall in
+/// (replies excluded), or null when the tag has no records. Buckets: 0=새벽
+/// (00–05), 1=아침 (06–11), 2=오후 (12–17), 3=저녁 (18–23). Ties resolve to the
+/// earlier bucket. Lets the tag view show when in the day that theme tends to
+/// be recorded (mirrors busiestDayPartWithMood — a 🕘 dimension).
+int? busiestDayPartWithTag(List<DiaryEntry> entries, String tag) {
+  final counts = <int, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || !e.tags.contains(tag)) continue;
+    final part = e.createdAt.hour ~/ 6;
+    counts.update(part, (c) => c + 1, ifAbsent: () => 1);
+  }
+  int? best;
+  var bestCount = 0;
+  for (var p = 0; p < 4; p++) {
+    final c = counts[p] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = p;
+    }
+  }
+  return best;
+}
+
 /// Top-level records tagged with [tag], newest first.
 /// 답장(reply) records are excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithTag(List<DiaryEntry> entries, String tag) {
