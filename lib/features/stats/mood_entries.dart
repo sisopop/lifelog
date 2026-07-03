@@ -124,6 +124,18 @@ int averageCharsWithMood(List<DiaryEntry> entries, Mood mood) {
   return n == 0 ? 0 : (total / n).round();
 }
 
+/// How many top-level records carrying [mood] (replies excluded) are marked
+/// favorite. 0 when none are starred or the mood has no records. Lets the mood
+/// view show how many records of that feeling were kept as favorites.
+int favoriteCountWithMood(List<DiaryEntry> entries, Mood mood) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    if (e.isFavorite) n++;
+  }
+  return n;
+}
+
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are
 /// excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {

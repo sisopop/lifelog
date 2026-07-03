@@ -29,6 +29,7 @@ class MoodEntriesScreen extends ConsumerWidget {
     final tags = tagsWithMood(all, mood, limit: 6);
     final places = placesWithMood(all, mood, limit: 4);
     final avgChars = averageCharsWithMood(all, mood);
+    final favorites = favoriteCountWithMood(all, mood);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -89,6 +90,12 @@ class MoodEntriesScreen extends ConsumerWidget {
                         if (avgChars > 0) ...[
                           const SizedBox(height: 4),
                           Text('✍️ 평균 $avgChars자',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (favorites > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('⭐ 즐겨찾기 $favorites개',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

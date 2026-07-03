@@ -12,6 +12,7 @@ DiaryEntry _entry(
   List<String> tags = const [],
   String? location,
   String? content,
+  bool favorite = false,
 }) {
   final ts = created ?? DateTime(2026, 6, 1);
   return DiaryEntry(
@@ -23,6 +24,7 @@ DiaryEntry _entry(
     mood: mood,
     tags: tags,
     location: location,
+    isFavorite: favorite,
     createdAt: ts,
     updatedAt: ts,
   );
@@ -267,6 +269,28 @@ void main() {
             [_entry('r', mood: Mood.good, replyTo: 'x')], Mood.good),
         0,
       );
+    });
+  });
+
+  group('favoriteCountWithMood', () {
+    test('counts favorited records, replies & other moods excluded', () {
+      final n = favoriteCountWithMood([
+        _entry('a', mood: Mood.good, favorite: true),
+        _entry('b', mood: Mood.good, favorite: true),
+        _entry('c', mood: Mood.good), // not favorite
+        _entry('r', mood: Mood.good, favorite: true, replyTo: 'a'), // reply
+        _entry('h', mood: Mood.hard, favorite: true), // other mood
+      ], Mood.good);
+      expect(n, 2);
+    });
+
+    test('zero when none favorited, mood absent, or list empty', () {
+      expect(favoriteCountWithMood(const [], Mood.good), 0);
+      expect(favoriteCountWithMood([_entry('a', mood: Mood.good)], Mood.good), 0);
+      expect(
+          favoriteCountWithMood(
+              [_entry('a', mood: Mood.hard, favorite: true)], Mood.good),
+          0);
     });
   });
 }
