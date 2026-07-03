@@ -161,6 +161,19 @@ List<String> placesOfDay(List<DiaryEntry> entries) {
   return places;
 }
 
+/// Pure: the distinct journal ids among [entries] (a day's already-filtered
+/// records), in first-seen order. The caller passes entries newest-first, so
+/// the order mirrors the day view. Empty when [entries] is empty. Lets the day
+/// view show which journals the day's records were spread across.
+List<String> journalIdsOfDay(List<DiaryEntry> entries) {
+  final seen = <String>{};
+  final result = <String>[];
+  for (final e in entries) {
+    if (seen.add(e.journalId)) result.add(e.journalId);
+  }
+  return result;
+}
+
 /// Pure: how many of [entries] are marked favorite (a day's already-filtered
 /// records). 0 when none are starred. Lets the day view highlight how many of
 /// the day's records were kept as favorites.

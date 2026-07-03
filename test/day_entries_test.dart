@@ -13,11 +13,12 @@ DiaryEntry _e({
   List<String> tags = const [],
   String? place,
   bool favorite = false,
+  String journal = 'j1',
 }) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
-      journalId: 'j1',
+      journalId: journal,
       replyToEntryId: replyTo,
       title: title,
       content: content,
@@ -293,6 +294,29 @@ void main() {
       expect(
           favoriteCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
       expect(favoriteCountOfDay(const []), 0);
+    });
+  });
+
+  group('journalIdsOfDay', () {
+    test('distinct journal ids in first-seen order', () {
+      final r = journalIdsOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), journal: 'a'),
+        _e(id: '2', at: DateTime(2026, 6, 1), journal: 'b'),
+        _e(id: '3', at: DateTime(2026, 6, 1), journal: 'a'), // dedup
+      ]);
+      expect(r, ['a', 'b']);
+    });
+
+    test('single journal yields one id', () {
+      final r = journalIdsOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1)),
+        _e(id: '2', at: DateTime(2026, 6, 1)),
+      ]);
+      expect(r, ['j1']);
+    });
+
+    test('empty list is empty', () {
+      expect(journalIdsOfDay(const []), isEmpty);
     });
   });
 }
