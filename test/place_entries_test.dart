@@ -7,6 +7,7 @@ DiaryEntry _entry({
   required String id,
   String? location,
   int day = 10,
+  int hour = 0,
   String? replyTo,
   List<String> tags = const [],
   Mood? mood,
@@ -14,7 +15,7 @@ DiaryEntry _entry({
   bool favorite = false,
   String journal = 'jr_default',
 }) {
-  final t = DateTime(2026, 6, day);
+  final t = DateTime(2026, 6, day, hour);
   return DiaryEntry(
     entryId: id,
     userId: 'me',
@@ -96,6 +97,43 @@ void main() {
       expect(
           busiestWeekdayAtLocation(
               [_entry(id: 'a', location: '서울', day: 13)], '제주'),
+          isNull);
+    });
+  });
+
+  group('busiestDayPartAtLocation', () {
+    test('picks the busiest bucket; replies and other places excluded', () {
+      final r = busiestDayPartAtLocation([
+        _entry(id: 'a', location: '제주', hour: 13), // 오후
+        _entry(id: 'b', location: '  제주  ', hour: 15), // 오후, trim match
+        _entry(id: 'c', location: '제주', hour: 8), // 아침
+        _entry(id: 'r', location: '제주', hour: 14, replyTo: 'a'), // reply
+        _entry(id: 'o', location: '서울', hour: 14), // other place
+      ], '제주');
+      expect(r, 2); // 오후 12–17
+    });
+
+    test('tie resolves to the earlier bucket', () {
+      final r = busiestDayPartAtLocation([
+        _entry(id: 'a', location: '제주', hour: 3), // 새벽
+        _entry(id: 'b', location: '제주', hour: 20), // 저녁
+      ], '제주');
+      expect(r, 0);
+    });
+
+    test('null for blank query, no match, or replies only', () {
+      expect(busiestDayPartAtLocation(const [], '제주'), isNull);
+      expect(
+          busiestDayPartAtLocation(
+              [_entry(id: 'a', location: '제주', hour: 9)], '  '),
+          isNull);
+      expect(
+          busiestDayPartAtLocation(
+              [_entry(id: 'a', location: '서울', hour: 9)], '제주'),
+          isNull);
+      expect(
+          busiestDayPartAtLocation(
+              [_entry(id: 'r', location: '제주', hour: 9, replyTo: 'x')], '제주'),
           isNull);
     });
   });

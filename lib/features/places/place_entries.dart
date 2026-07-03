@@ -44,6 +44,32 @@ int? busiestWeekdayAtLocation(List<DiaryEntry> entries, String location) {
   return best;
 }
 
+/// The part of day (0=새벽 00–05, 1=아침 06–11, 2=오후 12–17, 3=저녁 18–23) that
+/// the most top-level records at [location] (case-insensitive, trimmed; replies
+/// excluded) fall in, or null when none match or [location] is blank. Ties
+/// resolve to the earlier bucket. Lets the place view show when visits tend to
+/// be recorded (completes the 🕘 dimension: mood/tag/place).
+int? busiestDayPartAtLocation(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return null;
+  final counts = <int, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    counts.update(e.createdAt.hour ~/ 6, (c) => c + 1, ifAbsent: () => 1);
+  }
+  int? best;
+  var bestCount = 0;
+  for (var p = 0; p < 4; p++) {
+    final c = counts[p] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = p;
+    }
+  }
+  return best;
+}
+
 /// The earliest and latest record dates (date-only) among top-level records at
 /// [location] (case-insensitive, trimmed; replies excluded), or null when none
 /// match or [location] is blank. `first <= last`. Lets the place view show the
