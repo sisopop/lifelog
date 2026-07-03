@@ -107,6 +107,30 @@ int favoriteCountWithTag(List<DiaryEntry> entries, String tag) {
   return n;
 }
 
+/// Distinct non-empty places recorded with [tag] (top-level records; replies
+/// excluded), most-frequent first with ties resolved alphabetically. Capped at
+/// [limit]. Empty when no matching record carries a place. Lets the tag view
+/// show where that theme tends to happen (mirrors placesWithMood).
+List<String> placesWithTag(
+  List<DiaryEntry> entries,
+  String tag, {
+  int limit = 4,
+}) {
+  final counts = <String, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || !e.tags.contains(tag)) continue;
+    final p = e.location?.trim() ?? '';
+    if (p.isEmpty) continue;
+    counts[p] = (counts[p] ?? 0) + 1;
+  }
+  final places = counts.keys.toList()
+    ..sort((a, b) {
+      final byCount = counts[b]!.compareTo(counts[a]!);
+      return byCount != 0 ? byCount : a.compareTo(b);
+    });
+  return limit <= 0 ? places : places.take(limit).toList();
+}
+
 /// The distinct journal ids among top-level records carrying [tag] (replies
 /// excluded), in first-seen order of [entries]. Empty when the tag has no
 /// top-level records. Lets the tag view show which journals a theme spans.

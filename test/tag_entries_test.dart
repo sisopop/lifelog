@@ -12,6 +12,7 @@ DiaryEntry _e({
   String content = 'x',
   bool favorite = false,
   String journal = 'j1',
+  String? location,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -21,6 +22,7 @@ DiaryEntry _e({
       content: content,
       tags: tags,
       mood: mood,
+      location: location,
       isFavorite: favorite,
       createdAt: at,
       updatedAt: at,
@@ -254,6 +256,47 @@ void main() {
         ], '여행'),
         isEmpty,
       );
+    });
+  });
+
+  group('placesWithTag', () {
+    test('counts places for the tag by frequency, replies & other tag excluded',
+        () {
+      final r = placesWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], location: '제주'),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행'], location: '제주'),
+        _e(id: 'c', at: DateTime(2026, 6, 3), tags: ['여행'], location: '서울'),
+        _e(id: 'd', at: DateTime(2026, 6, 4), tags: ['여행'], location: '  '),
+        _e(
+            id: 'r',
+            at: DateTime(2026, 6, 5),
+            tags: ['여행'],
+            location: '제주',
+            replyTo: 'a'), // reply
+        _e(id: 'o', at: DateTime(2026, 6, 6), tags: ['일'], location: '부산'),
+      ], '여행');
+      expect(r, ['제주', '서울']);
+    });
+
+    test('ties resolve alphabetically and respect the limit', () {
+      final r = placesWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], location: '다'),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행'], location: '나'),
+        _e(id: 'c', at: DateTime(2026, 6, 3), tags: ['여행'], location: '가'),
+      ], '여행', limit: 2);
+      expect(r, ['가', '나']);
+    });
+
+    test('empty when no matching record carries a place', () {
+      expect(
+          placesWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
+          isEmpty);
+      expect(
+          placesWithTag([
+            _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['일'], location: '제주'),
+          ], '여행'),
+          isEmpty);
     });
   });
 }

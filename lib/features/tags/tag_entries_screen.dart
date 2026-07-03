@@ -27,6 +27,7 @@ class TagEntriesScreen extends ConsumerWidget {
     final related = coOccurringTags(all, tag);
     final span = tagDateSpan(all, tag);
     final mood = tagMood(all, tag);
+    final places = placesWithTag(all, tag, limit: 4);
     final avgChars = averageCharsWithTag(all, tag);
     final favorites = favoriteCountWithTag(all, tag);
     final journalNames = journalIdsWithTag(all, tag)
@@ -72,6 +73,12 @@ class TagEntriesScreen extends ConsumerWidget {
                         if (mood != null) ...[
                           const SizedBox(height: 4),
                           Text('${mood.emoji} 이 태그엔 주로 ${mood.label}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (places.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('📍 ${places.join(' · ')}',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
