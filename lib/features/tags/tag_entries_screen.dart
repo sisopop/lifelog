@@ -34,6 +34,8 @@ class TagEntriesScreen extends ConsumerWidget {
         .map((id) => journalMap[id]?.title)
         .whereType<String>()
         .toList();
+    final weekday = busiestWeekdayWithTag(all, tag);
+    const weekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -97,6 +99,12 @@ class TagEntriesScreen extends ConsumerWidget {
                         if (journalNames.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text('📓 ${journalNames.take(4).join(' · ')}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (weekday != null) ...[
+                          const SizedBox(height: 4),
+                          Text('📆 주로 ${weekdayNames[weekday]}요일',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

@@ -259,6 +259,42 @@ void main() {
     });
   });
 
+  group('busiestWeekdayWithTag', () {
+    test('picks the weekday with the most records, replies & other tag excluded',
+        () {
+      final r = busiestWeekdayWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 13), tags: ['여행']), // Sat
+        _e(id: 'b', at: DateTime(2026, 6, 20), tags: ['여행']), // Sat
+        _e(id: 'c', at: DateTime(2026, 6, 8), tags: ['여행']), // Mon
+        _e(id: 'r', at: DateTime(2026, 6, 8), tags: ['여행'], replyTo: 'a'),
+        _e(id: 'o', at: DateTime(2026, 6, 8), tags: ['일']), // other tag
+      ], '여행');
+      expect(r, DateTime.saturday);
+    });
+
+    test('ties resolve to the earlier weekday (Mon first)', () {
+      final r = busiestWeekdayWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 13), tags: ['여행']), // Sat
+        _e(id: 'b', at: DateTime(2026, 6, 8), tags: ['여행']), // Mon
+      ], '여행');
+      expect(r, DateTime.monday);
+    });
+
+    test('null when the tag has no top-level records', () {
+      expect(busiestWeekdayWithTag(const [], '여행'), isNull);
+      expect(
+          busiestWeekdayWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 8), tags: ['일'])], '여행'),
+          isNull);
+      expect(
+        busiestWeekdayWithTag([
+          _e(id: 'r', at: DateTime(2026, 6, 8), tags: ['여행'], replyTo: 'x'),
+        ], '여행'),
+        isNull,
+      );
+    });
+  });
+
   group('placesWithTag', () {
     test('counts places for the tag by frequency, replies & other tag excluded',
         () {

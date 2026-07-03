@@ -3,6 +3,29 @@ import 'package:characters/characters.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 
+/// The weekday (DateTime.monday=1 .. sunday=7) that the most top-level records
+/// carrying [tag] fall on (replies excluded), or null when the tag has no
+/// records. Ties resolve to the earlier weekday (Mon first). Lets the tag view
+/// show which day of the week that theme tends to land on (mirrors
+/// busiestWeekdayWithMood).
+int? busiestWeekdayWithTag(List<DiaryEntry> entries, String tag) {
+  final counts = <int, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || !e.tags.contains(tag)) continue;
+    counts.update(e.createdAt.weekday, (c) => c + 1, ifAbsent: () => 1);
+  }
+  int? best;
+  var bestCount = 0;
+  for (var wd = DateTime.monday; wd <= DateTime.sunday; wd++) {
+    final c = counts[wd] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = wd;
+    }
+  }
+  return best;
+}
+
 /// Top-level records tagged with [tag], newest first.
 /// 답장(reply) records are excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithTag(List<DiaryEntry> entries, String tag) {
