@@ -330,6 +330,46 @@ void main() {
     });
   });
 
+  group('busiestDayPartWithMood', () {
+    test('picks the busiest time bucket, replies & other mood excluded', () {
+      final entries = [
+        _entry('a',
+            mood: Mood.good, created: DateTime(2026, 6, 13, 14)), // 오후=2
+        _entry('b',
+            mood: Mood.good, created: DateTime(2026, 6, 20, 17)), // 오후=2
+        _entry('c',
+            mood: Mood.good, created: DateTime(2026, 6, 8, 9)), // 아침=1
+        _entry('r',
+            mood: Mood.good,
+            replyTo: 'a',
+            created: DateTime(2026, 6, 8, 9)), // reply
+        _entry('h',
+            mood: Mood.hard, created: DateTime(2026, 6, 8, 14)), // other mood
+      ];
+      expect(busiestDayPartWithMood(entries, Mood.good), 2); // 오후
+    });
+
+    test('ties resolve to the earlier bucket (새벽 first)', () {
+      final entries = [
+        _entry('a', mood: Mood.good, created: DateTime(2026, 6, 13, 3)), // 새벽=0
+        _entry('b', mood: Mood.good, created: DateTime(2026, 6, 8, 20)), // 저녁=3
+      ];
+      expect(busiestDayPartWithMood(entries, Mood.good), 0); // 새벽
+    });
+
+    test('null when the mood has no top-level records', () {
+      expect(busiestDayPartWithMood(const [], Mood.good), isNull);
+      expect(
+          busiestDayPartWithMood([_entry('a', mood: Mood.hard)], Mood.good),
+          isNull);
+      expect(
+        busiestDayPartWithMood(
+            [_entry('r', mood: Mood.good, replyTo: 'x')], Mood.good),
+        isNull,
+      );
+    });
+  });
+
   group('journalIdsWithMood', () {
     test('distinct journals in first-seen order, replies & other moods excluded',
         () {

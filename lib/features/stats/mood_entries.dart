@@ -171,6 +171,30 @@ int? busiestWeekdayWithMood(List<DiaryEntry> entries, Mood mood) {
   return best;
 }
 
+/// The time-of-day bucket the most top-level records carrying [mood] fall in
+/// (replies excluded), or null when the mood has no records. Buckets: 0=새벽
+/// (00–05), 1=아침 (06–11), 2=오후 (12–17), 3=저녁 (18–23). Ties resolve to the
+/// earlier bucket. Lets the mood view show when in the day that feeling tends
+/// to be recorded (mirrors busiestWeekdayWithMood — a 🕘 dimension).
+int? busiestDayPartWithMood(List<DiaryEntry> entries, Mood mood) {
+  final counts = <int, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    final part = e.createdAt.hour ~/ 6;
+    counts.update(part, (c) => c + 1, ifAbsent: () => 1);
+  }
+  int? best;
+  var bestCount = 0;
+  for (var p = 0; p < 4; p++) {
+    final c = counts[p] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = p;
+    }
+  }
+  return best;
+}
+
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are
 /// excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {

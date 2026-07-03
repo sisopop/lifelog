@@ -36,6 +36,8 @@ class MoodEntriesScreen extends ConsumerWidget {
         .toList();
     final weekday = busiestWeekdayWithMood(all, mood);
     const weekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
+    final dayPart = busiestDayPartWithMood(all, mood);
+    const dayPartNames = ['새벽', '아침', '오후', '저녁'];
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -114,6 +116,12 @@ class MoodEntriesScreen extends ConsumerWidget {
                         if (weekday != null) ...[
                           const SizedBox(height: 4),
                           Text('📆 주로 ${weekdayNames[weekday]}요일',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (dayPart != null) ...[
+                          const SizedBox(height: 4),
+                          Text('🕘 주로 ${dayPartNames[dayPart]}에 기록',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
