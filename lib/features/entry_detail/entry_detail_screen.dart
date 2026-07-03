@@ -15,6 +15,7 @@ import '../decorate/content_flow_view.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import '../decorate/photo_frames.dart';
+import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
 import '../decorate/photo_tapes.dart';
 import 'entry_gallery.dart';
@@ -121,6 +122,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                     photoFrames: decodePhotoFrames(entry.photoFrames),
                     photoStickers: decodePhotoStickers(entry.photoStickers),
                     photoTapes: decodePhotoTapes(entry.photoTapes),
+                    photoMemos: decodePhotoMemos(entry.photoMemos),
                   ),
                   const SizedBox(height: 20),
                 ],

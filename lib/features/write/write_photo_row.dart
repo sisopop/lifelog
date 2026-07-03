@@ -1,11 +1,11 @@
 part of 'write_screen.dart';
 
 /// Horizontal strip of attached-photo thumbnails: tap a thumbnail to open a
-/// "사진 꾸미기" menu (프레임 / 스티커 / 테이프), tap the ✕ badge to remove it.
+/// "사진 꾸미기" menu (프레임 / 스티커 / 테이프 / 메모), tap the ✕ badge to remove it.
 /// Owns the menu + picker sheets itself (needs a BuildContext) and reports
-/// results up via [onFramePicked]/[onStickerPicked]/[onTapePicked] so
-/// WriteScreen only has to call setState. Extracted from WriteScreen's build()
-/// to keep that file under the size limit (see write_widgets.dart /
+/// results up via [onFramePicked]/[onStickerPicked]/[onTapePicked]/[onMemoPicked]
+/// so WriteScreen only has to call setState. Extracted from WriteScreen's
+/// build() to keep that file under the size limit (see write_widgets.dart /
 /// write_deco_tile.dart for the same pattern).
 class _PhotoThumbnailsRow extends StatelessWidget {
   const _PhotoThumbnailsRow({
@@ -13,16 +13,19 @@ class _PhotoThumbnailsRow extends StatelessWidget {
     required this.photoFrames,
     required this.photoStickers,
     required this.photoTapes,
+    required this.photoMemos,
     required this.onRemove,
     required this.onFramePicked,
     required this.onStickerPicked,
     required this.onTapePicked,
+    required this.onMemoPicked,
   });
 
   final List<String> photoPaths;
   final List<String?> photoFrames;
   final List<String?> photoStickers;
   final List<String?> photoTapes;
+  final List<String?> photoMemos;
   final void Function(int index) onRemove;
 
   /// Called with the newly chosen frame id (or null to clear).
@@ -33,6 +36,9 @@ class _PhotoThumbnailsRow extends StatelessWidget {
 
   /// Called with the newly chosen tape id (or null to clear).
   final void Function(int index, String? tapeId) onTapePicked;
+
+  /// Called with the newly written memo (or null to clear).
+  final void Function(int index, String? memo) onMemoPicked;
 
   /// Tap = a small menu of what to decorate; tap and long-press are no longer
   /// enough gestures once we have three decoration kinds, so route them all
@@ -59,6 +65,11 @@ class _PhotoThumbnailsRow extends StatelessWidget {
               title: const Text('테이프'),
               onTap: () => Navigator.pop(context, 'tape'),
             ),
+            ListTile(
+              leading: const Icon(Icons.notes_rounded),
+              title: const Text('메모'),
+              onTap: () => Navigator.pop(context, 'memo'),
+            ),
           ],
         ),
       ),
@@ -71,6 +82,8 @@ class _PhotoThumbnailsRow extends StatelessWidget {
         await _pickSticker(context, index);
       case 'tape':
         await _pickTape(context, index);
+      case 'memo':
+        await _pickMemo(context, index);
     }
   }
 
@@ -95,6 +108,13 @@ class _PhotoThumbnailsRow extends StatelessWidget {
     onTapePicked(index, picked.isEmpty ? null : picked);
   }
 
+  Future<void> _pickMemo(BuildContext context, int index) async {
+    final picked =
+        await showMemoDialog(context, current: memoAt(photoMemos, index));
+    if (picked == null) return; // dismissed without saving
+    onMemoPicked(index, picked.isEmpty ? null : picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -112,6 +132,7 @@ class _PhotoThumbnailsRow extends StatelessWidget {
                 frameId: frameAt(photoFrames, i),
                 stickerEmoji: stickerAt(photoStickers, i),
                 tapeId: tapeAt(photoTapes, i),
+                memoText: memoAt(photoMemos, i),
                 width: 84,
                 height: 84,
                 borderRadius: 12,

@@ -9,10 +9,12 @@ import '../decorate/content_flow.dart';
 import '../decorate/frame_picker_sheet.dart';
 import '../decorate/framed_photo.dart';
 import '../decorate/inline_photo_editor.dart';
+import '../decorate/memo_dialog.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import '../decorate/page_deco_playground.dart';
 import '../decorate/photo_frames.dart';
+import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
 import '../decorate/photo_tapes.dart';
 import '../decorate/sticker_picker_sheet.dart';
@@ -221,6 +223,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
     final frames = encodePhotoFrames(_photoFrames);
     final stickers = encodePhotoStickers(_photoStickers);
     final tapes = encodePhotoTapes(_photoTapes);
+    final memos = encodePhotoMemos(_photoMemos);
     if (_isEditing && _editing != null) {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
@@ -245,6 +248,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           clearPhotoStickers: stickers == null,
           photoTapes: tapes,
           clearPhotoTapes: tapes == null,
+          photoMemos: memos,
+          clearPhotoMemos: memos == null,
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -269,6 +274,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           photoFrames: frames,
           photoStickers: stickers,
           photoTapes: tapes,
+          photoMemos: memos,
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
@@ -404,6 +410,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
               photoFrames: _photoFrames,
               photoStickers: _photoStickers,
               photoTapes: _photoTapes,
+              photoMemos: _photoMemos,
               onRemove: (i) => setState(() {
                 _photoPaths.removeAt(i);
                 _removePhotoDecoAt(i);
@@ -414,6 +421,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
                   setState(() => _setStickerAt(i, emoji)),
               onTapePicked: (i, tapeId) =>
                   setState(() => _setTapeAt(i, tapeId)),
+              onMemoPicked: (i, memo) =>
+                  setState(() => _setMemoAt(i, memo)),
             ),
           ],
           _EntryTags(

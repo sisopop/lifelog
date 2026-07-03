@@ -120,6 +120,9 @@ class DiaryEntries extends Table {
   // 사진별 워시테이프 — mediaUrls와 index로 정렬된 JSON 배열(각 원소는 테이프 id 또는 null).
   // null = 테이프를 고른 사진이 하나도 없음(종전과 동일).
   TextColumn get photoTapes => text().nullable()();
+  // 사진별 메모(캡션) — mediaUrls와 index로 정렬된 JSON 배열(각 원소는 캡션 문자열 또는 null).
+  // null = 메모를 단 사진이 하나도 없음(종전과 동일).
+  TextColumn get photoMemos => text().nullable()();
   // 즐겨찾기. Default lets the v3→v4 migration backfill existing rows.
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   // 휴지통: non-null = soft-deleted (kept 30 days, hidden from normal lists).
@@ -146,7 +149,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -255,6 +258,11 @@ class AppDatabase extends _$AppDatabase {
             // (테이프를 고른 사진 없음, 종전과 동일).
             await m.addColumn(diaryEntries, diaryEntries.photoTapes);
           }
+          if (from < 25) {
+            // 사진별 메모(캡션) JSON — existing entries default to null
+            // (메모를 단 사진 없음, 종전과 동일).
+            await m.addColumn(diaryEntries, diaryEntries.photoMemos);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -324,6 +332,7 @@ class AppDatabase extends _$AppDatabase {
       'photo_frames': diaryEntries.photoFrames,
       'photo_stickers': diaryEntries.photoStickers,
       'photo_tapes': diaryEntries.photoTapes,
+      'photo_memos': diaryEntries.photoMemos,
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {

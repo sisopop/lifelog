@@ -26,6 +26,7 @@ class DiaryEntry {
     this.photoFrames,
     this.photoStickers,
     this.photoTapes,
+    this.photoMemos,
     this.isFavorite = false,
     this.deletedAt,
     this.syncStatus = SyncStatus.synced,
@@ -81,6 +82,11 @@ class DiaryEntry {
   /// null이면 테이프를 고른 사진이 하나도 없음(종전과 동일).
   final String? photoTapes;
 
+  /// Per-photo memo/caption text, JSON array index-aligned with [mediaUrls] (a
+  /// `null`/blank entry, or an index past the end, means no memo for that
+  /// photo). null이면 메모를 단 사진이 하나도 없음(종전과 동일).
+  final String? photoMemos;
+
   /// User-starred record (즐겨찾기). Independent of journal/sync.
   final bool isFavorite;
 
@@ -110,6 +116,7 @@ class DiaryEntry {
     String? photoFrames,
     String? photoStickers,
     String? photoTapes,
+    String? photoMemos,
     bool? isFavorite,
     DateTime? deletedAt,
     SyncStatus? syncStatus,
@@ -121,6 +128,7 @@ class DiaryEntry {
     bool clearPhotoFrames = false,
     bool clearPhotoStickers = false,
     bool clearPhotoTapes = false,
+    bool clearPhotoMemos = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -149,6 +157,8 @@ class DiaryEntry {
           : (photoStickers ?? this.photoStickers),
       photoTapes:
           clearPhotoTapes ? null : (photoTapes ?? this.photoTapes),
+      photoMemos:
+          clearPhotoMemos ? null : (photoMemos ?? this.photoMemos),
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
       syncStatus: syncStatus ?? this.syncStatus,

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../decorate/framed_photo.dart';
 import '../decorate/photo_frames.dart';
+import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
 import '../decorate/photo_tapes.dart';
 
@@ -18,6 +19,7 @@ class EntryGallery extends StatefulWidget {
     this.photoFrames = const [],
     this.photoStickers = const [],
     this.photoTapes = const [],
+    this.photoMemos = const [],
   });
 
   final List<String> mediaUrls;
@@ -30,6 +32,9 @@ class EntryGallery extends StatefulWidget {
 
   /// Per-photo washi-tape ids, index-aligned with [mediaUrls] (see photo_tapes.dart).
   final List<String?> photoTapes;
+
+  /// Per-photo memo captions, index-aligned with [mediaUrls] (see photo_memos.dart).
+  final List<String?> photoMemos;
 
   @override
   State<EntryGallery> createState() => _EntryGalleryState();
@@ -63,6 +68,7 @@ class _EntryGalleryState extends State<EntryGallery> {
                 frameId: frameAt(widget.photoFrames, i),
                 stickerEmoji: stickerAt(widget.photoStickers, i),
                 tapeId: tapeAt(widget.photoTapes, i),
+                memoText: memoAt(widget.photoMemos, i),
                 iconSize: 40,
               ),
             ),
