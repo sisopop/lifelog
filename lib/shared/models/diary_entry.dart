@@ -23,6 +23,7 @@ class DiaryEntry {
     this.tags = const [],
     this.pageCanvas,
     this.flowPhotos,
+    this.photoFrames,
     this.isFavorite = false,
     this.deletedAt,
     this.syncStatus = SyncStatus.synced,
@@ -63,6 +64,11 @@ class DiaryEntry {
   /// 배열 문자열. null이면 끼운 사진 없음. 본문 [content]는 그대로 유지된다.
   final String? flowPhotos;
 
+  /// Per-photo decorative frame ids, JSON array index-aligned with
+  /// [mediaUrls] (a `null` entry, or an index past the end, means no
+  /// frame for that photo). null이면 프레임을 고른 사진이 하나도 없음(종전과 동일).
+  final String? photoFrames;
+
   /// User-starred record (즐겨찾기). Independent of journal/sync.
   final bool isFavorite;
 
@@ -89,6 +95,7 @@ class DiaryEntry {
     List<String>? tags,
     String? pageCanvas,
     String? flowPhotos,
+    String? photoFrames,
     bool? isFavorite,
     DateTime? deletedAt,
     SyncStatus? syncStatus,
@@ -97,6 +104,7 @@ class DiaryEntry {
     bool clearDeletedAt = false,
     bool clearPageCanvas = false,
     bool clearFlowPhotos = false,
+    bool clearPhotoFrames = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -118,6 +126,8 @@ class DiaryEntry {
       tags: tags ?? this.tags,
       pageCanvas: clearPageCanvas ? null : (pageCanvas ?? this.pageCanvas),
       flowPhotos: clearFlowPhotos ? null : (flowPhotos ?? this.flowPhotos),
+      photoFrames:
+          clearPhotoFrames ? null : (photoFrames ?? this.photoFrames),
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
       syncStatus: syncStatus ?? this.syncStatus,

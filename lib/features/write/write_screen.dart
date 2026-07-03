@@ -6,10 +6,13 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../decorate/content_flow.dart';
+import '../decorate/frame_picker_sheet.dart';
+import '../decorate/framed_photo.dart';
 import '../decorate/inline_photo_editor.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import '../decorate/page_deco_playground.dart';
+import '../decorate/photo_frames.dart';
 import 'emoji_picker.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
@@ -36,6 +39,7 @@ import '../journals/turn_provider.dart';
 
 part 'write_widgets.dart';
 part 'write_deco_tile.dart';
+part 'write_photo_row.dart';
 
 class WriteScreen extends ConsumerStatefulWidget {
   const WriteScreen({
@@ -74,6 +78,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   Weather? _weather;
   String? _location;
   final List<String> _photoPaths = [];
+  final List<String?> _photoFrames = [];
   List<String> _tags = [];
 
   /// 내지 꾸미기 캔버스 JSON(null=꾸미기 없음).
@@ -122,6 +127,9 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         _photoPaths
           ..clear()
           ..addAll(entry.mediaUrls);
+        _photoFrames
+          ..clear()
+          ..addAll(decodePhotoFrames(entry.photoFrames));
         _tags
           ..clear()
           ..addAll(entry.tags);
@@ -236,6 +244,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     }
     final now = DateTime.now();
     final notifier = ref.read(entriesProvider.notifier);
+    final frames = encodePhotoFrames(_photoFrames);
     if (_isEditing && _editing != null) {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
@@ -254,6 +263,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           clearPageCanvas: _pageCanvas == null,
           flowPhotos: _flowPhotos,
           clearFlowPhotos: _flowPhotos == null,
+          photoFrames: frames,
+          clearPhotoFrames: frames == null,
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -275,6 +286,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           tags: tidyTags(_tags),
           pageCanvas: _pageCanvas,
           flowPhotos: _flowPhotos,
+          photoFrames: frames,
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
@@ -405,33 +417,17 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           ],
           if (_photoPaths.isNotEmpty) ...[
             const SizedBox(height: 16),
-            SizedBox(
-              height: 84,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _photoPaths.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) => Stack(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: PhotoView(_photoPaths[i], width: 84, height: 84),
-                    ),
-                    Positioned(
-                      right: 2,
-                      top: 2,
-                      child: GestureDetector(
-                        onTap: () => setState(() => _photoPaths.removeAt(i)),
-                        child: const CircleAvatar(
-                          radius: 11,
-                          backgroundColor: Colors.black54,
-                          child: Icon(Icons.close, size: 14, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            _PhotoThumbnailsRow(
+              photoPaths: _photoPaths,
+              photoFrames: _photoFrames,
+              onRemove: (i) => setState(() {
+                _photoPaths.removeAt(i);
+                if (i < _photoFrames.length) _photoFrames.removeAt(i);
+              }),
+              onFramePicked: (i, frameId) => setState(() {
+                final next = withFrameAt(_photoFrames, i, frameId);
+                _photoFrames..clear()..addAll(next);
+              }),
             ),
           ],
           _EntryTags(

@@ -111,6 +111,9 @@ class DiaryEntries extends Table {
   // 본문 흐름에 끼운 인라인 사진들(글을 위/아래로 나누는 전체폭 블록)의 JSON 배열.
   // null = 끼운 사진 없음. 자유 캔버스(pageCanvas)와 별개이며 content는 그대로 유지.
   TextColumn get flowPhotos => text().nullable()();
+  // 사진별 프레임 — mediaUrls와 index로 정렬된 JSON 배열(각 원소는 프레임 id 또는 null).
+  // null = 프레임을 고른 사진이 하나도 없음(종전과 동일).
+  TextColumn get photoFrames => text().nullable()();
   // 즐겨찾기. Default lets the v3→v4 migration backfill existing rows.
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   // 휴지통: non-null = soft-deleted (kept 30 days, hidden from normal lists).
@@ -137,7 +140,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -231,6 +234,11 @@ class AppDatabase extends _$AppDatabase {
             // 날씨(수동 선택) — existing entries default to null (미기록).
             await m.addColumn(diaryEntries, diaryEntries.weather);
           }
+          if (from < 22) {
+            // 사진별 프레임 JSON — existing entries default to null
+            // (프레임을 고른 사진 없음, 종전과 동일).
+            await m.addColumn(diaryEntries, diaryEntries.photoFrames);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -297,6 +305,7 @@ class AppDatabase extends _$AppDatabase {
       'page_canvas': diaryEntries.pageCanvas,
       'flow_photos': diaryEntries.flowPhotos,
       'weather': diaryEntries.weather,
+      'photo_frames': diaryEntries.photoFrames,
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {

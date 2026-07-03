@@ -14,6 +14,7 @@ import '../decorate/content_flow.dart';
 import '../decorate/content_flow_view.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
+import '../decorate/photo_frames.dart';
 import 'entry_gallery.dart';
 import '../journals/journals_provider.dart';
 import 'entry_clipboard.dart';
@@ -27,6 +28,7 @@ import '../journals/members_provider.dart';
 import '../journals/members_repository.dart';
 import '../settings/reading_text_scale.dart';
 import 'entry_neighbors.dart';
+import 'reply_bubble.dart';
 
 class EntryDetailScreen extends ConsumerStatefulWidget {
   const EntryDetailScreen({super.key, required this.entryId});
@@ -112,7 +114,10 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   _header(context, entry, date, authorName),
                 const SizedBox(height: 20),
                 if (entry.mediaUrls.isNotEmpty) ...[
-                  EntryGallery(entry.mediaUrls),
+                  EntryGallery(
+                    entry.mediaUrls,
+                    photoFrames: decodePhotoFrames(entry.photoFrames),
+                  ),
                   const SizedBox(height: 20),
                 ],
                 if (entry.pageCanvas != null) ...[
@@ -183,7 +188,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                         style: TextStyle(color: AppColors.textHint)),
                   )
                 else
-                  ...replies.map((r) => _ReplyBubble(
+                  ...replies.map((r) => ReplyBubble(
                         reply: r,
                         locale: locale,
                         journalId: entry.journalId,
@@ -443,65 +448,3 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
   }
 }
 
-class _ReplyBubble extends ConsumerWidget {
-  const _ReplyBubble({
-    required this.reply,
-    required this.locale,
-    required this.journalId,
-  });
-  final DiaryEntry reply;
-  final String locale;
-  final String journalId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final time = DateFormat.MMMd(locale).add_jm().format(reply.createdAt);
-    final members =
-        ref.watch(journalMembersProvider(journalId)).asData?.value ??
-            const <JournalMember>[];
-    final author =
-        members.where((m) => m.userId == reply.userId).firstOrNull;
-    final name = author == null
-        ? (reply.userId == MembersRepository.meUserId ? '나' : '참여자')
-        : (author.isMe ? '나' : author.displayName);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 11,
-                backgroundColor: AppColors.primarySoft,
-                child: Text(
-                  name.characters.first,
-                  style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.primaryDark,
-                      fontWeight: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(name,
-                  style: const TextStyle(
-                      fontSize: 13, fontWeight: FontWeight.w700)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(reply.content, style: const TextStyle(fontSize: 15, height: 1.4)),
-          const SizedBox(height: 6),
-          Text(time,
-              style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
-        ],
-      ),
-    );
-  }
-}

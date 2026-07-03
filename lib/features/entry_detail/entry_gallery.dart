@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../shared/widgets/photo.dart';
+import '../decorate/framed_photo.dart';
+import '../decorate/photo_frames.dart';
 
 /// Full-width photo carousel for an entry's attached photos (read-only),
 /// Instagram-style: one photo fills the width at a time, swipe sideways to
@@ -9,9 +10,12 @@ import '../../shared/widgets/photo.dart';
 /// there's more than one photo. Extracted from EntryDetailScreen to keep
 /// that file under the size limit.
 class EntryGallery extends StatefulWidget {
-  const EntryGallery(this.mediaUrls, {super.key});
+  const EntryGallery(this.mediaUrls, {super.key, this.photoFrames = const []});
 
   final List<String> mediaUrls;
+
+  /// Per-photo frame ids, index-aligned with [mediaUrls] (see photo_frames.dart).
+  final List<String?> photoFrames;
 
   @override
   State<EntryGallery> createState() => _EntryGalleryState();
@@ -40,7 +44,11 @@ class _EntryGalleryState extends State<EntryGallery> {
               controller: _controller,
               itemCount: photos.length,
               onPageChanged: (i) => setState(() => _page = i),
-              itemBuilder: (_, i) => PhotoView(photos[i], iconSize: 40),
+              itemBuilder: (_, i) => FramedPhoto(
+                photos[i],
+                frameId: frameAt(widget.photoFrames, i),
+                iconSize: 40,
+              ),
             ),
           ),
         ),
