@@ -269,4 +269,32 @@ void main() {
       expect(normalizeLocation('   '), isNull);
     });
   });
+
+  group('splitPlaceInput', () {
+    test('single place → location only, no extras', () {
+      final r = splitPlaceInput('제주 바닷가');
+      expect(r.location, '제주 바닷가');
+      expect(r.extraPlaces, isEmpty);
+    });
+
+    test('first is location, rest become extra places (tags)', () {
+      final r = splitPlaceInput('제주 바닷가, 동네 카페 · 서점');
+      expect(r.location, '제주 바닷가');
+      expect(r.extraPlaces, ['동네 카페', '서점']);
+    });
+
+    test('trims parts, drops blanks, dedups case-insensitively', () {
+      final r = splitPlaceInput('  Cafe , , 카페, cafe, 서점 ');
+      expect(r.location, 'Cafe');
+      // 'cafe' collapses into 'Cafe' (first spelling kept); '카페'/'서점' remain.
+      expect(r.extraPlaces, ['카페', '서점']);
+    });
+
+    test('null / blank input clears (null location, no extras)', () {
+      expect(splitPlaceInput(null).location, isNull);
+      expect(splitPlaceInput('').location, isNull);
+      expect(splitPlaceInput('  ,  · ').location, isNull);
+      expect(splitPlaceInput('  ,  · ').extraPlaces, isEmpty);
+    });
+  });
 }

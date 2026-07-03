@@ -196,6 +196,27 @@ String? normalizeLocation(String? raw) {
   return cleaned.isEmpty ? null : cleaned;
 }
 
+/// Splits a multi-place input like "제주 바닷가, 카페 · 서점" into a representative
+/// location (the first usable part) and the rest as extra places to file under
+/// tags (approach B: 대표 장소 1개 + 나머지는 태그). Splits on comma (`,`/`，`)
+/// and the middle dot (`·`); each part is cleaned via [normalizeLocation], blanks
+/// are dropped, and case-insensitive duplicates are removed (keeping the first
+/// spelling). When nothing usable remains, location is null and extraPlaces is
+/// empty (so a blank input still clears the place). Pure & top-level so it is
+/// unit-testable.
+({String? location, List<String> extraPlaces}) splitPlaceInput(String? raw) {
+  if (raw == null) return (location: null, extraPlaces: const []);
+  final seen = <String>{};
+  final cleaned = <String>[];
+  for (final part in raw.split(RegExp(r'[,，·]'))) {
+    final n = normalizeLocation(part);
+    if (n == null) continue;
+    if (seen.add(n.toLowerCase())) cleaned.add(n);
+  }
+  if (cleaned.isEmpty) return (location: null, extraPlaces: const []);
+  return (location: cleaned.first, extraPlaces: cleaned.sublist(1));
+}
+
 /// Past place names to offer as one-tap chips in the location dialog, ranked by
 /// use (see [availableLocations]). Drops the entry's current place (trimmed)
 /// and caps the list. Pure & top-level so it is unit-testable.

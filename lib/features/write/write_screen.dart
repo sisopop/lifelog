@@ -193,7 +193,14 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
       current: _location,
     );
     if (result == null) return; // dismissed
-    setState(() => _location = normalizeLocation(result));
+    // 여러 곳을 쉼표로 넣으면 대표 장소 1개만 location, 나머지는 태그로 저장(approach B).
+    final split = splitPlaceInput(result);
+    setState(() {
+      _location = split.location;
+      for (final place in split.extraPlaces) {
+        _tags = withTagAdded(_tags, place);
+      }
+    });
   }
 
   /// Opens the canvas editor; "완료" returns the edited canvas (null = clear).

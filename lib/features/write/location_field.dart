@@ -17,7 +17,8 @@ Future<String?> showLocationDialog({
     context: context,
     builder: (ctx) => AlertDialog(
       title: const Text('위치'),
-      content: Column(
+      content: SingleChildScrollView(
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -27,6 +28,9 @@ Future<String?> showLocationDialog({
             decoration: const InputDecoration(hintText: '예: 제주 바닷가, 동네 카페'),
             onSubmitted: (v) => Navigator.pop(ctx, v),
           ),
+          const SizedBox(height: 6),
+          const Text('여러 곳은 쉼표로 구분하면 첫 곳만 대표 장소로, 나머지는 태그로 저장돼요.',
+              style: TextStyle(fontSize: 11, color: Colors.grey)),
           if (suggestions.isNotEmpty) ...[
             const SizedBox(height: 12),
             Wrap(
@@ -43,6 +47,7 @@ Future<String?> showLocationDialog({
             ),
           ],
         ],
+      ),
       ),
       actions: [
         TextButton(
