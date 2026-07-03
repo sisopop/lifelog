@@ -30,6 +30,10 @@ class MoodEntriesScreen extends ConsumerWidget {
     final places = placesWithMood(all, mood, limit: 4);
     final avgChars = averageCharsWithMood(all, mood);
     final favorites = favoriteCountWithMood(all, mood);
+    final journalNames = journalIdsWithMood(all, mood)
+        .map((id) => journalMap[id]?.title)
+        .whereType<String>()
+        .toList();
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -96,6 +100,12 @@ class MoodEntriesScreen extends ConsumerWidget {
                         if (favorites > 0) ...[
                           const SizedBox(height: 4),
                           Text('⭐ 즐겨찾기 $favorites개',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (journalNames.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('📓 ${journalNames.take(4).join(' · ')}',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

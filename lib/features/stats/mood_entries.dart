@@ -136,6 +136,19 @@ int favoriteCountWithMood(List<DiaryEntry> entries, Mood mood) {
   return n;
 }
 
+/// The distinct journal ids among top-level records carrying [mood] (replies
+/// excluded), in first-seen order of [entries]. Empty when the mood has no
+/// top-level records. Lets the mood view show which journals a feeling spans.
+List<String> journalIdsWithMood(List<DiaryEntry> entries, Mood mood) {
+  final seen = <String>{};
+  final result = <String>[];
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    if (seen.add(e.journalId)) result.add(e.journalId);
+  }
+  return result;
+}
+
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are
 /// excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {

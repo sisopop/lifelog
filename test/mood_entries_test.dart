@@ -13,12 +13,13 @@ DiaryEntry _entry(
   String? location,
   String? content,
   bool favorite = false,
+  String journal = 'jr_default',
 }) {
   final ts = created ?? DateTime(2026, 6, 1);
   return DiaryEntry(
     entryId: id,
     userId: 'me',
-    journalId: 'jr_default',
+    journalId: journal,
     replyToEntryId: replyTo,
     content: content ?? id,
     mood: mood,
@@ -291,6 +292,32 @@ void main() {
           favoriteCountWithMood(
               [_entry('a', mood: Mood.hard, favorite: true)], Mood.good),
           0);
+    });
+  });
+
+  group('journalIdsWithMood', () {
+    test('distinct journals in first-seen order, replies & other moods excluded',
+        () {
+      final r = journalIdsWithMood([
+        _entry('a', mood: Mood.good, journal: 'j1'),
+        _entry('b', mood: Mood.good, journal: 'j2'),
+        _entry('c', mood: Mood.good, journal: 'j1'), // dup
+        _entry('r', mood: Mood.good, journal: 'j3', replyTo: 'a'), // reply
+        _entry('h', mood: Mood.hard, journal: 'j4'), // other mood
+      ], Mood.good);
+      expect(r, ['j1', 'j2']);
+    });
+
+    test('empty when the mood has no top-level records', () {
+      expect(journalIdsWithMood(const [], Mood.good), isEmpty);
+      expect(
+          journalIdsWithMood([_entry('a', mood: Mood.hard)], Mood.good),
+          isEmpty);
+      expect(
+        journalIdsWithMood([_entry('r', mood: Mood.good, replyTo: 'x')],
+            Mood.good),
+        isEmpty,
+      );
     });
   });
 }
