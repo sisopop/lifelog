@@ -161,6 +161,17 @@ List<String> placesOfDay(List<DiaryEntry> entries) {
   return places;
 }
 
+/// Pure: how many of [entries] are marked favorite (a day's already-filtered
+/// records). 0 when none are starred. Lets the day view highlight how many of
+/// the day's records were kept as favorites.
+int favoriteCountOfDay(List<DiaryEntry> entries) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.isFavorite) n++;
+  }
+  return n;
+}
+
 /// Pure: the mood that appears most across [entries], or null when none carry
 /// a mood. Ties resolve to the earlier mood in [Mood.values] order. Operates
 /// on whatever list is passed (caller decides whether replies are included).

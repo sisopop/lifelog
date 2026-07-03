@@ -92,6 +92,7 @@ class DayEntriesScreen extends ConsumerWidget {
                   ].join(' · ');
                   final tags = tagsOfDay(entries);
                   final places = placesOfDay(entries);
+                  final favorites = favoriteCountOfDay(entries);
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Column(
@@ -110,6 +111,12 @@ class DayEntriesScreen extends ConsumerWidget {
                         if (tags.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text('🏷 ${tags.take(6).map((t) => '#$t').join(' ')}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (favorites > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('⭐ 즐겨찾기 $favorites개',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

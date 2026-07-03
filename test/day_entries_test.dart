@@ -12,6 +12,7 @@ DiaryEntry _e({
   String content = 'x',
   List<String> tags = const [],
   String? place,
+  bool favorite = false,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -23,6 +24,7 @@ DiaryEntry _e({
       mood: mood,
       tags: tags,
       location: place,
+      isFavorite: favorite,
       createdAt: at,
       updatedAt: at,
     );
@@ -274,6 +276,23 @@ void main() {
 
     test('empty list is 0', () {
       expect(totalContentChars(const []), 0);
+    });
+  });
+
+  group('favoriteCountOfDay', () {
+    test('counts the favorited records', () {
+      final n = favoriteCountOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), favorite: true),
+        _e(id: '2', at: DateTime(2026, 6, 1)), // not favorite
+        _e(id: '3', at: DateTime(2026, 6, 1), favorite: true),
+      ]);
+      expect(n, 2);
+    });
+
+    test('zero when none are favorited or list is empty', () {
+      expect(
+          favoriteCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
+      expect(favoriteCountOfDay(const []), 0);
     });
   });
 }
