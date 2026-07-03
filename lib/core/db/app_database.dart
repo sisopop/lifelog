@@ -99,6 +99,8 @@ class DiaryEntries extends Table {
   TextColumn get aiSummary => text().nullable()();
   TextColumn get aiStatus => textEnum<AiStatus>()();
   TextColumn get mood => textEnum<Mood>().nullable()();
+  // 날씨(수동 선택). null = 미기록.
+  TextColumn get weather => textEnum<Weather>().nullable()();
   TextColumn get visibility => textEnum<EntryVisibility>()();
   TextColumn get location => text().nullable()();
   TextColumn get tags => text().map(const StringListConverter())();
@@ -135,7 +137,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -225,6 +227,10 @@ class AppDatabase extends _$AppDatabase {
             // (끼운 사진 없는 기록 그대로).
             await m.addColumn(diaryEntries, diaryEntries.flowPhotos);
           }
+          if (from < 21) {
+            // 날씨(수동 선택) — existing entries default to null (미기록).
+            await m.addColumn(diaryEntries, diaryEntries.weather);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -290,6 +296,7 @@ class AppDatabase extends _$AppDatabase {
       'deleted_at': diaryEntries.deletedAt,
       'page_canvas': diaryEntries.pageCanvas,
       'flow_photos': diaryEntries.flowPhotos,
+      'weather': diaryEntries.weather,
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {

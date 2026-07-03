@@ -165,6 +165,7 @@ Map<String, dynamic> _entryToJson(DiaryEntry e) => {
       if (e.aiSummary != null) 'aiSummary': e.aiSummary,
       'aiStatus': e.aiStatus.name,
       if (e.mood != null) 'mood': e.mood!.name,
+      if (e.weather != null) 'weather': e.weather!.name,
       'visibility': e.visibility.name,
       if (e.location != null) 'location': e.location,
       'createdAt': e.createdAt.toIso8601String(),
@@ -216,6 +217,7 @@ DiaryEntry _entryFromJson(Map<String, dynamic> m) {
     aiSummary: m['aiSummary'] as String?,
     aiStatus: _enumOr(AiStatus.values, m['aiStatus'], AiStatus.none),
     mood: _enumOrNull(Mood.values, m['mood']),
+    weather: _enumOrNull(Weather.values, m['weather']),
     visibility:
         _enumOr(EntryVisibility.values, m['visibility'], EntryVisibility.private),
     location: m['location'] as String?,

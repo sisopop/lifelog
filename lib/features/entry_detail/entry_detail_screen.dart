@@ -368,6 +368,13 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                 ),
               ),
             ],
+            if (entry.weather != null) ...[
+              const Text(' · ',
+                  style: TextStyle(color: AppColors.textHint, fontSize: 13)),
+              Text('${entry.weather!.emoji} ${entry.weather!.label}',
+                  style: const TextStyle(
+                      color: AppColors.textHint, fontSize: 13)),
+            ],
           ],
         ),
       ],

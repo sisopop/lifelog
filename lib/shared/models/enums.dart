@@ -16,6 +16,28 @@ enum Mood {
 Mood? toggledMood(Mood? current, Mood tapped) =>
     current == tapped ? null : tapped;
 
+/// Weather at the time of a diary entry. Manually chosen by the writer
+/// (no auto-fetch), so a past day's weather can always be recorded.
+enum Weather {
+  sunny('맑음', '☀️'),
+  cloudy('구름', '⛅'),
+  overcast('흐림', '☁️'),
+  rainy('비', '🌧️'),
+  snowy('눈', '❄️'),
+  windy('바람', '💨');
+
+  const Weather(this.label, this.emoji);
+  final String label;
+  final String emoji;
+}
+
+/// Result of tapping a weather chip: tapping the already-selected weather
+/// clears it (returns null), tapping a different one selects it. Mirrors
+/// [toggledMood] so the writer can undo a mis-tapped weather. Pure & top-level
+/// so it is unit-testable; the write screen assigns the result to its field.
+Weather? toggledWeather(Weather? current, Weather tapped) =>
+    current == tapped ? null : tapped;
+
 /// Sharing scope. MVP supports private / link / public.
 /// Named `EntryVisibility` to avoid clashing with Flutter's `Visibility` widget.
 enum EntryVisibility {

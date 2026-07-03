@@ -12,7 +12,6 @@ import '../decorate/page_deco_playground.dart';
 import 'emoji_picker.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
-import '../../shared/widgets/mood_chip.dart';
 import '../../shared/widgets/photo.dart';
 import '../../shared/models/journal.dart';
 import '../entries/entries_provider.dart';
@@ -25,8 +24,10 @@ import 'draft_guard.dart';
 import 'journal_picker_sheet.dart';
 import 'entry_date.dart';
 import 'location_field.dart';
+import 'mood_field.dart';
 import 'tag_input_sheet.dart';
 import 'text_stats.dart';
+import 'weather_field.dart';
 import 'writing_prompt_card.dart';
 import 'writing_prompts.dart';
 import '../journals/journals_provider.dart';
@@ -69,6 +70,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
   final _contentCtrl = TextEditingController();
   final _picker = ImagePicker();
   Mood? _mood;
+  Weather? _weather;
   String? _location;
   final List<String> _photoPaths = [];
   List<String> _tags = [];
@@ -114,6 +116,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         _titleCtrl.text = entry.title ?? '';
         _contentCtrl.text = entry.content;
         _mood = entry.mood;
+        _weather = entry.weather;
         _location = entry.location;
         _photoPaths
           ..clear()
@@ -232,6 +235,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           title: tidyEntryTitle(_titleCtrl.text),
           content: tidyEntryContent(_contentCtrl.text),
           mood: _mood,
+          weather: _weather,
+          clearWeather: _weather == null,
           visibility: visibility,
           // '' (not null) so clearing the place persists (copyWith ignores null).
           location: _location ?? '',
@@ -254,6 +259,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           title: tidyEntryTitle(_titleCtrl.text),
           content: tidyEntryContent(_contentCtrl.text),
           mood: _mood,
+          weather: _weather,
           visibility: visibility,
           location: _location,
           aiStatus: AiStatus.pending, // summary generated async (see TECH_DESIGN.md)
@@ -341,31 +347,16 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           DateField(date: _date, onTap: _pickDate),
           if (!_isEditing) _SameDayCount(journalId: jid, date: _date),
           const SizedBox(height: 8),
-          const Text('오늘의 감정', style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-          const SizedBox(height: 10),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: Mood.values
-                  .map((m) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: MoodChip(m,
-                            selected: _mood == m,
-                            onTap: () =>
-                                setState(() => _mood = toggledMood(_mood, m))),
-                      ))
-                  .toList(),
-            ),
+          MoodField(
+            value: _mood,
+            contentText: _contentCtrl.text,
+            onChanged: (m) => setState(() => _mood = m),
           ),
-          Builder(builder: (_) {
-            final nudge = moodReminder(_contentCtrl.text, _mood != null);
-            if (nudge == null) return const SizedBox.shrink();
-            return Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(nudge,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
-            );
-          }),
+          const SizedBox(height: 16),
+          WeatherField(
+            value: _weather,
+            onChanged: (w) => setState(() => _weather = w),
+          ),
           const SizedBox(height: 20),
           TextField(
             controller: _contentCtrl,

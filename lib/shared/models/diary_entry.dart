@@ -14,6 +14,7 @@ class DiaryEntry {
     this.aiSummary,
     this.aiStatus = AiStatus.none,
     this.mood,
+    this.weather,
     this.visibility = EntryVisibility.private,
     this.location,
     required this.createdAt,
@@ -44,6 +45,9 @@ class DiaryEntry {
   final String? aiSummary;
   final AiStatus aiStatus;
   final Mood? mood;
+
+  /// Weather recorded for this entry (manually chosen). null = 미기록.
+  final Weather? weather;
   final EntryVisibility visibility;
   final String? location;
   final DateTime createdAt;
@@ -76,6 +80,7 @@ class DiaryEntry {
     String? aiSummary,
     AiStatus? aiStatus,
     Mood? mood,
+    Weather? weather,
     EntryVisibility? visibility,
     String? location,
     DateTime? createdAt,
@@ -88,6 +93,7 @@ class DiaryEntry {
     DateTime? deletedAt,
     SyncStatus? syncStatus,
     bool clearMood = false,
+    bool clearWeather = false,
     bool clearDeletedAt = false,
     bool clearPageCanvas = false,
     bool clearFlowPhotos = false,
@@ -103,6 +109,7 @@ class DiaryEntry {
       aiSummary: aiSummary ?? this.aiSummary,
       aiStatus: aiStatus ?? this.aiStatus,
       mood: clearMood ? null : (mood ?? this.mood),
+      weather: clearWeather ? null : (weather ?? this.weather),
       visibility: visibility ?? this.visibility,
       location: location ?? this.location,
       createdAt: createdAt ?? this.createdAt,

@@ -33,6 +33,7 @@ DiaryEntry _entry({
   String? title,
   String? replyTo,
   Mood? mood,
+  Weather? weather,
   String? location,
   String? aiSummary,
   EntryVisibility visibility = EntryVisibility.private,
@@ -54,6 +55,7 @@ DiaryEntry _entry({
       aiSummary: aiSummary,
       aiStatus: aiSummary != null ? AiStatus.done : AiStatus.none,
       mood: mood,
+      weather: weather,
       visibility: visibility,
       location: location,
       createdAt: at ?? DateTime(2026, 6, 13, 14, 30),
@@ -90,6 +92,7 @@ void main() {
         _entry(
           title: '제목 있음',
           mood: Mood.good,
+          weather: Weather.rainy,
           location: '제주도',
           aiSummary: '요약문',
           visibility: EntryVisibility.link,
@@ -118,6 +121,7 @@ void main() {
       final e = data.entries.first;
       expect(e.title, '제목 있음');
       expect(e.mood, Mood.good);
+      expect(e.weather, Weather.rainy);
       expect(e.location, '제주도');
       expect(e.aiSummary, '요약문');
       expect(e.visibility, EntryVisibility.link);
@@ -153,6 +157,7 @@ void main() {
       final e = data.entries.first;
       expect(e.title, isNull);
       expect(e.mood, isNull);
+      expect(e.weather, isNull);
       expect(e.location, isNull);
       expect(e.aiSummary, isNull);
       expect(e.replyToEntryId, isNull);

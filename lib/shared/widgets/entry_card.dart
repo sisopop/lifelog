@@ -160,6 +160,11 @@ class EntryCard extends StatelessWidget {
                               fontSize: 12, color: AppColors.textHint)),
                     ),
                   ],
+                  if (entry.weather != null) ...[
+                    const SizedBox(width: 8),
+                    Text(entry.weather!.emoji,
+                        style: const TextStyle(fontSize: 12)),
+                  ],
                   const Spacer(),
                   if (replyCount > 0) ...[
                     const Icon(Icons.subdirectory_arrow_right,

@@ -112,6 +112,15 @@ class $DiaryEntriesTable extends DiaryEntries
         requiredDuringInsert: false,
       ).withConverter<Mood?>($DiaryEntriesTable.$convertermoodn);
   @override
+  late final GeneratedColumnWithTypeConverter<Weather?, String> weather =
+      GeneratedColumn<String>(
+        'weather',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<Weather?>($DiaryEntriesTable.$converterweathern);
+  @override
   late final GeneratedColumnWithTypeConverter<EntryVisibility, String>
   visibility = GeneratedColumn<String>(
     'visibility',
@@ -240,6 +249,7 @@ class $DiaryEntriesTable extends DiaryEntries
     aiSummary,
     aiStatus,
     mood,
+    weather,
     visibility,
     location,
     tags,
@@ -420,6 +430,12 @@ class $DiaryEntriesTable extends DiaryEntries
           data['${effectivePrefix}mood'],
         ),
       ),
+      weather: $DiaryEntriesTable.$converterweathern.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}weather'],
+        ),
+      ),
       visibility: $DiaryEntriesTable.$convertervisibility.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -486,6 +502,10 @@ class $DiaryEntriesTable extends DiaryEntries
       const EnumNameConverter<Mood>(Mood.values);
   static JsonTypeConverter2<Mood?, String?, String?> $convertermoodn =
       JsonTypeConverter2.asNullable($convertermood);
+  static JsonTypeConverter2<Weather, String, String> $converterweather =
+      const EnumNameConverter<Weather>(Weather.values);
+  static JsonTypeConverter2<Weather?, String?, String?> $converterweathern =
+      JsonTypeConverter2.asNullable($converterweather);
   static JsonTypeConverter2<EntryVisibility, String, String>
   $convertervisibility = const EnumNameConverter<EntryVisibility>(
     EntryVisibility.values,
@@ -509,6 +529,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
   final String? aiSummary;
   final AiStatus aiStatus;
   final Mood? mood;
+  final Weather? weather;
   final EntryVisibility visibility;
   final String? location;
   final List<String> tags;
@@ -531,6 +552,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     this.aiSummary,
     required this.aiStatus,
     this.mood,
+    this.weather,
     required this.visibility,
     this.location,
     required this.tags,
@@ -568,6 +590,11 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     if (!nullToAbsent || mood != null) {
       map['mood'] = Variable<String>(
         $DiaryEntriesTable.$convertermoodn.toSql(mood),
+      );
+    }
+    if (!nullToAbsent || weather != null) {
+      map['weather'] = Variable<String>(
+        $DiaryEntriesTable.$converterweathern.toSql(weather),
       );
     }
     {
@@ -626,6 +653,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           : Value(aiSummary),
       aiStatus: Value(aiStatus),
       mood: mood == null && nullToAbsent ? const Value.absent() : Value(mood),
+      weather: weather == null && nullToAbsent
+          ? const Value.absent()
+          : Value(weather),
       visibility: Value(visibility),
       location: location == null && nullToAbsent
           ? const Value.absent()
@@ -668,6 +698,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       mood: $DiaryEntriesTable.$convertermoodn.fromJson(
         serializer.fromJson<String?>(json['mood']),
       ),
+      weather: $DiaryEntriesTable.$converterweathern.fromJson(
+        serializer.fromJson<String?>(json['weather']),
+      ),
       visibility: $DiaryEntriesTable.$convertervisibility.fromJson(
         serializer.fromJson<String>(json['visibility']),
       ),
@@ -703,6 +736,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       'mood': serializer.toJson<String?>(
         $DiaryEntriesTable.$convertermoodn.toJson(mood),
       ),
+      'weather': serializer.toJson<String?>(
+        $DiaryEntriesTable.$converterweathern.toJson(weather),
+      ),
       'visibility': serializer.toJson<String>(
         $DiaryEntriesTable.$convertervisibility.toJson(visibility),
       ),
@@ -732,6 +768,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     Value<String?> aiSummary = const Value.absent(),
     AiStatus? aiStatus,
     Value<Mood?> mood = const Value.absent(),
+    Value<Weather?> weather = const Value.absent(),
     EntryVisibility? visibility,
     Value<String?> location = const Value.absent(),
     List<String>? tags,
@@ -756,6 +793,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     aiSummary: aiSummary.present ? aiSummary.value : this.aiSummary,
     aiStatus: aiStatus ?? this.aiStatus,
     mood: mood.present ? mood.value : this.mood,
+    weather: weather.present ? weather.value : this.weather,
     visibility: visibility ?? this.visibility,
     location: location.present ? location.value : this.location,
     tags: tags ?? this.tags,
@@ -782,6 +820,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       aiSummary: data.aiSummary.present ? data.aiSummary.value : this.aiSummary,
       aiStatus: data.aiStatus.present ? data.aiStatus.value : this.aiStatus,
       mood: data.mood.present ? data.mood.value : this.mood,
+      weather: data.weather.present ? data.weather.value : this.weather,
       visibility: data.visibility.present
           ? data.visibility.value
           : this.visibility,
@@ -819,6 +858,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           ..write('aiSummary: $aiSummary, ')
           ..write('aiStatus: $aiStatus, ')
           ..write('mood: $mood, ')
+          ..write('weather: $weather, ')
           ..write('visibility: $visibility, ')
           ..write('location: $location, ')
           ..write('tags: $tags, ')
@@ -846,6 +886,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     aiSummary,
     aiStatus,
     mood,
+    weather,
     visibility,
     location,
     tags,
@@ -872,6 +913,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           other.aiSummary == this.aiSummary &&
           other.aiStatus == this.aiStatus &&
           other.mood == this.mood &&
+          other.weather == this.weather &&
           other.visibility == this.visibility &&
           other.location == this.location &&
           other.tags == this.tags &&
@@ -896,6 +938,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
   final Value<String?> aiSummary;
   final Value<AiStatus> aiStatus;
   final Value<Mood?> mood;
+  final Value<Weather?> weather;
   final Value<EntryVisibility> visibility;
   final Value<String?> location;
   final Value<List<String>> tags;
@@ -919,6 +962,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.aiSummary = const Value.absent(),
     this.aiStatus = const Value.absent(),
     this.mood = const Value.absent(),
+    this.weather = const Value.absent(),
     this.visibility = const Value.absent(),
     this.location = const Value.absent(),
     this.tags = const Value.absent(),
@@ -943,6 +987,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.aiSummary = const Value.absent(),
     required AiStatus aiStatus,
     this.mood = const Value.absent(),
+    this.weather = const Value.absent(),
     required EntryVisibility visibility,
     this.location = const Value.absent(),
     required List<String> tags,
@@ -976,6 +1021,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Expression<String>? aiSummary,
     Expression<String>? aiStatus,
     Expression<String>? mood,
+    Expression<String>? weather,
     Expression<String>? visibility,
     Expression<String>? location,
     Expression<String>? tags,
@@ -1000,6 +1046,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       if (aiSummary != null) 'ai_summary': aiSummary,
       if (aiStatus != null) 'ai_status': aiStatus,
       if (mood != null) 'mood': mood,
+      if (weather != null) 'weather': weather,
       if (visibility != null) 'visibility': visibility,
       if (location != null) 'location': location,
       if (tags != null) 'tags': tags,
@@ -1026,6 +1073,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Value<String?>? aiSummary,
     Value<AiStatus>? aiStatus,
     Value<Mood?>? mood,
+    Value<Weather?>? weather,
     Value<EntryVisibility>? visibility,
     Value<String?>? location,
     Value<List<String>>? tags,
@@ -1050,6 +1098,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       aiSummary: aiSummary ?? this.aiSummary,
       aiStatus: aiStatus ?? this.aiStatus,
       mood: mood ?? this.mood,
+      weather: weather ?? this.weather,
       visibility: visibility ?? this.visibility,
       location: location ?? this.location,
       tags: tags ?? this.tags,
@@ -1100,6 +1149,11 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     if (mood.present) {
       map['mood'] = Variable<String>(
         $DiaryEntriesTable.$convertermoodn.toSql(mood.value),
+      );
+    }
+    if (weather.present) {
+      map['weather'] = Variable<String>(
+        $DiaryEntriesTable.$converterweathern.toSql(weather.value),
       );
     }
     if (visibility.present) {
@@ -1162,6 +1216,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
           ..write('aiSummary: $aiSummary, ')
           ..write('aiStatus: $aiStatus, ')
           ..write('mood: $mood, ')
+          ..write('weather: $weather, ')
           ..write('visibility: $visibility, ')
           ..write('location: $location, ')
           ..write('tags: $tags, ')
@@ -2928,6 +2983,7 @@ typedef $$DiaryEntriesTableCreateCompanionBuilder =
       Value<String?> aiSummary,
       required AiStatus aiStatus,
       Value<Mood?> mood,
+      Value<Weather?> weather,
       required EntryVisibility visibility,
       Value<String?> location,
       required List<String> tags,
@@ -2953,6 +3009,7 @@ typedef $$DiaryEntriesTableUpdateCompanionBuilder =
       Value<String?> aiSummary,
       Value<AiStatus> aiStatus,
       Value<Mood?> mood,
+      Value<Weather?> weather,
       Value<EntryVisibility> visibility,
       Value<String?> location,
       Value<List<String>> tags,
@@ -3025,6 +3082,12 @@ class $$DiaryEntriesTableFilterComposer
   ColumnWithTypeConverterFilters<Mood?, Mood, String> get mood =>
       $composableBuilder(
         column: $table.mood,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<Weather?, Weather, String> get weather =>
+      $composableBuilder(
+        column: $table.weather,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
@@ -3147,6 +3210,11 @@ class $$DiaryEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get weather => $composableBuilder(
+    column: $table.weather,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get visibility => $composableBuilder(
     column: $table.visibility,
     builder: (column) => ColumnOrderings(column),
@@ -3244,6 +3312,9 @@ class $$DiaryEntriesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<Mood?, String> get mood =>
       $composableBuilder(column: $table.mood, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<Weather?, String> get weather =>
+      $composableBuilder(column: $table.weather, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<EntryVisibility, String> get visibility =>
       $composableBuilder(
         column: $table.visibility,
@@ -3331,6 +3402,7 @@ class $$DiaryEntriesTableTableManager
                 Value<String?> aiSummary = const Value.absent(),
                 Value<AiStatus> aiStatus = const Value.absent(),
                 Value<Mood?> mood = const Value.absent(),
+                Value<Weather?> weather = const Value.absent(),
                 Value<EntryVisibility> visibility = const Value.absent(),
                 Value<String?> location = const Value.absent(),
                 Value<List<String>> tags = const Value.absent(),
@@ -3354,6 +3426,7 @@ class $$DiaryEntriesTableTableManager
                 aiSummary: aiSummary,
                 aiStatus: aiStatus,
                 mood: mood,
+                weather: weather,
                 visibility: visibility,
                 location: location,
                 tags: tags,
@@ -3379,6 +3452,7 @@ class $$DiaryEntriesTableTableManager
                 Value<String?> aiSummary = const Value.absent(),
                 required AiStatus aiStatus,
                 Value<Mood?> mood = const Value.absent(),
+                Value<Weather?> weather = const Value.absent(),
                 required EntryVisibility visibility,
                 Value<String?> location = const Value.absent(),
                 required List<String> tags,
@@ -3402,6 +3476,7 @@ class $$DiaryEntriesTableTableManager
                 aiSummary: aiSummary,
                 aiStatus: aiStatus,
                 mood: mood,
+                weather: weather,
                 visibility: visibility,
                 location: location,
                 tags: tags,
