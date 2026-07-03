@@ -9,13 +9,14 @@ DiaryEntry _e({
   List<String> tags = const [],
   String? replyTo,
   Mood? mood,
+  String content = 'x',
 }) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
       journalId: 'j1',
       replyToEntryId: replyTo,
-      content: 'x',
+      content: content,
       tags: tags,
       mood: mood,
       createdAt: at,
@@ -138,6 +139,54 @@ void main() {
           tagMood([_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
           isNull);
       expect(tagMood(entries, '운동'), isNull);
+    });
+  });
+
+  group('averageCharsWithTag', () {
+    test('rounds the mean grapheme length, replies excluded', () {
+      final r = averageCharsWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], content: '가나다'), // 3
+        _e(
+            id: 'b',
+            at: DateTime(2026, 6, 2),
+            tags: ['여행'],
+            content: '  Diary😊  '), // trim → 6
+        _e(
+            id: 'r',
+            at: DateTime(2026, 6, 3),
+            tags: ['여행'],
+            content: '길다길다',
+            replyTo: 'a'), // reply
+        _e(
+            id: 'o',
+            at: DateTime(2026, 6, 4),
+            tags: ['일'],
+            content: '아주아주긴글'), // other tag
+      ], '여행');
+      expect(r, 5); // (3 + 6) / 2 = 4.5 → 5
+    });
+
+    test('single record yields its own length', () {
+      expect(
+        averageCharsWithTag(
+            [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], content: '안녕😊')],
+            '여행'),
+        3,
+      );
+    });
+
+    test('zero when the tag has no top-level records', () {
+      expect(averageCharsWithTag(const [], '여행'), 0);
+      expect(
+          averageCharsWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['일'])], '여행'),
+          0);
+      expect(
+        averageCharsWithTag([
+          _e(id: 'r', at: DateTime(2026, 6, 1), tags: ['여행'], replyTo: 'x'),
+        ], '여행'),
+        0,
+      );
     });
   });
 }

@@ -1,3 +1,5 @@
+import 'package:characters/characters.dart';
+
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 
@@ -74,4 +76,20 @@ Mood? tagMood(List<DiaryEntry> entries, String tag) {
     }
   }
   return best;
+}
+
+/// Average content length (grapheme count) across top-level records carrying
+/// [tag] (replies excluded), rounded to the nearest whole number. Returns 0
+/// when the tag has no top-level records. Lets the tag view hint how much
+/// tends to get written about that theme.
+int averageCharsWithTag(List<DiaryEntry> entries, String tag) {
+  var total = 0;
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (!e.tags.contains(tag)) continue;
+    total += e.content.trim().characters.length;
+    n++;
+  }
+  return n == 0 ? 0 : (total / n).round();
 }

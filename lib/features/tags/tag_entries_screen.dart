@@ -27,6 +27,7 @@ class TagEntriesScreen extends ConsumerWidget {
     final related = coOccurringTags(all, tag);
     final span = tagDateSpan(all, tag);
     final mood = tagMood(all, tag);
+    final avgChars = averageCharsWithTag(all, tag);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -66,6 +67,12 @@ class TagEntriesScreen extends ConsumerWidget {
                         if (mood != null) ...[
                           const SizedBox(height: 4),
                           Text('${mood.emoji} 이 태그엔 주로 ${mood.label}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (avgChars > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('✍️ 평균 $avgChars자',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
