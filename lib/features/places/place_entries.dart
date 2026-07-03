@@ -125,3 +125,20 @@ int favoriteCountAtLocation(List<DiaryEntry> entries, String location) {
   }
   return n;
 }
+
+/// The distinct journal ids among top-level records at [location]
+/// (case-insensitive, trimmed; replies excluded), in first-seen order of
+/// [entries]. Empty when nothing matches or [location] is blank. Lets the place
+/// view show which journals a place spans.
+List<String> journalIdsAtLocation(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return const [];
+  final seen = <String>{};
+  final result = <String>[];
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    if (seen.add(e.journalId)) result.add(e.journalId);
+  }
+  return result;
+}

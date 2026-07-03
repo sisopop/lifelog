@@ -29,6 +29,10 @@ class PlaceEntriesScreen extends ConsumerWidget {
     final mood = placeMood(all, location);
     final avgChars = averageCharsAtLocation(all, location);
     final favorites = favoriteCountAtLocation(all, location);
+    final journalNames = journalIdsAtLocation(all, location)
+        .map((id) => journalMap[id]?.title)
+        .whereType<String>()
+        .toList();
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -99,6 +103,12 @@ class PlaceEntriesScreen extends ConsumerWidget {
                         if (favorites > 0) ...[
                           const SizedBox(height: 4),
                           Text('⭐ 즐겨찾기 $favorites개',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (journalNames.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('📓 ${journalNames.take(4).join(' · ')}',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

@@ -12,12 +12,13 @@ DiaryEntry _entry({
   Mood? mood,
   String content = 'c',
   bool favorite = false,
+  String journal = 'jr_default',
 }) {
   final t = DateTime(2026, 6, day);
   return DiaryEntry(
     entryId: id,
     userId: 'me',
-    journalId: 'jr_default',
+    journalId: journal,
     content: content,
     tags: tags,
     location: location,
@@ -206,6 +207,28 @@ void main() {
           favoriteCountAtLocation(
               [_entry(id: 'a', location: '제주')], '제주'),
           0);
+    });
+  });
+
+  group('journalIdsAtLocation', () {
+    test('distinct journals in first-seen order, case-insensitive & trimmed',
+        () {
+      final r = journalIdsAtLocation([
+        _entry(id: 'a', location: '제주', journal: 'j1'),
+        _entry(id: 'b', location: '  제주  ', journal: 'j2'), // trim match
+        _entry(id: 'c', location: '제주', journal: 'j1'), // dup
+        _entry(id: 'r', location: '제주', journal: 'j3', replyTo: 'a'), // reply
+        _entry(id: 'o', location: '서울', journal: 'j4'), // other place
+      ], '제주');
+      expect(r, ['j1', 'j2']);
+    });
+
+    test('empty for blank query or no match', () {
+      expect(journalIdsAtLocation(const [], '제주'), isEmpty);
+      expect(journalIdsAtLocation([_entry(id: 'a', location: '제주')], '  '),
+          isEmpty);
+      expect(journalIdsAtLocation([_entry(id: 'a', location: '서울')], '제주'),
+          isEmpty);
     });
   });
 }
