@@ -114,6 +114,9 @@ class DiaryEntries extends Table {
   // 사진별 프레임 — mediaUrls와 index로 정렬된 JSON 배열(각 원소는 프레임 id 또는 null).
   // null = 프레임을 고른 사진이 하나도 없음(종전과 동일).
   TextColumn get photoFrames => text().nullable()();
+  // 사진별 스티커 — mediaUrls와 index로 정렬된 JSON 배열(각 원소는 이모지 또는 null).
+  // null = 스티커를 고른 사진이 하나도 없음(종전과 동일).
+  TextColumn get photoStickers => text().nullable()();
   // 즐겨찾기. Default lets the v3→v4 migration backfill existing rows.
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   // 휴지통: non-null = soft-deleted (kept 30 days, hidden from normal lists).
@@ -140,7 +143,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -239,6 +242,11 @@ class AppDatabase extends _$AppDatabase {
             // (프레임을 고른 사진 없음, 종전과 동일).
             await m.addColumn(diaryEntries, diaryEntries.photoFrames);
           }
+          if (from < 23) {
+            // 사진별 스티커 JSON — existing entries default to null
+            // (스티커를 고른 사진 없음, 종전과 동일).
+            await m.addColumn(diaryEntries, diaryEntries.photoStickers);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -306,6 +314,7 @@ class AppDatabase extends _$AppDatabase {
       'flow_photos': diaryEntries.flowPhotos,
       'weather': diaryEntries.weather,
       'photo_frames': diaryEntries.photoFrames,
+      'photo_stickers': diaryEntries.photoStickers,
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {

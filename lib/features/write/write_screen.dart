@@ -13,6 +13,8 @@ import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import '../decorate/page_deco_playground.dart';
 import '../decorate/photo_frames.dart';
+import '../decorate/photo_stickers.dart';
+import '../decorate/sticker_picker_sheet.dart';
 import 'emoji_picker.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
@@ -40,6 +42,7 @@ import '../journals/turn_provider.dart';
 part 'write_widgets.dart';
 part 'write_deco_tile.dart';
 part 'write_photo_row.dart';
+part 'write_photo_deco.dart';
 
 class WriteScreen extends ConsumerStatefulWidget {
   const WriteScreen({
@@ -70,21 +73,15 @@ class WriteScreen extends ConsumerStatefulWidget {
   ConsumerState<WriteScreen> createState() => _WriteScreenState();
 }
 
-class _WriteScreenState extends ConsumerState<WriteScreen> {
+class _WriteScreenState extends ConsumerState<WriteScreen>
+    with _PhotoDecoState, _PageDecoState {
   final _titleCtrl = TextEditingController();
-  final _contentCtrl = TextEditingController();
   final _picker = ImagePicker();
   Mood? _mood;
   Weather? _weather;
   String? _location;
   final List<String> _photoPaths = [];
-  final List<String?> _photoFrames = [];
   List<String> _tags = [];
-
-  /// 내지 꾸미기 캔버스 JSON(null=꾸미기 없음).
-  String? _pageCanvas;
-  /// 본문 흐름 사이에 끼운 사진들(InlinePhoto JSON, null=없음).
-  String? _flowPhotos;
   DiaryEntry? _editing;
   bool _prefilled = false;
 
@@ -127,9 +124,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
         _photoPaths
           ..clear()
           ..addAll(entry.mediaUrls);
-        _photoFrames
-          ..clear()
-          ..addAll(decodePhotoFrames(entry.photoFrames));
+        _prefillPhotoDeco(entry);
         _tags
           ..clear()
           ..addAll(entry.tags);
@@ -212,29 +207,6 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     });
   }
 
-  /// Opens the canvas editor; "완료" returns the edited canvas (null = clear).
-  Future<void> _editPageCanvas() async {
-    final nav = Navigator.of(context);
-    await nav.push(MaterialPageRoute<void>(
-      builder: (_) => PageDecoPlayground(
-        title: '페이지 꾸미기',
-        initial: decodePageCanvas(_pageCanvas),
-        onDone: (canvas) {
-          setState(() =>
-              _pageCanvas = canvas == null ? null : encodePageCanvas(canvas));
-          nav.pop();
-        },
-      ),
-    ));
-  }
-
-  /// 본문 흐름 사이에 끼울 사진을 고르는 편집기를 연다.
-  Future<void> _editInlinePhotos() async {
-    final v = await editInlinePhotosFlow(context,
-        content: _contentCtrl.text, current: _flowPhotos);
-    if (mounted) setState(() => _flowPhotos = v);
-  }
-
   Future<void> _save({required EntryVisibility visibility}) async {
     if (_contentCtrl.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -245,6 +217,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
     final now = DateTime.now();
     final notifier = ref.read(entriesProvider.notifier);
     final frames = encodePhotoFrames(_photoFrames);
+    final stickers = encodePhotoStickers(_photoStickers);
     if (_isEditing && _editing != null) {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
@@ -265,6 +238,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           clearFlowPhotos: _flowPhotos == null,
           photoFrames: frames,
           clearPhotoFrames: frames == null,
+          photoStickers: stickers,
+          clearPhotoStickers: stickers == null,
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -287,6 +262,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           pageCanvas: _pageCanvas,
           flowPhotos: _flowPhotos,
           photoFrames: frames,
+          photoStickers: stickers,
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
@@ -420,14 +396,15 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
             _PhotoThumbnailsRow(
               photoPaths: _photoPaths,
               photoFrames: _photoFrames,
+              photoStickers: _photoStickers,
               onRemove: (i) => setState(() {
                 _photoPaths.removeAt(i);
-                if (i < _photoFrames.length) _photoFrames.removeAt(i);
+                _removePhotoDecoAt(i);
               }),
-              onFramePicked: (i, frameId) => setState(() {
-                final next = withFrameAt(_photoFrames, i, frameId);
-                _photoFrames..clear()..addAll(next);
-              }),
+              onFramePicked: (i, frameId) =>
+                  setState(() => _setFrameAt(i, frameId)),
+              onStickerPicked: (i, emoji) =>
+                  setState(() => _setStickerAt(i, emoji)),
             ),
           ],
           _EntryTags(

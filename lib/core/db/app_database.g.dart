@@ -191,6 +191,17 @@ class $DiaryEntriesTable extends DiaryEntries
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _photoStickersMeta = const VerificationMeta(
+    'photoStickers',
+  );
+  @override
+  late final GeneratedColumn<String> photoStickers = GeneratedColumn<String>(
+    'photo_stickers',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isFavoriteMeta = const VerificationMeta(
     'isFavorite',
   );
@@ -268,6 +279,7 @@ class $DiaryEntriesTable extends DiaryEntries
     pageCanvas,
     flowPhotos,
     photoFrames,
+    photoStickers,
     isFavorite,
     deletedAt,
     createdAt,
@@ -367,6 +379,15 @@ class $DiaryEntriesTable extends DiaryEntries
         photoFrames.isAcceptableOrUnknown(
           data['photo_frames']!,
           _photoFramesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('photo_stickers')) {
+      context.handle(
+        _photoStickersMeta,
+        photoStickers.isAcceptableOrUnknown(
+          data['photo_stickers']!,
+          _photoStickersMeta,
         ),
       );
     }
@@ -491,6 +512,10 @@ class $DiaryEntriesTable extends DiaryEntries
         DriftSqlType.string,
         data['${effectivePrefix}photo_frames'],
       ),
+      photoStickers: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_stickers'],
+      ),
       isFavorite: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_favorite'],
@@ -562,6 +587,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
   final String? pageCanvas;
   final String? flowPhotos;
   final String? photoFrames;
+  final String? photoStickers;
   final bool isFavorite;
   final DateTime? deletedAt;
   final DateTime createdAt;
@@ -586,6 +612,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     this.pageCanvas,
     this.flowPhotos,
     this.photoFrames,
+    this.photoStickers,
     required this.isFavorite,
     this.deletedAt,
     required this.createdAt,
@@ -651,6 +678,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     if (!nullToAbsent || photoFrames != null) {
       map['photo_frames'] = Variable<String>(photoFrames);
     }
+    if (!nullToAbsent || photoStickers != null) {
+      map['photo_stickers'] = Variable<String>(photoStickers);
+    }
     map['is_favorite'] = Variable<bool>(isFavorite);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -701,6 +731,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       photoFrames: photoFrames == null && nullToAbsent
           ? const Value.absent()
           : Value(photoFrames),
+      photoStickers: photoStickers == null && nullToAbsent
+          ? const Value.absent()
+          : Value(photoStickers),
       isFavorite: Value(isFavorite),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -743,6 +776,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       pageCanvas: serializer.fromJson<String?>(json['pageCanvas']),
       flowPhotos: serializer.fromJson<String?>(json['flowPhotos']),
       photoFrames: serializer.fromJson<String?>(json['photoFrames']),
+      photoStickers: serializer.fromJson<String?>(json['photoStickers']),
       isFavorite: serializer.fromJson<bool>(json['isFavorite']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -782,6 +816,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       'pageCanvas': serializer.toJson<String?>(pageCanvas),
       'flowPhotos': serializer.toJson<String?>(flowPhotos),
       'photoFrames': serializer.toJson<String?>(photoFrames),
+      'photoStickers': serializer.toJson<String?>(photoStickers),
       'isFavorite': serializer.toJson<bool>(isFavorite),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -811,6 +846,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     Value<String?> pageCanvas = const Value.absent(),
     Value<String?> flowPhotos = const Value.absent(),
     Value<String?> photoFrames = const Value.absent(),
+    Value<String?> photoStickers = const Value.absent(),
     bool? isFavorite,
     Value<DateTime?> deletedAt = const Value.absent(),
     DateTime? createdAt,
@@ -837,6 +873,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     pageCanvas: pageCanvas.present ? pageCanvas.value : this.pageCanvas,
     flowPhotos: flowPhotos.present ? flowPhotos.value : this.flowPhotos,
     photoFrames: photoFrames.present ? photoFrames.value : this.photoFrames,
+    photoStickers: photoStickers.present
+        ? photoStickers.value
+        : this.photoStickers,
     isFavorite: isFavorite ?? this.isFavorite,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     createdAt: createdAt ?? this.createdAt,
@@ -873,6 +912,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       photoFrames: data.photoFrames.present
           ? data.photoFrames.value
           : this.photoFrames,
+      photoStickers: data.photoStickers.present
+          ? data.photoStickers.value
+          : this.photoStickers,
       isFavorite: data.isFavorite.present
           ? data.isFavorite.value
           : this.isFavorite,
@@ -906,6 +948,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           ..write('pageCanvas: $pageCanvas, ')
           ..write('flowPhotos: $flowPhotos, ')
           ..write('photoFrames: $photoFrames, ')
+          ..write('photoStickers: $photoStickers, ')
           ..write('isFavorite: $isFavorite, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -935,6 +978,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     pageCanvas,
     flowPhotos,
     photoFrames,
+    photoStickers,
     isFavorite,
     deletedAt,
     createdAt,
@@ -963,6 +1007,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           other.pageCanvas == this.pageCanvas &&
           other.flowPhotos == this.flowPhotos &&
           other.photoFrames == this.photoFrames &&
+          other.photoStickers == this.photoStickers &&
           other.isFavorite == this.isFavorite &&
           other.deletedAt == this.deletedAt &&
           other.createdAt == this.createdAt &&
@@ -989,6 +1034,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
   final Value<String?> pageCanvas;
   final Value<String?> flowPhotos;
   final Value<String?> photoFrames;
+  final Value<String?> photoStickers;
   final Value<bool> isFavorite;
   final Value<DateTime?> deletedAt;
   final Value<DateTime> createdAt;
@@ -1014,6 +1060,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.pageCanvas = const Value.absent(),
     this.flowPhotos = const Value.absent(),
     this.photoFrames = const Value.absent(),
+    this.photoStickers = const Value.absent(),
     this.isFavorite = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -1040,6 +1087,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.pageCanvas = const Value.absent(),
     this.flowPhotos = const Value.absent(),
     this.photoFrames = const Value.absent(),
+    this.photoStickers = const Value.absent(),
     this.isFavorite = const Value.absent(),
     this.deletedAt = const Value.absent(),
     required DateTime createdAt,
@@ -1075,6 +1123,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Expression<String>? pageCanvas,
     Expression<String>? flowPhotos,
     Expression<String>? photoFrames,
+    Expression<String>? photoStickers,
     Expression<bool>? isFavorite,
     Expression<DateTime>? deletedAt,
     Expression<DateTime>? createdAt,
@@ -1101,6 +1150,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       if (pageCanvas != null) 'page_canvas': pageCanvas,
       if (flowPhotos != null) 'flow_photos': flowPhotos,
       if (photoFrames != null) 'photo_frames': photoFrames,
+      if (photoStickers != null) 'photo_stickers': photoStickers,
       if (isFavorite != null) 'is_favorite': isFavorite,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (createdAt != null) 'created_at': createdAt,
@@ -1129,6 +1179,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Value<String?>? pageCanvas,
     Value<String?>? flowPhotos,
     Value<String?>? photoFrames,
+    Value<String?>? photoStickers,
     Value<bool>? isFavorite,
     Value<DateTime?>? deletedAt,
     Value<DateTime>? createdAt,
@@ -1155,6 +1206,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       pageCanvas: pageCanvas ?? this.pageCanvas,
       flowPhotos: flowPhotos ?? this.flowPhotos,
       photoFrames: photoFrames ?? this.photoFrames,
+      photoStickers: photoStickers ?? this.photoStickers,
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: deletedAt ?? this.deletedAt,
       createdAt: createdAt ?? this.createdAt,
@@ -1233,6 +1285,9 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     if (photoFrames.present) {
       map['photo_frames'] = Variable<String>(photoFrames.value);
     }
+    if (photoStickers.present) {
+      map['photo_stickers'] = Variable<String>(photoStickers.value);
+    }
     if (isFavorite.present) {
       map['is_favorite'] = Variable<bool>(isFavorite.value);
     }
@@ -1277,6 +1332,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
           ..write('pageCanvas: $pageCanvas, ')
           ..write('flowPhotos: $flowPhotos, ')
           ..write('photoFrames: $photoFrames, ')
+          ..write('photoStickers: $photoStickers, ')
           ..write('isFavorite: $isFavorite, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('createdAt: $createdAt, ')
@@ -3045,6 +3101,7 @@ typedef $$DiaryEntriesTableCreateCompanionBuilder =
       Value<String?> pageCanvas,
       Value<String?> flowPhotos,
       Value<String?> photoFrames,
+      Value<String?> photoStickers,
       Value<bool> isFavorite,
       Value<DateTime?> deletedAt,
       required DateTime createdAt,
@@ -3072,6 +3129,7 @@ typedef $$DiaryEntriesTableUpdateCompanionBuilder =
       Value<String?> pageCanvas,
       Value<String?> flowPhotos,
       Value<String?> photoFrames,
+      Value<String?> photoStickers,
       Value<bool> isFavorite,
       Value<DateTime?> deletedAt,
       Value<DateTime> createdAt,
@@ -3182,6 +3240,11 @@ class $$DiaryEntriesTableFilterComposer
 
   ColumnFilters<String> get photoFrames => $composableBuilder(
     column: $table.photoFrames,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoStickers => $composableBuilder(
+    column: $table.photoStickers,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3311,6 +3374,11 @@ class $$DiaryEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get photoStickers => $composableBuilder(
+    column: $table.photoStickers,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
     builder: (column) => ColumnOrderings(column),
@@ -3411,6 +3479,11 @@ class $$DiaryEntriesTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get photoStickers => $composableBuilder(
+    column: $table.photoStickers,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<bool> get isFavorite => $composableBuilder(
     column: $table.isFavorite,
     builder: (column) => column,
@@ -3481,6 +3554,7 @@ class $$DiaryEntriesTableTableManager
                 Value<String?> pageCanvas = const Value.absent(),
                 Value<String?> flowPhotos = const Value.absent(),
                 Value<String?> photoFrames = const Value.absent(),
+                Value<String?> photoStickers = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -3506,6 +3580,7 @@ class $$DiaryEntriesTableTableManager
                 pageCanvas: pageCanvas,
                 flowPhotos: flowPhotos,
                 photoFrames: photoFrames,
+                photoStickers: photoStickers,
                 isFavorite: isFavorite,
                 deletedAt: deletedAt,
                 createdAt: createdAt,
@@ -3533,6 +3608,7 @@ class $$DiaryEntriesTableTableManager
                 Value<String?> pageCanvas = const Value.absent(),
                 Value<String?> flowPhotos = const Value.absent(),
                 Value<String?> photoFrames = const Value.absent(),
+                Value<String?> photoStickers = const Value.absent(),
                 Value<bool> isFavorite = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 required DateTime createdAt,
@@ -3558,6 +3634,7 @@ class $$DiaryEntriesTableTableManager
                 pageCanvas: pageCanvas,
                 flowPhotos: flowPhotos,
                 photoFrames: photoFrames,
+                photoStickers: photoStickers,
                 isFavorite: isFavorite,
                 deletedAt: deletedAt,
                 createdAt: createdAt,

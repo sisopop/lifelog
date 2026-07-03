@@ -24,6 +24,7 @@ class DiaryEntry {
     this.pageCanvas,
     this.flowPhotos,
     this.photoFrames,
+    this.photoStickers,
     this.isFavorite = false,
     this.deletedAt,
     this.syncStatus = SyncStatus.synced,
@@ -69,6 +70,11 @@ class DiaryEntry {
   /// frame for that photo). null이면 프레임을 고른 사진이 하나도 없음(종전과 동일).
   final String? photoFrames;
 
+  /// Per-photo sticker emoji, JSON array index-aligned with [mediaUrls] (a
+  /// `null` entry, or an index past the end, means no sticker for that
+  /// photo). null이면 스티커를 고른 사진이 하나도 없음(종전과 동일).
+  final String? photoStickers;
+
   /// User-starred record (즐겨찾기). Independent of journal/sync.
   final bool isFavorite;
 
@@ -96,6 +102,7 @@ class DiaryEntry {
     String? pageCanvas,
     String? flowPhotos,
     String? photoFrames,
+    String? photoStickers,
     bool? isFavorite,
     DateTime? deletedAt,
     SyncStatus? syncStatus,
@@ -105,6 +112,7 @@ class DiaryEntry {
     bool clearPageCanvas = false,
     bool clearFlowPhotos = false,
     bool clearPhotoFrames = false,
+    bool clearPhotoStickers = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -128,6 +136,9 @@ class DiaryEntry {
       flowPhotos: clearFlowPhotos ? null : (flowPhotos ?? this.flowPhotos),
       photoFrames:
           clearPhotoFrames ? null : (photoFrames ?? this.photoFrames),
+      photoStickers: clearPhotoStickers
+          ? null
+          : (photoStickers ?? this.photoStickers),
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
       syncStatus: syncStatus ?? this.syncStatus,

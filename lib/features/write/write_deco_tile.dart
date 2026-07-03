@@ -1,5 +1,41 @@
 part of 'write_screen.dart';
 
+/// Page-canvas/inline-photo editing actions for the write screen, factored
+/// out of _WriteScreenState alongside _PhotoDecoState to keep
+/// write_screen.dart under the 500-line limit.
+mixin _PageDecoState on ConsumerState<WriteScreen> {
+  final _contentCtrl = TextEditingController();
+
+  /// 내지 꾸미기 캔버스 JSON(null=꾸미기 없음).
+  String? _pageCanvas;
+
+  /// 본문 흐름 사이에 끼운 사진들(InlinePhoto JSON, null=없음).
+  String? _flowPhotos;
+
+  /// Opens the canvas editor; "완료" returns the edited canvas (null = clear).
+  Future<void> _editPageCanvas() async {
+    final nav = Navigator.of(context);
+    await nav.push(MaterialPageRoute<void>(
+      builder: (_) => PageDecoPlayground(
+        title: '페이지 꾸미기',
+        initial: decodePageCanvas(_pageCanvas),
+        onDone: (canvas) {
+          setState(() =>
+              _pageCanvas = canvas == null ? null : encodePageCanvas(canvas));
+          nav.pop();
+        },
+      ),
+    ));
+  }
+
+  /// 본문 흐름 사이에 끼울 사진을 고르는 편집기를 연다.
+  Future<void> _editInlinePhotos() async {
+    final v = await editInlinePhotosFlow(context,
+        content: _contentCtrl.text, current: _flowPhotos);
+    if (mounted) setState(() => _flowPhotos = v);
+  }
+}
+
 /// Entry point to the page-decoration canvas. Shows a read-only preview of the
 /// saved canvas (if any) — with a one-line overlay of the body text, so the
 /// writer sees their words laid over the decorated page — plus a button to open
