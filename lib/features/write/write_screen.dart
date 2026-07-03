@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../decorate/content_flow.dart';
 import '../decorate/inline_photo_editor.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
@@ -451,8 +452,12 @@ class _WriteScreenState extends ConsumerState<WriteScreen> {
           ),
           const SizedBox(height: 16),
           _DecoratePageTile(canvasJson: _pageCanvas, content: _contentCtrl.text, onEdit: _editPageCanvas),
-          const SizedBox(height: 12),
-          InlinePhotoTile(flowPhotos: _flowPhotos, onEdit: _editInlinePhotos),
+          // "본문 사이 사진"은 신규 진입을 숨김(대신 사진 캐러셀/장식으로 대체 예정).
+          // 이미 사용된 기존 기록은 계속 수정할 수 있도록 데이터가 있을 때만 노출.
+          if (decodeInlinePhotos(_flowPhotos).isNotEmpty) ...[
+            const SizedBox(height: 12),
+            InlinePhotoTile(flowPhotos: _flowPhotos, onEdit: _editInlinePhotos),
+          ],
           const SizedBox(height: 28),
           if (_isEditing)
             ElevatedButton(
