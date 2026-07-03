@@ -295,6 +295,41 @@ void main() {
     });
   });
 
+  group('busiestWeekdayWithMood', () {
+    test('picks the weekday with the most records, replies & other mood excluded',
+        () {
+      final entries = [
+        _entry('a', mood: Mood.good, created: DateTime(2026, 6, 13)), // Sat
+        _entry('b', mood: Mood.good, created: DateTime(2026, 6, 20)), // Sat
+        _entry('c', mood: Mood.good, created: DateTime(2026, 6, 8)), // Mon
+        _entry('r',
+            mood: Mood.good, replyTo: 'a', created: DateTime(2026, 6, 8)), // reply
+        _entry('h', mood: Mood.hard, created: DateTime(2026, 6, 8)), // other mood
+      ];
+      expect(busiestWeekdayWithMood(entries, Mood.good), DateTime.saturday);
+    });
+
+    test('ties resolve to the earlier weekday (Mon first)', () {
+      final entries = [
+        _entry('a', mood: Mood.good, created: DateTime(2026, 6, 13)), // Sat
+        _entry('b', mood: Mood.good, created: DateTime(2026, 6, 8)), // Mon
+      ];
+      expect(busiestWeekdayWithMood(entries, Mood.good), DateTime.monday);
+    });
+
+    test('null when the mood has no top-level records', () {
+      expect(busiestWeekdayWithMood(const [], Mood.good), isNull);
+      expect(
+          busiestWeekdayWithMood([_entry('a', mood: Mood.hard)], Mood.good),
+          isNull);
+      expect(
+        busiestWeekdayWithMood(
+            [_entry('r', mood: Mood.good, replyTo: 'x')], Mood.good),
+        isNull,
+      );
+    });
+  });
+
   group('journalIdsWithMood', () {
     test('distinct journals in first-seen order, replies & other moods excluded',
         () {

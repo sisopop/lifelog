@@ -149,6 +149,28 @@ List<String> journalIdsWithMood(List<DiaryEntry> entries, Mood mood) {
   return result;
 }
 
+/// The weekday (DateTime.monday=1 .. sunday=7) that the most top-level records
+/// carrying [mood] fall on (replies excluded), or null when the mood has no
+/// records. Ties resolve to the earlier weekday (Mon first). Lets the mood view
+/// show which day of the week that feeling tends to land on.
+int? busiestWeekdayWithMood(List<DiaryEntry> entries, Mood mood) {
+  final counts = <int, int>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    counts.update(e.createdAt.weekday, (c) => c + 1, ifAbsent: () => 1);
+  }
+  int? best;
+  var bestCount = 0;
+  for (var wd = DateTime.monday; wd <= DateTime.sunday; wd++) {
+    final c = counts[wd] ?? 0;
+    if (c > bestCount) {
+      bestCount = c;
+      best = wd;
+    }
+  }
+  return best;
+}
+
 /// Top-level records tagged with [mood], newest first. 답장(reply) records are
 /// excluded so the list mirrors the timeline.
 List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {
