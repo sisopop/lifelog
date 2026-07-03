@@ -28,6 +28,7 @@ class TagEntriesScreen extends ConsumerWidget {
     final span = tagDateSpan(all, tag);
     final mood = tagMood(all, tag);
     final avgChars = averageCharsWithTag(all, tag);
+    final favorites = favoriteCountWithTag(all, tag);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -73,6 +74,12 @@ class TagEntriesScreen extends ConsumerWidget {
                         if (avgChars > 0) ...[
                           const SizedBox(height: 4),
                           Text('✍️ 평균 $avgChars자',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (favorites > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('⭐ 즐겨찾기 $favorites개',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

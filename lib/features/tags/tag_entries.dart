@@ -93,3 +93,16 @@ int averageCharsWithTag(List<DiaryEntry> entries, String tag) {
   }
   return n == 0 ? 0 : (total / n).round();
 }
+
+/// How many top-level records carrying [tag] are marked favorite (replies
+/// excluded). 0 when none are starred or the tag has no records. Lets the tag
+/// view show how many records of that theme were kept as favorites.
+int favoriteCountWithTag(List<DiaryEntry> entries, String tag) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (!e.tags.contains(tag)) continue;
+    if (e.isFavorite) n++;
+  }
+  return n;
+}
