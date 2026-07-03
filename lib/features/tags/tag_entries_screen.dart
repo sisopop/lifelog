@@ -29,6 +29,10 @@ class TagEntriesScreen extends ConsumerWidget {
     final mood = tagMood(all, tag);
     final avgChars = averageCharsWithTag(all, tag);
     final favorites = favoriteCountWithTag(all, tag);
+    final journalNames = journalIdsWithTag(all, tag)
+        .map((id) => journalMap[id]?.title)
+        .whereType<String>()
+        .toList();
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -80,6 +84,12 @@ class TagEntriesScreen extends ConsumerWidget {
                         if (favorites > 0) ...[
                           const SizedBox(height: 4),
                           Text('⭐ 즐겨찾기 $favorites개',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (journalNames.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text('📓 ${journalNames.take(4).join(' · ')}',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

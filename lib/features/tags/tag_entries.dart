@@ -106,3 +106,17 @@ int favoriteCountWithTag(List<DiaryEntry> entries, String tag) {
   }
   return n;
 }
+
+/// The distinct journal ids among top-level records carrying [tag] (replies
+/// excluded), in first-seen order of [entries]. Empty when the tag has no
+/// top-level records. Lets the tag view show which journals a theme spans.
+List<String> journalIdsWithTag(List<DiaryEntry> entries, String tag) {
+  final seen = <String>{};
+  final result = <String>[];
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (!e.tags.contains(tag)) continue;
+    if (seen.add(e.journalId)) result.add(e.journalId);
+  }
+  return result;
+}

@@ -11,11 +11,12 @@ DiaryEntry _e({
   Mood? mood,
   String content = 'x',
   bool favorite = false,
+  String journal = 'j1',
 }) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
-      journalId: 'j1',
+      journalId: journal,
       replyToEntryId: replyTo,
       content: content,
       tags: tags,
@@ -220,6 +221,39 @@ void main() {
               '여행'),
           0);
       expect(favoriteCountWithTag(const [], '여행'), 0);
+    });
+  });
+
+  group('journalIdsWithTag', () {
+    test('distinct journals in first-seen order, replies & other tags excluded',
+        () {
+      final r = journalIdsWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], journal: 'j1'),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행'], journal: 'j2'),
+        _e(id: 'c', at: DateTime(2026, 6, 3), tags: ['여행'], journal: 'j1'), // dup
+        _e(
+            id: 'r',
+            at: DateTime(2026, 6, 4),
+            tags: ['여행'],
+            journal: 'j3',
+            replyTo: 'a'), // reply ignored
+        _e(id: 'o', at: DateTime(2026, 6, 5), tags: ['일'], journal: 'j4'), // other
+      ], '여행');
+      expect(r, ['j1', 'j2']);
+    });
+
+    test('empty when the tag has no top-level records', () {
+      expect(journalIdsWithTag(const [], '여행'), isEmpty);
+      expect(
+          journalIdsWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['일'])], '여행'),
+          isEmpty);
+      expect(
+        journalIdsWithTag([
+          _e(id: 'r', at: DateTime(2026, 6, 1), tags: ['여행'], replyTo: 'x'),
+        ], '여행'),
+        isEmpty,
+      );
     });
   });
 }
