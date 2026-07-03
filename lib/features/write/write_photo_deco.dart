@@ -8,6 +8,7 @@ part of 'write_screen.dart';
 mixin _PhotoDecoState on ConsumerState<WriteScreen> {
   final List<String?> _photoFrames = [];
   final List<String?> _photoStickers = [];
+  final List<String?> _photoTapes = [];
 
   void _prefillPhotoDeco(DiaryEntry entry) {
     _photoFrames
@@ -16,11 +17,15 @@ mixin _PhotoDecoState on ConsumerState<WriteScreen> {
     _photoStickers
       ..clear()
       ..addAll(decodePhotoStickers(entry.photoStickers));
+    _photoTapes
+      ..clear()
+      ..addAll(decodePhotoTapes(entry.photoTapes));
   }
 
   void _removePhotoDecoAt(int i) {
     if (i < _photoFrames.length) _photoFrames.removeAt(i);
     if (i < _photoStickers.length) _photoStickers.removeAt(i);
+    if (i < _photoTapes.length) _photoTapes.removeAt(i);
   }
 
   void _setFrameAt(int i, String? frameId) {
@@ -33,6 +38,13 @@ mixin _PhotoDecoState on ConsumerState<WriteScreen> {
   void _setStickerAt(int i, String? emoji) {
     final next = withStickerAt(_photoStickers, i, emoji);
     _photoStickers
+      ..clear()
+      ..addAll(next);
+  }
+
+  void _setTapeAt(int i, String? tapeId) {
+    final next = withTapeAt(_photoTapes, i, tapeId);
+    _photoTapes
       ..clear()
       ..addAll(next);
   }

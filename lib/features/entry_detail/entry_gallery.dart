@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../decorate/framed_photo.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_stickers.dart';
+import '../decorate/photo_tapes.dart';
 
 /// Full-width photo carousel for an entry's attached photos (read-only),
 /// Instagram-style: one photo fills the width at a time, swipe sideways to
@@ -16,6 +17,7 @@ class EntryGallery extends StatefulWidget {
     super.key,
     this.photoFrames = const [],
     this.photoStickers = const [],
+    this.photoTapes = const [],
   });
 
   final List<String> mediaUrls;
@@ -25,6 +27,9 @@ class EntryGallery extends StatefulWidget {
 
   /// Per-photo sticker emoji, index-aligned with [mediaUrls] (see photo_stickers.dart).
   final List<String?> photoStickers;
+
+  /// Per-photo washi-tape ids, index-aligned with [mediaUrls] (see photo_tapes.dart).
+  final List<String?> photoTapes;
 
   @override
   State<EntryGallery> createState() => _EntryGalleryState();
@@ -57,6 +62,7 @@ class _EntryGalleryState extends State<EntryGallery> {
                 photos[i],
                 frameId: frameAt(widget.photoFrames, i),
                 stickerEmoji: stickerAt(widget.photoStickers, i),
+                tapeId: tapeAt(widget.photoTapes, i),
                 iconSize: 40,
               ),
             ),

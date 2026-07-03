@@ -2,19 +2,22 @@ import 'package:flutter/material.dart';
 
 import '../../shared/widgets/photo.dart';
 import 'frame_catalog.dart';
+import 'washi_tape_catalog.dart';
 
-/// A [PhotoView] optionally wrapped in a decorative [PhotoFrame] border and/or
-/// topped with a corner sticker emoji. Both the border and the sticker are
-/// purely additive (border paints on the widget's own edge, sticker is a
-/// [Positioned] overlay that doesn't affect Stack sizing), so adding/removing
-/// either never changes layout size — safe to drop into existing fixed-size
-/// thumbnails or an unconstrained carousel page alike.
+/// A [PhotoView] optionally wrapped in a decorative [PhotoFrame] border and
+/// topped with a corner sticker emoji and/or a washi-tape band. The border,
+/// sticker, and tape are all purely additive (border paints on the widget's
+/// own edge; sticker and tape are [Positioned] overlays that don't affect
+/// Stack sizing), so adding/removing any of them never changes layout size —
+/// safe to drop into existing fixed-size thumbnails or an unconstrained
+/// carousel page alike.
 class FramedPhoto extends StatelessWidget {
   const FramedPhoto(
     this.path, {
     super.key,
     this.frameId,
     this.stickerEmoji,
+    this.tapeId,
     this.width,
     this.height,
     this.borderRadius = 16,
@@ -24,6 +27,7 @@ class FramedPhoto extends StatelessWidget {
   final String path;
   final String? frameId;
   final String? stickerEmoji;
+  final String? tapeId;
   final double? width;
   final double? height;
   final double borderRadius;
@@ -47,23 +51,44 @@ class FramedPhoto extends StatelessWidget {
             ),
             child: photo,
           );
+
+    final overlays = <Widget>[];
+    final tape = tapeId;
+    if (tape != null && tape.isNotEmpty) {
+      // A slightly-tilted translucent band across the top-left corner, like a
+      // strip of masking tape holding the photo down. Diagonal so it reads as
+      // tape rather than a full-width bar, and offset off-edge so its ends are
+      // clipped away by [Clip.none]'s parent.
+      overlays.add(Positioned(
+        top: 6,
+        left: -14,
+        child: Transform.rotate(
+          angle: -0.35,
+          child: Container(
+            width: 64,
+            height: 18,
+            color: washiTapeColor(tape),
+          ),
+        ),
+      ));
+    }
     final sticker = stickerEmoji;
-    if (sticker == null || sticker.isEmpty) return framed;
+    if (sticker != null && sticker.isNotEmpty) {
+      overlays.add(Positioned(
+        right: 2,
+        bottom: 2,
+        child: Text(sticker, style: const TextStyle(fontSize: 20)),
+      ));
+    }
+    if (overlays.isEmpty) return framed;
     return Stack(
       clipBehavior: Clip.none,
       // Pass our incoming constraints straight through to [framed] (unchanged),
-      // so the photo fills its box identically whether or not a sticker is
+      // so the photo fills its box identically whether or not an overlay is
       // present — the default StackFit.loose would let a small image shrink,
       // changing how the photo sits in a tight parent (e.g. the 1:1 carousel).
       fit: StackFit.passthrough,
-      children: [
-        framed,
-        Positioned(
-          right: 2,
-          bottom: 2,
-          child: Text(sticker, style: const TextStyle(fontSize: 20)),
-        ),
-      ],
+      children: [framed, ...overlays],
     );
   }
 }

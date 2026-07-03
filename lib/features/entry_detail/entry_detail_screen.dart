@@ -16,6 +16,7 @@ import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_stickers.dart';
+import '../decorate/photo_tapes.dart';
 import 'entry_gallery.dart';
 import '../journals/journals_provider.dart';
 import 'entry_clipboard.dart';
@@ -119,6 +120,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                     entry.mediaUrls,
                     photoFrames: decodePhotoFrames(entry.photoFrames),
                     photoStickers: decodePhotoStickers(entry.photoStickers),
+                    photoTapes: decodePhotoTapes(entry.photoTapes),
                   ),
                   const SizedBox(height: 20),
                 ],

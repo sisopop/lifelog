@@ -25,6 +25,7 @@ class DiaryEntry {
     this.flowPhotos,
     this.photoFrames,
     this.photoStickers,
+    this.photoTapes,
     this.isFavorite = false,
     this.deletedAt,
     this.syncStatus = SyncStatus.synced,
@@ -75,6 +76,11 @@ class DiaryEntry {
   /// photo). null이면 스티커를 고른 사진이 하나도 없음(종전과 동일).
   final String? photoStickers;
 
+  /// Per-photo washi-tape ids, JSON array index-aligned with [mediaUrls] (a
+  /// `null` entry, or an index past the end, means no tape for that photo).
+  /// null이면 테이프를 고른 사진이 하나도 없음(종전과 동일).
+  final String? photoTapes;
+
   /// User-starred record (즐겨찾기). Independent of journal/sync.
   final bool isFavorite;
 
@@ -103,6 +109,7 @@ class DiaryEntry {
     String? flowPhotos,
     String? photoFrames,
     String? photoStickers,
+    String? photoTapes,
     bool? isFavorite,
     DateTime? deletedAt,
     SyncStatus? syncStatus,
@@ -113,6 +120,7 @@ class DiaryEntry {
     bool clearFlowPhotos = false,
     bool clearPhotoFrames = false,
     bool clearPhotoStickers = false,
+    bool clearPhotoTapes = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -139,6 +147,8 @@ class DiaryEntry {
       photoStickers: clearPhotoStickers
           ? null
           : (photoStickers ?? this.photoStickers),
+      photoTapes:
+          clearPhotoTapes ? null : (photoTapes ?? this.photoTapes),
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
       syncStatus: syncStatus ?? this.syncStatus,

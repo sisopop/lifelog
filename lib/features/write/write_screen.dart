@@ -14,7 +14,9 @@ import '../decorate/page_canvas_view.dart';
 import '../decorate/page_deco_playground.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_stickers.dart';
+import '../decorate/photo_tapes.dart';
 import '../decorate/sticker_picker_sheet.dart';
+import '../decorate/tape_picker_sheet.dart';
 import 'emoji_picker.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
@@ -218,6 +220,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
     final notifier = ref.read(entriesProvider.notifier);
     final frames = encodePhotoFrames(_photoFrames);
     final stickers = encodePhotoStickers(_photoStickers);
+    final tapes = encodePhotoTapes(_photoTapes);
     if (_isEditing && _editing != null) {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
@@ -240,6 +243,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           clearPhotoFrames: frames == null,
           photoStickers: stickers,
           clearPhotoStickers: stickers == null,
+          photoTapes: tapes,
+          clearPhotoTapes: tapes == null,
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -263,6 +268,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           flowPhotos: _flowPhotos,
           photoFrames: frames,
           photoStickers: stickers,
+          photoTapes: tapes,
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
@@ -397,6 +403,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
               photoPaths: _photoPaths,
               photoFrames: _photoFrames,
               photoStickers: _photoStickers,
+              photoTapes: _photoTapes,
               onRemove: (i) => setState(() {
                 _photoPaths.removeAt(i);
                 _removePhotoDecoAt(i);
@@ -405,6 +412,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
                   setState(() => _setFrameAt(i, frameId)),
               onStickerPicked: (i, emoji) =>
                   setState(() => _setStickerAt(i, emoji)),
+              onTapePicked: (i, tapeId) =>
+                  setState(() => _setTapeAt(i, tapeId)),
             ),
           ],
           _EntryTags(
