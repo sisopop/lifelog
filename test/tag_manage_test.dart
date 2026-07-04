@@ -145,6 +145,35 @@ void main() {
     });
   });
 
+  group('tagSharePercent', () {
+    test('percent of tagged records that carry the tag, rounded', () {
+      final entries = [
+        _e('1', ['여행', '가족']),
+        _e('2', ['여행']),
+        _e('3', ['여행']),
+        _e('4', ['일상']),
+      ];
+      expect(tagSharePercent(entries, '여행'), 75); // 3/4 tagged records
+      expect(tagSharePercent(entries, '가족'), 25); // 1/4
+    });
+
+    test('ignores replies and untagged records in the denominator', () {
+      final entries = [
+        _em('top', ['여행']),
+        _em('reply', ['여행'], replyTo: 'top'),
+        _e('none', const []),
+      ];
+      // Only the one top-level tagged record counts → 100%.
+      expect(tagSharePercent(entries, '여행'), 100);
+    });
+
+    test('0 when nothing is tagged or the tag is unseen', () {
+      expect(tagSharePercent(const [], '여행'), 0);
+      expect(tagSharePercent([_e('a', const [])], '여행'), 0);
+      expect(tagSharePercent([_e('a', ['가족'])], '여행'), 0);
+    });
+  });
+
   group('dominantMoodByTag', () {
     test('picks the most-recorded mood per tag', () {
       final map = dominantMoodByTag([

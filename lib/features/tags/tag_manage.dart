@@ -39,6 +39,23 @@ Map<String, DateTime> lastUseByTag(List<DiaryEntry> entries) {
   return latest;
 }
 
+/// Pure: what percent (0–100, rounded) of all tagged top-level records carry
+/// [tag]. Replies are excluded from both sides (mirroring [placeSharePercent] /
+/// [moodSharePercent]); records without any tag are not counted. Because one
+/// record can hold several tags, per-tag shares may sum past 100%. Returns 0
+/// when nothing is tagged or [tag] is unseen.
+int tagSharePercent(List<DiaryEntry> entries, String tag) {
+  var total = 0;
+  var mine = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (e.tags.isEmpty) continue;
+    total++;
+    if (e.tags.contains(tag)) mine++;
+  }
+  return total == 0 ? 0 : (mine * 100 / total).round();
+}
+
 /// Pure: the dominant (most-recorded) mood for each tag. Replies and moodless
 /// records are excluded (mirroring the other "dominant mood" stats), so a tag
 /// only used on replies/moodless entries is omitted. Ties resolve to the

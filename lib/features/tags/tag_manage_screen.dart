@@ -61,9 +61,11 @@ class TagManageScreen extends ConsumerWidget {
                 final t = tags[i - 1];
                 final last = lastUse[t.key];
                 final mood = moods[t.key];
+                final share = tagSharePercent(entries, t.key);
+                final base = '${t.value}개 기록 · $share%';
                 final subtitle = last == null
-                    ? '${t.value}개 기록'
-                    : '${t.value}개 기록 · 마지막 ${relativeDayLabel(last, now)}';
+                    ? base
+                    : '$base · 마지막 ${relativeDayLabel(last, now)}';
                 final title =
                     mood == null ? '#${t.key}' : '${mood.emoji} #${t.key}';
                 return ListTile(
