@@ -34,6 +34,7 @@ mixin _PageDecoState on ConsumerState<WriteScreen> {
       builder: (_) => PageDecoPlayground(
         title: '페이지 꾸미기',
         initial: decodePageCanvas(_pageCanvas),
+        contentText: _contentCtrl.text,
         onDone: (canvas) {
           setState(() =>
               _pageCanvas = canvas == null ? null : encodePageCanvas(canvas));

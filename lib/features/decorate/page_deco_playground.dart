@@ -10,6 +10,7 @@ import 'content_flow_demo.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
 import 'page_deco_palette.dart';
+import 'paper_page.dart';
 import 'paper_selector.dart';
 import 'text_color_catalog.dart';
 import 'text_layer_dialog.dart';
@@ -28,10 +29,15 @@ class PageDecoPlayground extends StatefulWidget {
     this.initial,
     this.onDone,
     this.title = '페이지 꾸미기 (실험)',
+    this.contentText = '',
   });
 
   /// 편집을 시작할 캔버스. null이면 빈 캔버스에서 시작.
   final PageCanvas? initial;
+
+  /// 지금까지 쓴 본문. 종이 위에 바탕 글로 깔아, 스티커를 "쓴 글 주변"에 놓게 한다
+  /// (빈 문자열이면 종이만 꾸미는 실험 모드처럼 안내 문구를 보여준다).
+  final String contentText;
 
   /// 실기록 편집 모드: "완료" 버튼을 누르면 현재 캔버스를 돌려준다. 캔버스가
   /// 비어 있으면(무늬 plain·레이어 없음) null을 돌려 "꾸미기 없음"을 뜻한다.
@@ -305,6 +311,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
             builder: (context, c) {
               final w = c.maxWidth;
               final h = c.maxHeight;
+              final baseLines = pageBaseLines(widget.contentText);
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => setState(() => _selectedId = null),
@@ -315,7 +322,25 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
                         painter: PageCanvasPaperPainter(_canvas.paper),
                       ),
                     ),
-                    if (_canvas.isEmpty)
+                    // 쓴 글을 종이 바탕에 깔아, 그 "주변"으로 스티커를 놓게 한다.
+                    // 탭/드래그는 아래 GestureDetector·레이어로 통과시킨다.
+                    if (baseLines.isNotEmpty)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              baseLines.join('\n'),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                height: 1.6,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (_canvas.isEmpty && baseLines.isEmpty)
                       const Center(
                         child: Text(
                           '아래 스티커를 눌러 올려보세요\n끌어서 옮기고, 골라서 키우거나 돌릴 수 있어요',
