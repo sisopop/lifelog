@@ -107,6 +107,24 @@ void main() {
     });
   });
 
+  group('isDecorated', () {
+    test('false for a truly blank canvas (no layers, plain, no color)', () {
+      expect(const PageCanvas().isDecorated, isFalse);
+    });
+
+    test('true when any layer is present', () {
+      expect(PageCanvas(layers: [_layer('a')]).isDecorated, isTrue);
+    });
+
+    test('true when the paper pattern is non-plain, even with no layers', () {
+      expect(const PageCanvas(paper: PaperStyle.grid).isDecorated, isTrue);
+    });
+
+    test('true when only the paper color changed, even plain + no layers', () {
+      expect(const PageCanvas(paperColorValue: 0xFFFFF0F3).isDecorated, isTrue);
+    });
+  });
+
   group('addLayer', () {
     test('appends on top (topZ+1) and does not mutate input', () {
       final base = PageCanvas(layers: [_layer('a', z: 4)]);

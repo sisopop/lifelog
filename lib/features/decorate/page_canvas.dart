@@ -242,6 +242,12 @@ class PageCanvas {
 
   bool get isEmpty => layers.isEmpty;
 
+  /// 사용자가 이 페이지를 실제로 꾸몄는지(레이어를 얹었거나 기본 크림 무지 속지에서
+  /// 무늬·바탕색을 바꿨는지). 리스트 카드에서 꾸민 기록에만 캔버스 썸네일을 보여줄
+  /// 때 쓴다. 편집기의 `_isBlank`(무지·크림·레이어없음)의 반대.
+  bool get isDecorated =>
+      layers.isNotEmpty || paper != PaperStyle.plain || paperColorValue != null;
+
   /// 현재 가장 높은 z(없으면 -1). 새 레이어를 맨 위에 얹을 때 쓴다.
   int get topZ =>
       layers.isEmpty ? -1 : layers.map((l) => l.z).reduce((a, b) => a > b ? a : b);

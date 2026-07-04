@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../features/decorate/page_canvas.dart';
+import '../../features/decorate/page_canvas_view.dart';
 import '../models/diary_entry.dart';
 import 'highlighted_text.dart';
 import 'photo.dart';
@@ -45,6 +47,11 @@ class EntryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date = DateFormat('M월 d일 (E)', 'ko').format(entry.createdAt);
+    // 사진이 없고 페이지를 꾸민 기록이면 캔버스 썸네일을 대신 보여준다.
+    final canvas =
+        entry.pageCanvas == null ? null : decodePageCanvas(entry.pageCanvas);
+    final showCanvas =
+        entry.mediaUrls.isEmpty && canvas != null && canvas.isDecorated;
     return Card(
       child: InkWell(
         onTap: onTap,
@@ -120,6 +127,13 @@ class EntryCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                       child: PhotoView(entry.mediaUrls.first,
                           width: 54, height: 54),
+                    ),
+                  ] else if (showCanvas) ...[
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      width: 54,
+                      child: PageCanvasView(canvas,
+                          aspectRatio: 1, stickerBaseSize: 14),
                     ),
                   ],
                 ],
