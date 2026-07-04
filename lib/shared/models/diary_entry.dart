@@ -29,6 +29,7 @@ class DiaryEntry {
     this.photoMemos,
     this.photoAspects,
     this.photoFilters,
+    this.photoCrops,
     this.isFavorite = false,
     this.deletedAt,
     this.syncStatus = SyncStatus.synced,
@@ -99,6 +100,11 @@ class DiaryEntry {
   /// colours). null이면 효과를 고른 사진이 하나도 없음(종전과 동일).
   final String? photoFilters;
 
+  /// Per-photo crop-position ids, JSON array index-aligned with [mediaUrls] (a
+  /// `null` entry, or an index past the end, means 중앙 = centre crop).
+  /// null이면 크롭 위치를 고른 사진이 하나도 없음(종전과 동일).
+  final String? photoCrops;
+
   /// User-starred record (즐겨찾기). Independent of journal/sync.
   final bool isFavorite;
 
@@ -131,6 +137,7 @@ class DiaryEntry {
     String? photoMemos,
     String? photoAspects,
     String? photoFilters,
+    String? photoCrops,
     bool? isFavorite,
     DateTime? deletedAt,
     SyncStatus? syncStatus,
@@ -145,6 +152,7 @@ class DiaryEntry {
     bool clearPhotoMemos = false,
     bool clearPhotoAspects = false,
     bool clearPhotoFilters = false,
+    bool clearPhotoCrops = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -179,6 +187,7 @@ class DiaryEntry {
           clearPhotoAspects ? null : (photoAspects ?? this.photoAspects),
       photoFilters:
           clearPhotoFilters ? null : (photoFilters ?? this.photoFilters),
+      photoCrops: clearPhotoCrops ? null : (photoCrops ?? this.photoCrops),
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
       syncStatus: syncStatus ?? this.syncStatus,

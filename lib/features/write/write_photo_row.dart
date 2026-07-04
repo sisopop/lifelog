@@ -16,6 +16,7 @@ class _PhotoThumbnailsRow extends StatelessWidget {
     required this.photoMemos,
     required this.photoAspects,
     required this.photoFilters,
+    required this.photoCrops,
     required this.onRemove,
     required this.onFramePicked,
     required this.onStickerPicked,
@@ -23,6 +24,7 @@ class _PhotoThumbnailsRow extends StatelessWidget {
     required this.onMemoPicked,
     required this.onAspectPicked,
     required this.onFilterPicked,
+    required this.onCropPicked,
   });
 
   final List<String> photoPaths;
@@ -32,6 +34,7 @@ class _PhotoThumbnailsRow extends StatelessWidget {
   final List<String?> photoMemos;
   final List<String?> photoAspects;
   final List<String?> photoFilters;
+  final List<String?> photoCrops;
   final void Function(int index) onRemove;
 
   /// Called with the newly chosen frame id (or null to clear).
@@ -52,21 +55,27 @@ class _PhotoThumbnailsRow extends StatelessWidget {
   /// Called with the newly chosen filter id (or null to clear = 원본).
   final void Function(int index, String? filterId) onFilterPicked;
 
+  /// Called with the newly chosen crop id (or null to clear = 중앙).
+  final void Function(int index, String? cropId) onCropPicked;
+
   /// Tap = a small menu of what to decorate; tap and long-press are no longer
   /// enough gestures once we have three decoration kinds, so route them all
   /// through one sheet.
   Future<void> _pickDeco(BuildContext context, int index) async {
     final choice = await showModalBottomSheet<String>(
       context: context,
+      // 꾸밈 종류가 7가지로 늘어 작은 화면에선 세로로 넘칠 수 있어 스크롤 가능하게.
+      isScrollControlled: true,
       builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.crop_square_rounded),
-              title: const Text('프레임'),
-              onTap: () => Navigator.pop(context, 'frame'),
-            ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.crop_square_rounded),
+                title: const Text('프레임'),
+                onTap: () => Navigator.pop(context, 'frame'),
+              ),
             ListTile(
               leading: const Icon(Icons.emoji_emotions_outlined),
               title: const Text('스티커'),
@@ -92,7 +101,13 @@ class _PhotoThumbnailsRow extends StatelessWidget {
               title: const Text('효과'),
               onTap: () => Navigator.pop(context, 'filter'),
             ),
-          ],
+            ListTile(
+              leading: const Icon(Icons.crop_rounded),
+              title: const Text('크롭'),
+              onTap: () => Navigator.pop(context, 'crop'),
+            ),
+            ],
+          ),
         ),
       ),
     );
@@ -110,6 +125,8 @@ class _PhotoThumbnailsRow extends StatelessWidget {
         await _pickAspect(context, index);
       case 'filter':
         await _pickFilter(context, index);
+      case 'crop':
+        await _pickCrop(context, index);
     }
   }
 
@@ -155,6 +172,13 @@ class _PhotoThumbnailsRow extends StatelessWidget {
     onFilterPicked(index, picked.isEmpty ? null : picked);
   }
 
+  Future<void> _pickCrop(BuildContext context, int index) async {
+    final picked =
+        await showCropPickerSheet(context, current: cropAt(photoCrops, index));
+    if (picked == null) return; // dismissed without a choice
+    onCropPicked(index, picked.isEmpty ? null : picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -174,6 +198,9 @@ class _PhotoThumbnailsRow extends StatelessWidget {
                 tapeId: tapeAt(photoTapes, i),
                 memoText: memoAt(photoMemos, i),
                 filterMatrix: colorMatrixForChoice(filterAt(photoFilters, i)),
+                cropAlignment:
+                    photoCropAlignmentForChoice(cropAt(photoCrops, i)) ??
+                        Alignment.center,
                 width: 84,
                 height: 84,
                 borderRadius: 12,

@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/photo.dart';
 import '../decorate/framed_photo.dart';
 import '../decorate/photo_aspects.dart';
+import '../decorate/photo_crops.dart';
 import '../decorate/photo_filters.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_memos.dart';
@@ -26,6 +27,7 @@ class EntryGallery extends StatefulWidget {
     this.photoMemos = const [],
     this.photoAspects = const [],
     this.photoFilters = const [],
+    this.photoCrops = const [],
   });
 
   final List<String> mediaUrls;
@@ -49,6 +51,10 @@ class EntryGallery extends StatefulWidget {
   /// Per-photo color-effect ids, index-aligned with [mediaUrls]
   /// (see photo_filters.dart). null/원본 = the photo's natural colors.
   final List<String?> photoFilters;
+
+  /// Per-photo crop-position ids, index-aligned with [mediaUrls]
+  /// (see photo_crops.dart). null/중앙 = centre crop.
+  final List<String?> photoCrops;
 
   @override
   State<EntryGallery> createState() => _EntryGalleryState();
@@ -150,6 +156,9 @@ class _EntryGalleryState extends State<EntryGallery> {
                 tapeId: tapeAt(widget.photoTapes, i),
                 memoText: memoAt(widget.photoMemos, i),
                 filterMatrix: colorMatrixForChoice(filterAt(widget.photoFilters, i)),
+                cropAlignment:
+                    photoCropAlignmentForChoice(cropAt(widget.photoCrops, i)) ??
+                        Alignment.center,
                 iconSize: 40,
               ),
             ),

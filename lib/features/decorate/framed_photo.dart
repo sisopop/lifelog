@@ -20,6 +20,7 @@ class FramedPhoto extends StatelessWidget {
     this.tapeId,
     this.memoText,
     this.filterMatrix,
+    this.cropAlignment = Alignment.center,
     this.width,
     this.height,
     this.borderRadius = 16,
@@ -34,6 +35,10 @@ class FramedPhoto extends StatelessWidget {
 
   /// Optional 5×4 colour matrix (see photo_filters.dart). null = 원본(필터 없음).
   final List<double>? filterMatrix;
+
+  /// Which part survives when the photo is cover-cropped to its box (see
+  /// photo_crops.dart). Defaults to the centre.
+  final Alignment cropAlignment;
   final double? width;
   final double? height;
   final double borderRadius;
@@ -43,8 +48,11 @@ class FramedPhoto extends StatelessWidget {
   Widget build(BuildContext context) {
     final frame = photoFrameById(frameId);
     final radius = frame?.cornerRadius ?? borderRadius;
-    Widget image =
-        PhotoView(path, width: width, height: height, iconSize: iconSize);
+    Widget image = PhotoView(path,
+        width: width,
+        height: height,
+        iconSize: iconSize,
+        alignment: cropAlignment);
     final matrix = filterMatrix;
     if (matrix != null) {
       // Apply the colour effect to the photo pixels only — under the frame

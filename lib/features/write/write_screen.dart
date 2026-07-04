@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/theme/app_colors.dart';
 import '../decorate/aspect_picker_sheet.dart';
 import '../decorate/content_flow.dart';
+import '../decorate/crop_picker_sheet.dart';
 import '../decorate/filter_picker_sheet.dart';
 import '../decorate/frame_picker_sheet.dart';
 import '../decorate/framed_photo.dart';
@@ -19,6 +20,7 @@ import '../decorate/paper_page.dart';
 import '../decorate/paper_selector.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_aspects.dart';
+import '../decorate/photo_crops.dart';
 import '../decorate/photo_filters.dart';
 import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
@@ -232,6 +234,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
     final memos = encodePhotoMemos(_photoMemos);
     final aspects = encodePhotoAspects(_photoAspects);
     final filters = encodePhotoFilters(_photoFilters);
+    final crops = encodePhotoCrops(_photoCrops);
     if (_isEditing && _editing != null) {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
@@ -262,6 +265,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           clearPhotoAspects: aspects == null,
           photoFilters: filters,
           clearPhotoFilters: filters == null,
+          photoCrops: crops,
+          clearPhotoCrops: crops == null,
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -289,6 +294,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           photoMemos: memos,
           photoAspects: aspects,
           photoFilters: filters,
+          photoCrops: crops,
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
@@ -442,6 +448,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
               photoMemos: _photoMemos,
               photoAspects: _photoAspects,
               photoFilters: _photoFilters,
+              photoCrops: _photoCrops,
               onRemove: (i) => setState(() {
                 _photoPaths.removeAt(i);
                 _removePhotoDecoAt(i);
@@ -458,6 +465,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
                   setState(() => _setAspectAt(i, aspectId)),
               onFilterPicked: (i, filterId) =>
                   setState(() => _setFilterAt(i, filterId)),
+              onCropPicked: (i, cropId) =>
+                  setState(() => _setCropAt(i, cropId)),
             ),
           ],
           _EntryTags(

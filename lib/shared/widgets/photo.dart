@@ -44,12 +44,17 @@ class PhotoView extends StatelessWidget {
     this.width,
     this.height,
     this.iconSize = 20,
+    this.alignment = Alignment.center,
   });
 
   final String path;
   final double? width;
   final double? height;
   final double iconSize;
+
+  /// Which part survives when [BoxFit.cover] crops the photo to fill the box
+  /// (see photo_crops.dart). Defaults to the centre.
+  final Alignment alignment;
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +69,7 @@ class PhotoView extends StatelessWidget {
       width: width,
       height: height,
       fit: BoxFit.cover,
+      alignment: alignment,
       errorBuilder: (_, _, _) => fallback,
     );
   }
