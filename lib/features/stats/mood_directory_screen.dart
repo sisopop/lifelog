@@ -46,9 +46,11 @@ class MoodDirectoryScreen extends ConsumerWidget {
                 }
                 final m = moods[i - 1];
                 final last = lastUse[m.key];
+                final share = moodSharePercent(entries, m.key);
+                final base = '${m.value}개 기록 · $share%';
                 final subtitle = last == null
-                    ? '${m.value}개 기록'
-                    : '${m.value}개 기록 · 마지막 ${relativeDayLabel(last, now)}';
+                    ? base
+                    : '$base · 마지막 ${relativeDayLabel(last, now)}';
                 return ListTile(
                   leading: Text(m.key.emoji,
                       style: const TextStyle(fontSize: 24)),

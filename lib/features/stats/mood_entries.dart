@@ -33,6 +33,21 @@ List<MapEntry<Mood, int>> moodCountsSorted(List<DiaryEntry> entries) {
   return result;
 }
 
+/// What percent (0–100, rounded) of all mood-carrying top-level records carry
+/// [mood]. Reply records and moodless entries are excluded from the denominator.
+/// Returns 0 when nothing carries a mood (so a mood with no records reads 0).
+/// Lets the mood directory show each feeling's share of the recorded moods.
+int moodSharePercent(List<DiaryEntry> entries, Mood mood) {
+  var total = 0;
+  var mine = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    total++;
+    if (e.mood == mood) mine++;
+  }
+  return total == 0 ? 0 : (mine * 100 / total).round();
+}
+
 /// The most recent top-level [createdAt] for each recorded [Mood]. Reply
 /// records and moodless entries are excluded. Moods with no records are absent.
 Map<Mood, DateTime> lastUseByMood(List<DiaryEntry> entries) {

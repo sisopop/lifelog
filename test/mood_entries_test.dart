@@ -118,6 +118,34 @@ void main() {
     });
   });
 
+  group('moodSharePercent', () {
+    test('rounds each mood share of the mood-carrying records', () {
+      final entries = [
+        _entry('a', mood: Mood.good),
+        _entry('b', mood: Mood.good),
+        _entry('c', mood: Mood.good),
+        _entry('d', mood: Mood.hard),
+      ];
+      expect(moodSharePercent(entries, Mood.good), 75); // 3/4
+      expect(moodSharePercent(entries, Mood.hard), 25); // 1/4
+    });
+
+    test('excludes replies and moodless entries from the denominator', () {
+      final entries = [
+        _entry('a', mood: Mood.good),
+        _entry('b'), // no mood — ignored
+        _entry('c', mood: Mood.hard, replyTo: 'a'), // reply — ignored
+      ];
+      expect(moodSharePercent(entries, Mood.good), 100); // only 'a' counts
+      expect(moodSharePercent(entries, Mood.hard), 0);
+    });
+
+    test('zero when nothing carries a mood', () {
+      expect(moodSharePercent(const [], Mood.good), 0);
+      expect(moodSharePercent([_entry('a')], Mood.good), 0);
+    });
+  });
+
   group('entriesWithMood', () {
     test('keeps only top-level entries of the given mood', () {
       final entries = [
