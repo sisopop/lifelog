@@ -449,4 +449,38 @@ void main() {
       );
     });
   });
+
+  group('longestEntryWithMood', () {
+    test(
+        'picks the mood record with the longest body, replies & other mood excluded',
+        () {
+      final r = longestEntryWithMood([
+        _entry('a', mood: Mood.good, created: DateTime(2026, 6, 1), content: 'abc'),
+        _entry('b', mood: Mood.good, created: DateTime(2026, 6, 2), content: 'abcdefg'),
+        _entry('r', mood: Mood.good, created: DateTime(2026, 6, 3), content: 'abcdefghijk', replyTo: 'a'), // reply, longer but excluded
+        _entry('o', mood: Mood.hard, created: DateTime(2026, 6, 4), content: 'abcdefghij'),
+      ], Mood.good);
+      expect(r?.entryId, 'b');
+    });
+
+    test('ties resolve to the most recent record', () {
+      final r = longestEntryWithMood([
+        _entry('a', mood: Mood.good, created: DateTime(2026, 6, 1), content: 'abc'),
+        _entry('b', mood: Mood.good, created: DateTime(2026, 6, 5), content: 'xyz'),
+      ], Mood.good);
+      expect(r?.entryId, 'b');
+    });
+
+    test('null when the mood has no top-level record with text', () {
+      expect(longestEntryWithMood(const [], Mood.good), isNull);
+      expect(
+          longestEntryWithMood(
+              [_entry('a', mood: Mood.good, content: '  ')], Mood.good),
+          isNull);
+      expect(
+          longestEntryWithMood(
+              [_entry('a', mood: Mood.hard, content: 'abc')], Mood.good),
+          isNull);
+    });
+  });
 }

@@ -2,6 +2,7 @@ import 'package:characters/characters.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import 'lifetime_stats.dart';
 
 /// Resolves a [Mood] from its stable [Mood.name] (the value used in the
 /// `/mood?m=` query param). Returns null for unknown/blank names.
@@ -248,3 +249,11 @@ List<DiaryEntry> entriesWithMood(List<DiaryEntry> entries, Mood mood) {
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   return result;
 }
+
+/// The top-level record carrying [mood] with the longest (grapheme-aware,
+/// trimmed) body, or null when the mood has no top-level record with text.
+/// Ties resolve to the most recent record. Reuses [longestEntry] scoped to
+/// this mood's records, mirroring longestEntryWithTag/longestEntryAtLocation.
+/// Lets the mood view surface a tappable "가장 긴 기록" highlight.
+DiaryEntry? longestEntryWithMood(List<DiaryEntry> entries, Mood mood) =>
+    longestEntry(entriesWithMood(entries, mood));
