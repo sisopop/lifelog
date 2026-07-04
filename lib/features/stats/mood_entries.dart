@@ -100,6 +100,35 @@ List<MapEntry<String, int>> tagsWithMood(
   return limit <= 0 ? sorted : sorted.take(limit).toList();
 }
 
+/// The single most-used tag for each recorded [Mood] (top-level records;
+/// replies and moodless entries excluded). Ties resolve alphabetically. Moods
+/// with no tagged record are omitted. The inverse of `dominantMoodByTag`; lets
+/// the mood directory show at a glance what each feeling is usually about.
+Map<Mood, String> dominantTagByMood(List<DiaryEntry> entries) {
+  final counts = <Mood, Map<String, int>>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    for (final t in e.tags) {
+      final byTag = counts.putIfAbsent(e.mood!, () => <String, int>{});
+      byTag.update(t, (c) => c + 1, ifAbsent: () => 1);
+    }
+  }
+  final result = <Mood, String>{};
+  for (final entry in counts.entries) {
+    String? best;
+    var bestCount = 0;
+    for (final t in entry.value.keys.toList()..sort()) {
+      final c = entry.value[t]!;
+      if (c > bestCount) {
+        bestCount = c;
+        best = t;
+      }
+    }
+    if (best != null) result[entry.key] = best;
+  }
+  return result;
+}
+
 /// Distinct non-empty places recorded with [mood] (top-level records; replies
 /// excluded), most-frequent first with ties resolved alphabetically. Capped at
 /// [limit]. Empty when no matching record carries a place. Lets the mood view

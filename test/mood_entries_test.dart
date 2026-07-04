@@ -238,6 +238,32 @@ void main() {
     });
   });
 
+  group('dominantTagByMood', () {
+    test('picks the most-used tag per mood, replies excluded', () {
+      final map = dominantTagByMood([
+        _entry('a', mood: Mood.good, tags: ['여행', '가족']),
+        _entry('b', mood: Mood.good, tags: ['여행']),
+        _entry('r', mood: Mood.good, tags: ['가족', '가족'], replyTo: 'a'),
+        _entry('h', mood: Mood.hard, tags: ['일']),
+      ]);
+      expect(map[Mood.good], '여행'); // 여행 2 > 가족 1 (reply ignored)
+      expect(map[Mood.hard], '일');
+    });
+
+    test('ties resolve alphabetically', () {
+      final map = dominantTagByMood([
+        _entry('a', mood: Mood.good, tags: ['나', '가']),
+      ]);
+      expect(map[Mood.good], '가');
+    });
+
+    test('omits moods with no tagged record', () {
+      expect(dominantTagByMood([_entry('a', mood: Mood.good)]), isEmpty);
+      expect(
+          dominantTagByMood([_entry('a', tags: ['여행'])]), isEmpty); // moodless
+    });
+  });
+
   group('placesWithMood', () {
     test('counts places for the mood, replies & other mood & blanks excluded',
         () {

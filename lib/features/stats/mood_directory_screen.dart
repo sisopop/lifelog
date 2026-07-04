@@ -17,6 +17,7 @@ class MoodDirectoryScreen extends ConsumerWidget {
     final entries = ref.watch(entriesProvider).asData?.value ?? const [];
     final moods = moodCountsSorted(entries);
     final lastUse = lastUseByMood(entries);
+    final topTags = dominantTagByMood(entries);
     final now = DateTime.now();
 
     return Scaffold(
@@ -47,7 +48,10 @@ class MoodDirectoryScreen extends ConsumerWidget {
                 final m = moods[i - 1];
                 final last = lastUse[m.key];
                 final share = moodSharePercent(entries, m.key);
-                final base = '${m.value}개 기록 · $share%';
+                final tag = topTags[m.key];
+                final base = tag == null
+                    ? '${m.value}개 기록 · $share%'
+                    : '${m.value}개 기록 · $share% · #$tag';
                 final subtitle = last == null
                     ? base
                     : '$base · 마지막 ${relativeDayLabel(last, now)}';
