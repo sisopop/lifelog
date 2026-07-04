@@ -2,6 +2,7 @@ import 'package:characters/characters.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../stats/lifetime_stats.dart';
 
 /// Top-level records whose location matches [location] (case-insensitive,
 /// trimmed), newest first. 답장(reply) records are excluded so the list
@@ -177,6 +178,15 @@ int favoriteCountAtLocation(List<DiaryEntry> entries, String location) {
   }
   return n;
 }
+
+/// The top-level record at [location] (case-insensitive, trimmed; replies
+/// excluded) with the longest (grapheme-aware, trimmed) body, or null when
+/// nothing matches or [location] is blank. Ties resolve to the most recent
+/// record. Reuses [longestEntry] scoped to this place's records, mirroring
+/// longestEntryWithTag. Lets the place view surface a tappable "가장 긴 기록"
+/// highlight.
+DiaryEntry? longestEntryAtLocation(List<DiaryEntry> entries, String location) =>
+    longestEntry(entriesAtLocation(entries, location));
 
 /// The distinct journal ids among top-level records at [location]
 /// (case-insensitive, trimmed; replies excluded), in first-seen order of

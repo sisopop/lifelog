@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/models/diary_entry.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
@@ -37,6 +38,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
     const weekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
     final dayPart = busiestDayPartAtLocation(all, location);
     const dayPartNames = ['새벽', '아침', '오후', '저녁'];
+    final longest = longestEntryAtLocation(all, location);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
     final spanText = span == null
@@ -128,6 +130,13 @@ class PlaceEntriesScreen extends ConsumerWidget {
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
+                        if (longest != null) ...[
+                          const SizedBox(height: 12),
+                          _LongestEntryCard(
+                            entry: longest,
+                            chars: longest.content.trim().characters.length,
+                          ),
+                        ],
                       ],
                     ),
                   );
@@ -143,6 +152,49 @@ class PlaceEntriesScreen extends ConsumerWidget {
                 );
               },
             ),
+    );
+  }
+}
+
+/// Tappable highlight for this place's longest record; opens the entry.
+/// Mirrors tag_entries_screen.dart's _LongestEntryCard for the place view.
+class _LongestEntryCard extends StatelessWidget {
+  const _LongestEntryCard({required this.entry, required this.chars});
+  final DiaryEntry entry;
+  final int chars;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = (entry.title?.trim().isNotEmpty ?? false)
+        ? entry.title!.trim()
+        : entry.content.trim();
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => context.push('/entry/${entry.entryId}'),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primarySoft,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('📜 이 장소의 가장 긴 기록 ($chars자)',
+                style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryDark)),
+            const SizedBox(height: 6),
+            Text(title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textSecondary)),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -303,4 +303,47 @@ void main() {
           isEmpty);
     });
   });
+
+  group('longestEntryAtLocation', () {
+    test(
+        'picks the place record with the longest body, replies & other place excluded',
+        () {
+      final r = longestEntryAtLocation([
+        _entry(id: 'a', location: '제주', day: 1, content: 'abc'),
+        _entry(id: 'b', location: '제주', day: 2, content: 'abcdefg'),
+        _entry(
+            id: 'r',
+            location: '제주',
+            day: 3,
+            content: 'abcdefghijk',
+            replyTo: 'a'), // reply, longer but excluded
+        _entry(id: 'o', location: '서울', day: 4, content: 'abcdefghij'),
+      ], '제주');
+      expect(r?.entryId, 'b');
+    });
+
+    test('ties resolve to the most recent record', () {
+      final r = longestEntryAtLocation([
+        _entry(id: 'a', location: '제주', day: 1, content: 'abc'),
+        _entry(id: 'b', location: '제주', day: 5, content: 'xyz'),
+      ], '제주');
+      expect(r?.entryId, 'b');
+    });
+
+    test('null when nothing matches or query is blank', () {
+      expect(longestEntryAtLocation(const [], '제주'), isNull);
+      expect(
+          longestEntryAtLocation(
+              [_entry(id: 'a', location: '제주', content: '  ')], '제주'),
+          isNull);
+      expect(
+          longestEntryAtLocation(
+              [_entry(id: 'a', location: '서울', content: 'abc')], '제주'),
+          isNull);
+      expect(
+          longestEntryAtLocation(
+              [_entry(id: 'a', location: '제주', content: 'abc')], '  '),
+          isNull);
+    });
+  });
 }
