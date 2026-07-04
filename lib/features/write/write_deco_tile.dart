@@ -51,7 +51,7 @@ class _DecoratePageTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canvas = decodePageCanvas(canvasJson);
-    final decorated = canvas.layers.isNotEmpty || canvas.paper != PaperStyle.plain;
+    final decorated = canvas.isDecorated;
     final summary = pageCanvasSummary(canvas);
     final previewLines = contentPreviewLines(content);
     return Column(

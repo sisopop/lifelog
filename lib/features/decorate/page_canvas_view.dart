@@ -56,7 +56,10 @@ class PageCanvasView extends StatelessWidget {
               return Stack(
                 children: [
                   Positioned.fill(
-                    child: CustomPaint(painter: PageCanvasPaperPainter(canvas.paper)),
+                    child: CustomPaint(
+                      painter: PageCanvasPaperPainter(canvas.paper,
+                          gap: paperGapForWidth(w)),
+                    ),
                   ),
                   for (final l in layersByZ(canvas)) _layer(l, w, h),
                 ],
@@ -162,13 +165,22 @@ Widget _decoLayerBody(DecoLayer l, double stickerSize) {
   );
 }
 
-/// 속지(배경) 무늬 페인터. 줄/모눈/도트를 일정 간격으로 채운다. plain은 아무것도
-/// 그리지 않는다(크림 배경만). 편집기·읽기전용 뷰가 공유한다.
+/// 속지 무늬 간격(px)을 캔버스 폭에 비례시켜, 작은 카드 썸네일도 큰 상세 뷰의
+/// 축소판처럼 같은 밀도(≈12칸)로 보이게 한다. 6~34px로 제한해 너무 촘촘하거나
+/// 성기지 않게 하며, 상세 폭(~336px)에서 28로 수렴해 기존 렌더와 사실상 같다.
+double paperGapForWidth(double width) => (width / 12).clamp(6.0, 34.0);
+
+/// 속지(배경) 무늬 페인터. 줄/모눈/도트를 [gap] 간격으로 채운다. 선 굵기·점
+/// 반지름도 [gap]에 비례해 작은 미리보기가 큰 뷰의 충실한 축소판이 된다. plain은
+/// 아무것도 그리지 않는다(크림 배경만). 편집기·읽기전용 뷰가 공유한다.
 class PageCanvasPaperPainter extends CustomPainter {
   const PageCanvasPaperPainter(this.style, {this.gap = 28});
 
   final PaperStyle style;
   final double gap;
+
+  double get _stroke => math.max(0.5, gap / 28);
+  double get _dotRadius => math.max(0.8, gap * 0.05);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -178,14 +190,14 @@ class PageCanvasPaperPainter extends CustomPainter {
       case PaperStyle.lined:
         final paint = Paint()
           ..color = kCanvasGridLine
-          ..strokeWidth = 1;
+          ..strokeWidth = _stroke;
         for (var y = gap; y < size.height; y += gap) {
           canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
         }
       case PaperStyle.grid:
         final paint = Paint()
           ..color = kCanvasGridLine
-          ..strokeWidth = 1;
+          ..strokeWidth = _stroke;
         for (var y = gap; y < size.height; y += gap) {
           canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
         }
@@ -196,7 +208,7 @@ class PageCanvasPaperPainter extends CustomPainter {
         final paint = Paint()..color = kCanvasDot;
         for (var y = gap; y < size.height; y += gap) {
           for (var x = gap; x < size.width; x += gap) {
-            canvas.drawCircle(Offset(x, y), 1.4, paint);
+            canvas.drawCircle(Offset(x, y), _dotRadius, paint);
           }
         }
     }

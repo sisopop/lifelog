@@ -126,7 +126,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   ),
                   const SizedBox(height: 20),
                 ],
-                if (entry.pageCanvas != null) ...[
+                if (entry.pageCanvas != null &&
+                    decodePageCanvas(entry.pageCanvas).isDecorated) ...[
                   PageCanvasView(decodePageCanvas(entry.pageCanvas)),
                   const SizedBox(height: 20),
                 ],
