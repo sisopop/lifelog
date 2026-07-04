@@ -130,6 +130,39 @@ Map<Mood, String> dominantTagByMood(List<DiaryEntry> entries) {
   return result;
 }
 
+/// The single most-used location for each recorded [Mood] (top-level records;
+/// replies excluded). Locations are grouped case-insensitively (trimmed),
+/// keeping the first-seen spelling for display — mirrors
+/// [dominantPlaceByTag]/[dominantTagByMood]. Moods with no located record are
+/// omitted. Ties resolve alphabetically by the location's lowercased key.
+Map<Mood, String> dominantPlaceByMood(List<DiaryEntry> entries) {
+  final counts = <Mood, Map<String, int>>{};
+  final display = <Mood, Map<String, String>>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood == null) continue;
+    final loc = (e.location ?? '').trim();
+    if (loc.isEmpty) continue;
+    final key = loc.toLowerCase();
+    final byPlace = counts.putIfAbsent(e.mood!, () => <String, int>{});
+    byPlace.update(key, (c) => c + 1, ifAbsent: () => 1);
+    display.putIfAbsent(e.mood!, () => {}).putIfAbsent(key, () => loc);
+  }
+  final result = <Mood, String>{};
+  for (final entry in counts.entries) {
+    String? bestKey;
+    var bestCount = 0;
+    for (final k in entry.value.keys.toList()..sort()) {
+      final c = entry.value[k]!;
+      if (c > bestCount) {
+        bestCount = c;
+        bestKey = k;
+      }
+    }
+    if (bestKey != null) result[entry.key] = display[entry.key]![bestKey]!;
+  }
+  return result;
+}
+
 /// Distinct non-empty places recorded with [mood] (top-level records; replies
 /// excluded), most-frequent first with ties resolved alphabetically. Capped at
 /// [limit]. Empty when no matching record carries a place. Lets the mood view

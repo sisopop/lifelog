@@ -483,4 +483,44 @@ void main() {
           isNull);
     });
   });
+
+  group('dominantPlaceByMood', () {
+    test('picks the most-used location per mood, replies excluded', () {
+      final map = dominantPlaceByMood([
+        _entry('a', mood: Mood.good, location: '제주'),
+        _entry('b', mood: Mood.good, location: '제주'),
+        _entry('c', mood: Mood.good, location: '부산'),
+        _entry('r', mood: Mood.good, location: '서울', replyTo: 'a'),
+        _entry('h', mood: Mood.hard, location: '강릉'),
+      ]);
+      expect(map[Mood.good], '제주');
+      expect(map[Mood.hard], '강릉');
+    });
+
+    test('groups locations case-insensitively, keeps first-seen spelling',
+        () {
+      final map = dominantPlaceByMood([
+        _entry('a', mood: Mood.good, location: 'Jeju'),
+        _entry('b', mood: Mood.good, location: 'jeju'),
+      ]);
+      expect(map[Mood.good], 'Jeju');
+    });
+
+    test('ties resolve alphabetically', () {
+      final map = dominantPlaceByMood([
+        _entry('a', mood: Mood.good, location: '제주'),
+        _entry('b', mood: Mood.good, location: '부산'),
+      ]);
+      expect(map[Mood.good], '부산');
+    });
+
+    test('omits moods with no located record', () {
+      expect(dominantPlaceByMood([_entry('a', mood: Mood.good)]), isEmpty);
+      expect(
+          dominantPlaceByMood([_entry('a', mood: Mood.good, location: '  ')]),
+          isEmpty);
+      expect(dominantPlaceByMood([_entry('a', location: '제주')]),
+          isEmpty); // moodless
+    });
+  });
 }
