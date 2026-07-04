@@ -14,6 +14,7 @@ import '../decorate/content_flow.dart';
 import '../decorate/content_flow_view.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
+import '../decorate/paper_page.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
@@ -83,6 +84,12 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     final date = DateFormat.yMMMMEEEEd(locale).format(entry.createdAt);
     final scale = ref.watch(readingTextScaleProvider);
 
+    // 꾸민 캔버스가 있으면 종이+본문+꾸밈을 한 장으로 합성해 보여준다("따로 페이지"
+    // 였던 옛 방식 대신). 본문사이사진(flowPhotos)과의 조합은 아직 합성하지 않는다.
+    final pageCanvas = decodePageCanvas(entry.pageCanvas);
+    final compositePage =
+        shouldCompositePage(pageCanvas, hasFlowPhotos: entry.flowPhotos != null);
+
     // 이 기록이 속한 일기장의 속지를 읽기 화면 배경에 깐다(무지+크림이면 변화 없음).
     final journals =
         ref.watch(journalsProvider).asData?.value ?? const <Journal>[];
@@ -126,20 +133,28 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   ),
                   const SizedBox(height: 20),
                 ],
-                if (entry.pageCanvas != null &&
-                    decodePageCanvas(entry.pageCanvas).isDecorated) ...[
-                  PageCanvasView(decodePageCanvas(entry.pageCanvas)),
-                  const SizedBox(height: 20),
-                ],
-                if (entry.flowPhotos != null)
-                  ContentFlowView(
+                if (compositePage) ...[
+                  DecoratedPageView(
+                    canvas: pageCanvas,
                     content: entry.content,
-                    photos: decodeInlinePhotos(entry.flowPhotos),
                     textStyle: TextStyle(fontSize: 16 * scale, height: 1.6),
-                  )
-                else
-                  Text(entry.content,
-                      style: TextStyle(fontSize: 16 * scale, height: 1.6)),
+                  ),
+                  const SizedBox(height: 20),
+                ] else ...[
+                  if (pageCanvas.isDecorated) ...[
+                    PageCanvasView(pageCanvas),
+                    const SizedBox(height: 20),
+                  ],
+                  if (entry.flowPhotos != null)
+                    ContentFlowView(
+                      content: entry.content,
+                      photos: decodeInlinePhotos(entry.flowPhotos),
+                      textStyle: TextStyle(fontSize: 16 * scale, height: 1.6),
+                    )
+                  else
+                    Text(entry.content,
+                        style: TextStyle(fontSize: 16 * scale, height: 1.6)),
+                ],
                 Builder(builder: (_) {
                   final meta = readingMetaLabel(entry.content);
                   final ord = entryOrdinal(entries, widget.entryId);

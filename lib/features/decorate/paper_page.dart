@@ -6,6 +6,8 @@
 // 일관된 결과를 만든다. 무늬 간격은 폭에 비례(paperGapForWidth)해 어느 크기에서든
 // 같은 밀도로 렌더된다.
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'page_canvas.dart';
@@ -76,6 +78,81 @@ class PaperPageBackground extends StatelessWidget {
                 ),
               ),
               Padding(padding: padding, child: child),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Composites a decorated page for **read-only** display: paper background +
+/// the entry's full body text (flowing naturally, never clipped) + decoration
+/// layers placed on top — one visual instead of a canvas box shown above a
+/// separate text block. Grows to fit the body, however long; each layer's
+/// x/y (0..1) maps to an [Alignment] via [layerAlignment] so it lands in the
+/// same relative spot no matter how tall the rendered page ends up. Shares
+/// paint helpers with [PageCanvasView] so editor, write-screen preview and
+/// this detail render stay visually identical. The entry detail screen shows
+/// this when [shouldCompositePage] says so (decorated canvas, no legacy
+/// inline-flow photos); otherwise it falls back to the old separate blocks.
+class DecoratedPageView extends StatelessWidget {
+  const DecoratedPageView({
+    super.key,
+    required this.canvas,
+    required this.content,
+    this.textStyle,
+    this.padding = const EdgeInsets.all(16),
+  });
+
+  final PageCanvas canvas;
+  final String content;
+  final TextStyle? textStyle;
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = canvas.paperColorValue != null
+        ? Color(canvas.paperColorValue!)
+        : kCanvasPaperCream;
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kCanvasGridLine.withValues(alpha: 0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: LayoutBuilder(
+          builder: (context, c) => Stack(
+            children: [
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: PageCanvasPaperPainter(canvas.paper,
+                      gap: paperGapForWidth(c.maxWidth)),
+                ),
+              ),
+              Padding(
+                padding: padding,
+                child: Text(content, style: textStyle),
+              ),
+              for (final l in layersByZ(canvas))
+                Positioned.fill(
+                  child: Align(
+                    alignment: layerAlignment(l),
+                    child: Transform.rotate(
+                      angle: l.rotation * math.pi / 180,
+                      child: decoLayerContent(l, stickerSize: 44 * l.scale),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

@@ -86,6 +86,14 @@ class PageCanvasView extends StatelessWidget {
   }
 }
 
+/// Maps a layer's 0..1 center ratio to an [Alignment] (-1..1 on each axis), so
+/// it can be placed with `Positioned.fill(child: Align(alignment: ...))` and
+/// land in the same relative spot regardless of the page's actual rendered
+/// size — no pixel math or known height needed. Used by [DecoratedPageView]
+/// (paper_page.dart) to composite decoration layers over body text that grows
+/// to fit its content. Pure & top-level so it is unit-testable.
+Alignment layerAlignment(DecoLayer l) => Alignment(l.x * 2 - 1, l.y * 2 - 1);
+
 /// 레이어 한 개의 시각 표현. 사진(photo)은 흰 액자(폴라로이드풍)로, 그 외
 /// (텍스트·스티커)는 글자로 그린다. [stickerSize]는 scale이 이미 반영된 글자
 /// 크기. 편집기와 읽기전용 뷰가 이 함수를 공유해 배치가 항상 일치한다.

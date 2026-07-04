@@ -248,6 +248,7 @@ class PageCanvas {
   bool get isDecorated =>
       layers.isNotEmpty || paper != PaperStyle.plain || paperColorValue != null;
 
+
   /// 현재 가장 높은 z(없으면 -1). 새 레이어를 맨 위에 얹을 때 쓴다.
   int get topZ =>
       layers.isEmpty ? -1 : layers.map((l) => l.z).reduce((a, b) => a > b ? a : b);
@@ -290,6 +291,16 @@ String encodePageCanvas(PageCanvas canvas) => jsonEncode(canvas.toJson());
 /// 갱신해, non-null ⟺ isDecorated 불변식을 항상 지킨다.
 String? encodePageCanvasOrNull(PageCanvas canvas) =>
     canvas.isDecorated ? encodePageCanvas(canvas) : null;
+
+/// Whether a decorated page should render as **one composited page** (paper +
+/// the entry's full body text + decoration layers, all together) instead of
+/// as separate blocks — the read-only counterpart of the write-screen/editor
+/// redesign. True only when the canvas is actually decorated; entries with
+/// legacy inline body-flow photos keep their previous separate rendering
+/// (that older combination isn't composited yet). Pure & top-level so it is
+/// unit-testable.
+bool shouldCompositePage(PageCanvas canvas, {required bool hasFlowPhotos}) =>
+    canvas.isDecorated && !hasFlowPhotos;
 
 /// 저장된 문자열을 캔버스로 복원한다. null/빈/깨진 입력은 빈 캔버스로 폴백해
 /// 절대 예외를 던지지 않는다(기존 텍스트 전용 기록과 호환).

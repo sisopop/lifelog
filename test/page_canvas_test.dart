@@ -150,6 +150,31 @@ void main() {
     });
   });
 
+  group('shouldCompositePage', () {
+    test('true when decorated and no legacy flow photos', () {
+      expect(
+        shouldCompositePage(PageCanvas(layers: [_layer('a')]),
+            hasFlowPhotos: false),
+        isTrue,
+      );
+    });
+
+    test('false when decorated but legacy flow photos exist', () {
+      expect(
+        shouldCompositePage(PageCanvas(layers: [_layer('a')]),
+            hasFlowPhotos: true),
+        isFalse,
+      );
+    });
+
+    test('false when not decorated, regardless of flow photos', () {
+      expect(shouldCompositePage(const PageCanvas(), hasFlowPhotos: false),
+          isFalse);
+      expect(shouldCompositePage(const PageCanvas(), hasFlowPhotos: true),
+          isFalse);
+    });
+  });
+
   group('addLayer', () {
     test('appends on top (topZ+1) and does not mutate input', () {
       final base = PageCanvas(layers: [_layer('a', z: 4)]);
