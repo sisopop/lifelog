@@ -58,6 +58,29 @@ void main() {
     });
   });
 
+  group('lastEntryByJournal', () {
+    final entries = [
+      _e(id: '1', at: DateTime(2026, 6, 1), journalId: 'j1'),
+      _e(id: '2', at: DateTime(2026, 6, 20), journalId: 'j1'),
+      _e(id: '3', at: DateTime(2026, 6, 25), journalId: 'j1', replyTo: '2'),
+      _e(id: '4', at: DateTime(2026, 6, 30), journalId: 'j2'),
+    ];
+
+    test('keeps the newest top-level date per journal', () {
+      final map = lastEntryByJournal(entries);
+      expect(map['j1'], DateTime(2026, 6, 20)); // reply #3 (6/25) ignored
+      expect(map['j2'], DateTime(2026, 6, 30));
+    });
+
+    test('omits journals that only have replies or none', () {
+      final map = lastEntryByJournal([
+        _e(id: '1', at: DateTime(2026, 6, 5), journalId: 'j1', replyTo: '0'),
+      ]);
+      expect(map.containsKey('j1'), isFalse);
+      expect(lastEntryByJournal(const []), isEmpty);
+    });
+  });
+
   group('daysSinceLastEntry', () {
     final now = DateTime(2026, 6, 21, 15);
 

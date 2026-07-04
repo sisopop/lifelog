@@ -8,6 +8,7 @@ import '../decorate/cover_decorate_sheet.dart';
 import '../decorate/cover_font.dart';
 import '../decorate/journal_cover.dart';
 import 'home_journal_layout.dart';
+import 'journal_activity.dart';
 
 /// Renders the home journal list in the layout the user picked: a full-width
 /// card list, or a 2/3/4-column grid of book covers. The cover widgets are
@@ -19,11 +20,16 @@ class HomeJournalsView extends ConsumerWidget {
     required this.journals,
     required this.counts,
     required this.layout,
+    this.lastEntries = const {},
   });
 
   final List<Journal> journals;
   final Map<String, int> counts;
   final HomeJournalLayout layout;
+
+  /// Most recent top-level entry time per journalId (see [lastEntryByJournal]).
+  /// Used to show a "마지막 N일 전" hint on the full-width card layout.
+  final Map<String, DateTime> lastEntries;
 
   void _open(BuildContext context, Journal j) =>
       context.push('/journal/${j.journalId}');
@@ -33,6 +39,11 @@ class HomeJournalsView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     int countOf(Journal j) => counts[j.journalId] ?? 0;
     void decorate(Journal j) => showCoverDecorateSheet(context, ref, j);
+    final now = DateTime.now();
+    String? lastLabelOf(Journal j) {
+      final last = lastEntries[j.journalId];
+      return last == null ? null : relativeDayLabel(last, now);
+    }
 
     if (layout == HomeJournalLayout.card) {
       return Column(
@@ -43,6 +54,7 @@ class HomeJournalsView extends ConsumerWidget {
               child: _JournalCard(
                 journal: j,
                 entryCount: countOf(j),
+                lastLabel: lastLabelOf(j),
                 onTap: () => _open(context, j),
                 onLongPress: () => decorate(j),
               ),
@@ -93,10 +105,12 @@ class _JournalCard extends StatelessWidget {
     required this.journal,
     required this.entryCount,
     required this.onTap,
+    this.lastLabel,
     this.onLongPress,
   });
   final Journal journal;
   final int entryCount;
+  final String? lastLabel;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
@@ -126,7 +140,10 @@ class _JournalCard extends StatelessWidget {
                           fontSize: 17,
                           fontWeight: FontWeight.w800)),
                   const SizedBox(height: 6),
-                  Text('기록 $entryCount개',
+                  Text(
+                      lastLabel == null
+                          ? '기록 $entryCount개'
+                          : '기록 $entryCount개 · 마지막 $lastLabel',
                       style: const TextStyle(
                           color: Colors.white70, fontSize: 13)),
                 ],

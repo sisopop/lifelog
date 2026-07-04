@@ -17,6 +17,20 @@ DateTime? lastEntryDate(List<DiaryEntry> entries, String journalId) {
   return latest;
 }
 
+/// Pure: the most recent top-level entry time for every journal that has one,
+/// keyed by journalId. Replies are ignored (mirrors [lastEntryDate]) so the
+/// "마지막 기록" label matches the timeline. A single pass so the home list can
+/// look each journal up without rescanning. Journals with no record are absent.
+Map<String, DateTime> lastEntryByJournal(List<DiaryEntry> entries) {
+  final result = <String, DateTime>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final cur = result[e.journalId];
+    if (cur == null || e.createdAt.isAfter(cur)) result[e.journalId] = e.createdAt;
+  }
+  return result;
+}
+
 /// Pure: calendar days since the most recent top-level entry across ALL
 /// journals, or null when there are no (non-reply) entries yet. Replies are
 /// ignored. A record made today (or a future-dated one) reads as 0.

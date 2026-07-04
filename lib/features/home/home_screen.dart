@@ -129,6 +129,7 @@ class HomeScreen extends ConsumerWidget {
                 journals: journals,
                 counts: counts,
                 layout: layout,
+                lastEntries: lastEntryByJournal(allEntries),
               ),
             const SizedBox(height: 20),
             const TodayPromptSection(),
