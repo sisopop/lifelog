@@ -85,6 +85,42 @@ Map<String, Mood> dominantMoodByTag(List<DiaryEntry> entries) {
   return result;
 }
 
+/// Pure: the single most-used location for each tag. Replies and blank
+/// locations are excluded; locations are grouped case-insensitively
+/// (trimmed), keeping the first-seen spelling for display — mirroring
+/// [dominantTagByPlace]/[dominantMoodByPlace] in place_directory.dart. A tag
+/// with no located record is omitted. Ties resolve alphabetically by the
+/// location's lowercased key.
+Map<String, String> dominantPlaceByTag(List<DiaryEntry> entries) {
+  final counts = <String, Map<String, int>>{};
+  final display = <String, Map<String, String>>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final loc = (e.location ?? '').trim();
+    if (loc.isEmpty) continue;
+    final key = loc.toLowerCase();
+    for (final t in e.tags) {
+      final byPlace = counts.putIfAbsent(t, () => <String, int>{});
+      byPlace.update(key, (c) => c + 1, ifAbsent: () => 1);
+      display.putIfAbsent(t, () => {}).putIfAbsent(key, () => loc);
+    }
+  }
+  final result = <String, String>{};
+  for (final entry in counts.entries) {
+    String? bestKey;
+    var bestCount = 0;
+    for (final k in entry.value.keys.toList()..sort()) {
+      final c = entry.value[k]!;
+      if (c > bestCount) {
+        bestCount = c;
+        bestKey = k;
+      }
+    }
+    if (bestKey != null) result[entry.key] = display[entry.key]![bestKey]!;
+  }
+  return result;
+}
+
 /// Toggles the tag-management list between count-order (false) and name-order.
 class TagSortNotifier extends Notifier<bool> {
   @override

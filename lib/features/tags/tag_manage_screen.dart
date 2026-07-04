@@ -19,6 +19,7 @@ class TagManageScreen extends ConsumerWidget {
     final tags = tagCountsSorted(entries, byName: byName);
     final lastUse = lastUseByTag(entries);
     final moods = dominantMoodByTag(entries);
+    final places = dominantPlaceByTag(entries);
     final now = DateTime.now();
 
     return Scaffold(
@@ -61,8 +62,11 @@ class TagManageScreen extends ConsumerWidget {
                 final t = tags[i - 1];
                 final last = lastUse[t.key];
                 final mood = moods[t.key];
+                final place = places[t.key];
                 final share = tagSharePercent(entries, t.key);
-                final base = '${t.value}개 기록 · $share%';
+                final base = place == null
+                    ? '${t.value}개 기록 · $share%'
+                    : '${t.value}개 기록 · $share% · 📍$place';
                 final subtitle = last == null
                     ? base
                     : '$base · 마지막 ${relativeDayLabel(last, now)}';

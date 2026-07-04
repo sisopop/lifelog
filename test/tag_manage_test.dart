@@ -13,7 +13,8 @@ DiaryEntry _e(String id, List<String> tags) => DiaryEntry(
       updatedAt: DateTime(2026, 1, 1),
     );
 
-DiaryEntry _em(String id, List<String> tags, {Mood? mood, String? replyTo}) =>
+DiaryEntry _em(String id, List<String> tags,
+        {Mood? mood, String? replyTo, String? location}) =>
     DiaryEntry(
       entryId: id,
       userId: 'me',
@@ -21,6 +22,7 @@ DiaryEntry _em(String id, List<String> tags, {Mood? mood, String? replyTo}) =>
       tags: tags,
       mood: mood,
       replyToEntryId: replyTo,
+      location: location,
       content: 'x',
       createdAt: DateTime(2026, 1, 1),
       updatedAt: DateTime(2026, 1, 1),
@@ -206,6 +208,50 @@ void main() {
 
     test('omits tags with no mood-bearing records', () {
       expect(dominantMoodByTag([_em('1', ['여행'])]), isEmpty);
+    });
+  });
+
+  group('dominantPlaceByTag', () {
+    test('picks the most-used location per tag', () {
+      final map = dominantPlaceByTag([
+        _em('1', ['여행'], location: '제주'),
+        _em('2', ['여행'], location: '제주'),
+        _em('3', ['여행'], location: '부산'),
+        _em('4', ['가족'], location: '서울'),
+      ]);
+      expect(map['여행'], '제주');
+      expect(map['가족'], '서울');
+    });
+
+    test('groups locations case-insensitively, keeps first-seen spelling',
+        () {
+      final map = dominantPlaceByTag([
+        _em('1', ['여행'], location: 'Jeju'),
+        _em('2', ['여행'], location: 'jeju'),
+      ]);
+      expect(map['여행'], 'Jeju');
+    });
+
+    test('ties resolve alphabetically by location', () {
+      final map = dominantPlaceByTag([
+        _em('1', ['여행'], location: '제주'),
+        _em('2', ['여행'], location: '부산'),
+      ]);
+      expect(map['여행'], '부산');
+    });
+
+    test('excludes replies and blank locations', () {
+      final map = dominantPlaceByTag([
+        _em('1', ['여행'], location: '제주'),
+        _em('2', ['여행'], location: '부산', replyTo: '1'),
+        _em('3', ['여행'], location: '  '),
+      ]);
+      expect(map['여행'], '제주');
+      expect(map.length, 1);
+    });
+
+    test('omits tags with no located record', () {
+      expect(dominantPlaceByTag([_em('1', ['여행'])]), isEmpty);
     });
   });
 }
