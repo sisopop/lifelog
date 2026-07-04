@@ -44,6 +44,26 @@ int distinctPlacesOfMonth(List<DiaryEntry> entries, int year, int month) {
 int distinctPlacesVisited(List<DiaryEntry> entries) =>
     placeCountsSorted(entries).length;
 
+/// Pure: what percent (0–100, rounded) of all located top-level records were
+/// made at [location]. Replies and records without a location are excluded from
+/// the denominator; [location] is matched case-insensitively (trimmed), so it
+/// mirrors [placeCountsSorted]'s grouping. Returns 0 when nothing is located or
+/// [location] is blank/unseen. The 장소 dimension mirroring [moodSharePercent].
+int placeSharePercent(List<DiaryEntry> entries, String location) {
+  final key = location.trim().toLowerCase();
+  if (key.isEmpty) return 0;
+  var total = 0;
+  var mine = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final loc = (e.location ?? '').trim();
+    if (loc.isEmpty) continue;
+    total++;
+    if (loc.toLowerCase() == key) mine++;
+  }
+  return total == 0 ? 0 : (mine * 100 / total).round();
+}
+
 /// Pure: the most-recent top-level record date for each location, keyed by the
 /// location's display spelling (matching [placeCountsSorted]). Replies and
 /// blank locations are ignored. Locations are grouped case-insensitively.

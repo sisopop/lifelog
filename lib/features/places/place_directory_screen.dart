@@ -48,9 +48,11 @@ class PlaceDirectoryScreen extends ConsumerWidget {
                 final p = places[i - 1];
                 final last = lastVisits[p.key];
                 final mood = moods[p.key];
+                final share = placeSharePercent(entries, p.key);
+                final base = '${p.value}개 기록 · $share%';
                 final subtitle = last == null
-                    ? '${p.value}개 기록'
-                    : '${p.value}개 기록 · 마지막 ${relativeDayLabel(last, now)}';
+                    ? base
+                    : '$base · 마지막 ${relativeDayLabel(last, now)}';
                 final title = mood == null ? p.key : '${mood.emoji} ${p.key}';
                 return ListTile(
                   leading: const Icon(Icons.place_outlined,

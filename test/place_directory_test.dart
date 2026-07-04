@@ -90,6 +90,37 @@ void main() {
     });
   });
 
+  group('placeSharePercent', () {
+    test('percent of located records at the place, rounded', () {
+      final entries = [
+        _entry(id: '1', location: '제주'),
+        _entry(id: '2', location: '제주'),
+        _entry(id: '3', location: '제주'),
+        _entry(id: '4', location: '서울'),
+      ];
+      expect(placeSharePercent(entries, '제주'), 75); // 3/4
+      expect(placeSharePercent(entries, '서울'), 25); // 1/4
+    });
+
+    test('matches case-insensitively/trimmed; ignores replies and unlocated', () {
+      final entries = [
+        _entry(id: '1', location: 'Cafe'),
+        _entry(id: 'reply', location: 'Cafe', replyTo: '1'),
+        _entry(id: 'blank', location: '   '),
+        _entry(id: 'none', location: null),
+      ];
+      // Only the one top-level located record counts → 100%, matched loosely.
+      expect(placeSharePercent(entries, '  cafe  '), 100);
+    });
+
+    test('0 when nothing is located or the place is blank/unseen', () {
+      expect(placeSharePercent(const [], '제주'), 0);
+      expect(placeSharePercent([_entry(id: 'a', location: null)], '제주'), 0);
+      expect(placeSharePercent([_entry(id: 'a', location: '제주')], '   '), 0);
+      expect(placeSharePercent([_entry(id: 'a', location: '제주')], '부산'), 0);
+    });
+  });
+
   group('lastVisitByPlace', () {
     test('keeps the latest date per place', () {
       final map = lastVisitByPlace([
