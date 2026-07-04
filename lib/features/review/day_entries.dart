@@ -2,6 +2,7 @@ import 'package:characters/characters.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../stats/lifetime_stats.dart';
 
 /// Top-level records created on [day] (ignores time), newest first.
 /// 답장(reply) records are excluded so the list mirrors the timeline.
@@ -195,6 +196,15 @@ int favoriteCountOfDay(List<DiaryEntry> entries) {
   }
   return n;
 }
+
+/// Pure: the record in [entries] (a day's already-filtered records) with the
+/// longest (grapheme-aware, trimmed) body, or null when none carry text. Ties
+/// resolve to the most recent record. Reuses [longestEntry] directly (no key
+/// param needed — the caller already scoped [entries] to one day), mirroring
+/// longestEntryWithTag/AtLocation/WithMood. Lets the day view surface a
+/// tappable "가장 긴 기록" highlight.
+DiaryEntry? longestEntryOfDay(List<DiaryEntry> entries) =>
+    longestEntry(entries);
 
 /// Pure: the mood that appears most across [entries], or null when none carry
 /// a mood. Ties resolve to the earlier mood in [Mood.values] order. Operates

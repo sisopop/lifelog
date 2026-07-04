@@ -343,4 +343,30 @@ void main() {
       expect(journalIdsOfDay(const []), isEmpty);
     });
   });
+
+  group('longestEntryOfDay', () {
+    test('picks the record with the longest body, replies excluded', () {
+      final r = longestEntryOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), content: 'abc'),
+        _e(id: '2', at: DateTime(2026, 6, 1, 1), content: 'abcdefg'),
+        _e(id: '3', at: DateTime(2026, 6, 1, 2), content: 'abcdefghijk', replyTo: '1'), // reply, longer but excluded
+      ]);
+      expect(r?.entryId, '2');
+    });
+
+    test('ties resolve to the most recent record', () {
+      final r = longestEntryOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), content: 'abc'),
+        _e(id: '2', at: DateTime(2026, 6, 1, 5), content: 'xyz'),
+      ]);
+      expect(r?.entryId, '2');
+    });
+
+    test('null when nothing carries text or list is empty', () {
+      expect(longestEntryOfDay(const []), isNull);
+      expect(
+          longestEntryOfDay([_e(id: '1', at: DateTime(2026, 6, 1), content: '  ')]),
+          isNull);
+    });
+  });
 }
