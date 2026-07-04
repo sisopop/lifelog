@@ -115,14 +115,25 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       body: Column(
         children: [
           Expanded(
-            child: _paperWrap(
-              canvas: pageCanvas,
-              compositePage: compositePage,
-              journalPaper: paper,
-              journalPaperColor: paperColor,
-              child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
+            // 배경 속지를 스크롤 콘텐츠 안쪽에 전체 높이로 그려, 글과 함께
+            // 스크롤되게 한다(무늬가 뷰포트에 고정돼 "배경과 내용이 따로 노는"
+            // 느낌을 없앤다). 짧은 글은 minHeight로 화면을 채우고, 길면 종이가
+            // 그만큼 늘어난다.
+            child: LayoutBuilder(
+              builder: (context, viewport) => SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: viewport.maxHeight),
+                  child: _paperWrap(
+                    canvas: pageCanvas,
+                    compositePage: compositePage,
+                    journalPaper: paper,
+                    journalPaperColor: paperColor,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
                   _header(context, entry, date, authorName),
                 const SizedBox(height: 20),
                 if (entry.mediaUrls.isNotEmpty) ...[
@@ -219,7 +230,11 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                         locale: locale,
                         journalId: entry.journalId,
                       )),
-                ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),

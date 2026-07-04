@@ -266,28 +266,40 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       ),
       body: Column(
         children: [
-          // 페이지를 세로 비율 한 장으로, 남는 공간에 가장 크게 맞춰 그린다.
-          // (스크롤뷰로 감싸지 않는다 — 세로 스크롤 제스처가 스티커의 드래그
-          // 제스처를 가로채 "수정"에서 드래그 이동이 안 되던 문제를 없앤다.)
+          // 페이지에 넉넉한 세로 공간(약 3/5)을 고정 배분해 크게 그린다. 컨트롤은
+          // 아래 스크롤 영역으로 분리했다 — 그래야 페이지가 컨트롤에 눌려 작아지지
+          // 않고("수정"서 꾸밈 있는 영역만 좁게 보이던 문제), 스티커 드래그도
+          // 페이지 영역 안에서만 일어나 컨트롤의 세로 스크롤 제스처와 충돌하지 않는다.
           Expanded(
+            flex: 3,
             child: Center(child: _page()),
           ),
           if (_selected != null) _selectedToolbar(),
-          PaperSelector(
-            paper: _canvas.paper,
-            paperColorValue: _canvas.paperColorValue,
-            onPaperChanged: (style) =>
-                setState(() => _canvas = setPaper(_canvas, style)),
-            onColorChanged: (value) =>
-                setState(() => _canvas = setPaperColor(_canvas, value)),
-          ),
-          DecoPalette(
-            categoryIndex: _categoryIndex,
-            onCategory: (i) => setState(() => _categoryIndex = i),
-            onAddPhoto: _addPhoto,
-            onAddText: _addText,
-            onAddTape: _addTape,
-            onAddSticker: _addSticker,
+          Expanded(
+            flex: 2,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PaperSelector(
+                    paper: _canvas.paper,
+                    paperColorValue: _canvas.paperColorValue,
+                    onPaperChanged: (style) =>
+                        setState(() => _canvas = setPaper(_canvas, style)),
+                    onColorChanged: (value) =>
+                        setState(() => _canvas = setPaperColor(_canvas, value)),
+                  ),
+                  DecoPalette(
+                    categoryIndex: _categoryIndex,
+                    onCategory: (i) => setState(() => _categoryIndex = i),
+                    onAddPhoto: _addPhoto,
+                    onAddText: _addText,
+                    onAddTape: _addTape,
+                    onAddSticker: _addSticker,
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
