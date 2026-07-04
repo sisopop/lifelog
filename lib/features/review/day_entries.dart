@@ -103,6 +103,17 @@ int totalContentChars(List<DiaryEntry> entries) {
   return n;
 }
 
+/// Pure: average content length (grapheme-aware, trimmed) per record across
+/// [entries] (a day's already-filtered records), rounded to the nearest whole
+/// number. Returns 0 when there are no records. Mirrors averageCharsWithMood /
+/// averageCharsWithTag / averageCharsAtLocation — the ✍️ dimension for the day
+/// view (which already shows the running total). Lets the day view hint how
+/// much tends to get written per record that day.
+int averageCharsOfDay(List<DiaryEntry> entries) {
+  if (entries.isEmpty) return 0;
+  return (totalContentChars(entries) / entries.length).round();
+}
+
 /// Pure: the earliest and latest record time among [entries] (a day's
 /// already-filtered records), or null when empty. `first <= last` always.
 /// Lets the day view show the span of hours the day was active.

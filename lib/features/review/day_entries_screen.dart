@@ -92,6 +92,7 @@ class DayEntriesScreen extends ConsumerWidget {
                   ].join(' · ');
                   final tags = tagsOfDay(entries);
                   final places = placesOfDay(entries);
+                  final avgChars = averageCharsOfDay(entries);
                   final favorites = favoriteCountOfDay(entries);
                   final journalNames = journalIdsOfDay(entries)
                       .map((id) => journalMap[id]?.title)
@@ -115,6 +116,12 @@ class DayEntriesScreen extends ConsumerWidget {
                         if (tags.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text('🏷 ${tags.take(6).map((t) => '#$t').join(' ')}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (entries.length >= 2 && avgChars > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('✍️ 평균 $avgChars자',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

@@ -280,6 +280,30 @@ void main() {
     });
   });
 
+  group('averageCharsOfDay', () {
+    test('rounds the mean grapheme length per record', () {
+      // (2 + 6) / 2 = 4
+      final n = averageCharsOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), content: '  안녕  '), // 2
+        _e(id: '2', at: DateTime(2026, 6, 1), content: 'Diary😊'), // 6
+      ]);
+      expect(n, 4);
+    });
+
+    test('rounds a fractional mean to nearest whole', () {
+      // (3 + 6) / 2 = 4.5 -> 5
+      final n = averageCharsOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), content: 'abc'), // 3
+        _e(id: '2', at: DateTime(2026, 6, 1), content: 'abcdef'), // 6
+      ]);
+      expect(n, 5);
+    });
+
+    test('zero for an empty list', () {
+      expect(averageCharsOfDay(const []), 0);
+    });
+  });
+
   group('favoriteCountOfDay', () {
     test('counts the favorited records', () {
       final n = favoriteCountOfDay([
