@@ -95,6 +95,7 @@ class DayEntriesScreen extends ConsumerWidget {
                   final places = placesOfDay(entries);
                   final avgChars = averageCharsOfDay(entries);
                   final favorites = favoriteCountOfDay(entries);
+                  final decorated = decoratedCountOfDay(entries);
                   final journalNames = journalIdsOfDay(entries)
                       .map((id) => journalMap[id]?.title)
                       .whereType<String>()
@@ -130,6 +131,12 @@ class DayEntriesScreen extends ConsumerWidget {
                         if (favorites > 0) ...[
                           const SizedBox(height: 4),
                           Text('⭐ 즐겨찾기 $favorites개',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (decorated > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('🎨 꾸민 기록 $decorated개',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

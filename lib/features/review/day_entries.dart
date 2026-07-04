@@ -2,6 +2,7 @@ import 'package:characters/characters.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../decorate/page_canvas.dart';
 import '../stats/lifetime_stats.dart';
 
 /// Top-level records created on [day] (ignores time), newest first.
@@ -205,6 +206,21 @@ int favoriteCountOfDay(List<DiaryEntry> entries) {
 /// tappable "가장 긴 기록" highlight.
 DiaryEntry? longestEntryOfDay(List<DiaryEntry> entries) =>
     longestEntry(entries);
+
+/// Pure: how many of [entries] (a day's already-filtered records) carry page
+/// decoration — 속지/스티커/테이프/바탕색 등 ([PageCanvas.isDecorated]). Decodes
+/// [DiaryEntry.pageCanvas] defensively (a stored value that decodes to a
+/// plain/empty canvas — e.g. from an old backup/import — does not count),
+/// mirroring how entry_card.dart decides whether to show a canvas thumbnail.
+/// 0 when none. Lets the day view highlight how many of the day's records were
+/// decorated, alongside [favoriteCountOfDay].
+int decoratedCountOfDay(List<DiaryEntry> entries) {
+  var n = 0;
+  for (final e in entries) {
+    if (decodePageCanvas(e.pageCanvas).isDecorated) n++;
+  }
+  return n;
+}
 
 /// Pure: the mood that appears most across [entries], or null when none carry
 /// a mood. Ties resolve to the earlier mood in [Mood.values] order. Operates

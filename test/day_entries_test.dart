@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifelog/features/decorate/page_canvas.dart';
 import 'package:lifelog/features/review/day_entries.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
 import 'package:lifelog/shared/models/enums.dart';
@@ -14,6 +15,7 @@ DiaryEntry _e({
   String? place,
   bool favorite = false,
   String journal = 'j1',
+  String? pageCanvas,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -28,6 +30,7 @@ DiaryEntry _e({
       isFavorite: favorite,
       createdAt: at,
       updatedAt: at,
+      pageCanvas: pageCanvas,
     );
 
 void main() {
@@ -318,6 +321,37 @@ void main() {
       expect(
           favoriteCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
       expect(favoriteCountOfDay(const []), 0);
+    });
+  });
+
+  group('decoratedCountOfDay', () {
+    test('counts records with a decorated page canvas', () {
+      final n = decoratedCountOfDay([
+        _e(
+          id: '1',
+          at: DateTime(2026, 6, 1),
+          pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.grid)),
+        ),
+        _e(id: '2', at: DateTime(2026, 6, 1)), // no canvas at all
+        _e(
+          id: '3',
+          at: DateTime(2026, 6, 1),
+          pageCanvas: encodePageCanvas(const PageCanvas()), // stored but plain
+        ),
+      ]);
+      expect(n, 1);
+    });
+
+    test('malformed pageCanvas JSON never throws, counts as not decorated', () {
+      final n = decoratedCountOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), pageCanvas: 'not json'),
+      ]);
+      expect(n, 0);
+    });
+
+    test('zero when none are decorated or list is empty', () {
+      expect(decoratedCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
+      expect(decoratedCountOfDay(const []), 0);
     });
   });
 
