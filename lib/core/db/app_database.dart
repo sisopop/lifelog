@@ -126,6 +126,9 @@ class DiaryEntries extends Table {
   // 사진별 표시 비율 — mediaUrls와 index로 정렬된 JSON 배열(각 원소는 비율 id 또는 null).
   // null = 비율을 고른 사진이 하나도 없음(원본 비율 사용, 종전과 동일).
   TextColumn get photoAspects => text().nullable()();
+  // 사진별 색 효과(필터) — mediaUrls와 index로 정렬된 JSON 배열(각 원소는 필터 id 또는 null).
+  // null = 효과를 고른 사진이 하나도 없음(원본 색상, 종전과 동일).
+  TextColumn get photoFilters => text().nullable()();
   // 즐겨찾기. Default lets the v3→v4 migration backfill existing rows.
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
   // 휴지통: non-null = soft-deleted (kept 30 days, hidden from normal lists).
@@ -152,7 +155,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -271,6 +274,11 @@ class AppDatabase extends _$AppDatabase {
             // (비율을 고른 사진 없음 = 원본 비율, 종전과 동일).
             await m.addColumn(diaryEntries, diaryEntries.photoAspects);
           }
+          if (from < 27) {
+            // 사진별 색 효과(필터) JSON — existing entries default to null
+            // (효과를 고른 사진 없음 = 원본 색상, 종전과 동일).
+            await m.addColumn(diaryEntries, diaryEntries.photoFilters);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -342,6 +350,7 @@ class AppDatabase extends _$AppDatabase {
       'photo_tapes': diaryEntries.photoTapes,
       'photo_memos': diaryEntries.photoMemos,
       'photo_aspects': diaryEntries.photoAspects,
+      'photo_filters': diaryEntries.photoFilters,
     };
     for (final entry in expected.entries) {
       if (!present.contains(entry.key)) {

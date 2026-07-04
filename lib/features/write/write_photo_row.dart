@@ -15,12 +15,14 @@ class _PhotoThumbnailsRow extends StatelessWidget {
     required this.photoTapes,
     required this.photoMemos,
     required this.photoAspects,
+    required this.photoFilters,
     required this.onRemove,
     required this.onFramePicked,
     required this.onStickerPicked,
     required this.onTapePicked,
     required this.onMemoPicked,
     required this.onAspectPicked,
+    required this.onFilterPicked,
   });
 
   final List<String> photoPaths;
@@ -29,6 +31,7 @@ class _PhotoThumbnailsRow extends StatelessWidget {
   final List<String?> photoTapes;
   final List<String?> photoMemos;
   final List<String?> photoAspects;
+  final List<String?> photoFilters;
   final void Function(int index) onRemove;
 
   /// Called with the newly chosen frame id (or null to clear).
@@ -45,6 +48,9 @@ class _PhotoThumbnailsRow extends StatelessWidget {
 
   /// Called with the newly chosen aspect id (or null to clear = 원본).
   final void Function(int index, String? aspectId) onAspectPicked;
+
+  /// Called with the newly chosen filter id (or null to clear = 원본).
+  final void Function(int index, String? filterId) onFilterPicked;
 
   /// Tap = a small menu of what to decorate; tap and long-press are no longer
   /// enough gestures once we have three decoration kinds, so route them all
@@ -81,6 +87,11 @@ class _PhotoThumbnailsRow extends StatelessWidget {
               title: const Text('비율'),
               onTap: () => Navigator.pop(context, 'aspect'),
             ),
+            ListTile(
+              leading: const Icon(Icons.filter_vintage_outlined),
+              title: const Text('효과'),
+              onTap: () => Navigator.pop(context, 'filter'),
+            ),
           ],
         ),
       ),
@@ -97,6 +108,8 @@ class _PhotoThumbnailsRow extends StatelessWidget {
         await _pickMemo(context, index);
       case 'aspect':
         await _pickAspect(context, index);
+      case 'filter':
+        await _pickFilter(context, index);
     }
   }
 
@@ -135,6 +148,13 @@ class _PhotoThumbnailsRow extends StatelessWidget {
     onAspectPicked(index, picked.isEmpty ? null : picked);
   }
 
+  Future<void> _pickFilter(BuildContext context, int index) async {
+    final picked = await showFilterPickerSheet(context,
+        current: filterAt(photoFilters, index));
+    if (picked == null) return; // dismissed without a choice
+    onFilterPicked(index, picked.isEmpty ? null : picked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -153,6 +173,7 @@ class _PhotoThumbnailsRow extends StatelessWidget {
                 stickerEmoji: stickerAt(photoStickers, i),
                 tapeId: tapeAt(photoTapes, i),
                 memoText: memoAt(photoMemos, i),
+                filterMatrix: colorMatrixForChoice(filterAt(photoFilters, i)),
                 width: 84,
                 height: 84,
                 borderRadius: 12,

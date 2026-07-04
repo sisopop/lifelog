@@ -19,6 +19,7 @@ class FramedPhoto extends StatelessWidget {
     this.stickerEmoji,
     this.tapeId,
     this.memoText,
+    this.filterMatrix,
     this.width,
     this.height,
     this.borderRadius = 16,
@@ -30,6 +31,9 @@ class FramedPhoto extends StatelessWidget {
   final String? stickerEmoji;
   final String? tapeId;
   final String? memoText;
+
+  /// Optional 5×4 colour matrix (see photo_filters.dart). null = 원본(필터 없음).
+  final List<double>? filterMatrix;
   final double? width;
   final double? height;
   final double borderRadius;
@@ -39,9 +43,20 @@ class FramedPhoto extends StatelessWidget {
   Widget build(BuildContext context) {
     final frame = photoFrameById(frameId);
     final radius = frame?.cornerRadius ?? borderRadius;
+    Widget image =
+        PhotoView(path, width: width, height: height, iconSize: iconSize);
+    final matrix = filterMatrix;
+    if (matrix != null) {
+      // Apply the colour effect to the photo pixels only — under the frame
+      // border, sticker, tape, and memo overlays.
+      image = ColorFiltered(
+        colorFilter: ColorFilter.matrix(matrix),
+        child: image,
+      );
+    }
     final photo = ClipRRect(
       borderRadius: BorderRadius.circular(radius),
-      child: PhotoView(path, width: width, height: height, iconSize: iconSize),
+      child: image,
     );
     final framed = frame == null
         ? photo

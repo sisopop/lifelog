@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/photo.dart';
 import '../decorate/framed_photo.dart';
 import '../decorate/photo_aspects.dart';
+import '../decorate/photo_filters.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
@@ -24,6 +25,7 @@ class EntryGallery extends StatefulWidget {
     this.photoTapes = const [],
     this.photoMemos = const [],
     this.photoAspects = const [],
+    this.photoFilters = const [],
   });
 
   final List<String> mediaUrls;
@@ -43,6 +45,10 @@ class EntryGallery extends StatefulWidget {
   /// Per-photo display-ratio ids, index-aligned with [mediaUrls]
   /// (see photo_aspects.dart). null/원본 = use the photo's natural ratio.
   final List<String?> photoAspects;
+
+  /// Per-photo color-effect ids, index-aligned with [mediaUrls]
+  /// (see photo_filters.dart). null/원본 = the photo's natural colors.
+  final List<String?> photoFilters;
 
   @override
   State<EntryGallery> createState() => _EntryGalleryState();
@@ -143,6 +149,7 @@ class _EntryGalleryState extends State<EntryGallery> {
                 stickerEmoji: stickerAt(widget.photoStickers, i),
                 tapeId: tapeAt(widget.photoTapes, i),
                 memoText: memoAt(widget.photoMemos, i),
+                filterMatrix: colorMatrixForChoice(filterAt(widget.photoFilters, i)),
                 iconSize: 40,
               ),
             ),

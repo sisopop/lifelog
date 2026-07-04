@@ -10,6 +10,7 @@ mixin _PhotoDecoState on ConsumerState<WriteScreen> {
   final List<String?> _photoTapes = [];
   final List<String?> _photoMemos = [];
   final List<String?> _photoAspects = [];
+  final List<String?> _photoFilters = [];
 
   void _prefillPhotoDeco(DiaryEntry entry) {
     _photoFrames
@@ -27,6 +28,9 @@ mixin _PhotoDecoState on ConsumerState<WriteScreen> {
     _photoAspects
       ..clear()
       ..addAll(decodePhotoAspects(entry.photoAspects));
+    _photoFilters
+      ..clear()
+      ..addAll(decodePhotoFilters(entry.photoFilters));
   }
 
   void _removePhotoDecoAt(int i) {
@@ -35,6 +39,7 @@ mixin _PhotoDecoState on ConsumerState<WriteScreen> {
     if (i < _photoTapes.length) _photoTapes.removeAt(i);
     if (i < _photoMemos.length) _photoMemos.removeAt(i);
     if (i < _photoAspects.length) _photoAspects.removeAt(i);
+    if (i < _photoFilters.length) _photoFilters.removeAt(i);
   }
 
   void _setFrameAt(int i, String? frameId) {
@@ -68,6 +73,13 @@ mixin _PhotoDecoState on ConsumerState<WriteScreen> {
   void _setAspectAt(int i, String? id) {
     final next = withAspectAt(_photoAspects, i, id);
     _photoAspects
+      ..clear()
+      ..addAll(next);
+  }
+
+  void _setFilterAt(int i, String? id) {
+    final next = withFilterAt(_photoFilters, i, id);
+    _photoFilters
       ..clear()
       ..addAll(next);
   }
