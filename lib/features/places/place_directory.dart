@@ -82,6 +82,41 @@ Map<String, DateTime> lastVisitByPlace(List<DiaryEntry> entries) {
   return {for (final k in latest.keys) display[k]!: latest[k]!};
 }
 
+/// Pure: the single most-used tag for each location, keyed by the location's
+/// display spelling (matching [placeCountsSorted]). Replies and blank locations
+/// are ignored; locations are grouped case-insensitively. A place with no tagged
+/// record is omitted; ties resolve alphabetically. The 장소 sibling of
+/// `dominantTagByMood` — lets the directory show what each place is usually about.
+Map<String, String> dominantTagByPlace(List<DiaryEntry> entries) {
+  final counts = <String, Map<String, int>>{};
+  final display = <String, String>{};
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    final loc = (e.location ?? '').trim();
+    if (loc.isEmpty) continue;
+    final key = loc.toLowerCase();
+    display.putIfAbsent(key, () => loc);
+    final byTag = counts.putIfAbsent(key, () => <String, int>{});
+    for (final t in e.tags) {
+      byTag.update(t, (c) => c + 1, ifAbsent: () => 1);
+    }
+  }
+  final result = <String, String>{};
+  for (final entry in counts.entries) {
+    String? best;
+    var bestCount = 0;
+    for (final t in entry.value.keys.toList()..sort()) {
+      final c = entry.value[t]!;
+      if (c > bestCount) {
+        bestCount = c;
+        best = t;
+      }
+    }
+    if (best != null) result[display[entry.key]!] = best;
+  }
+  return result;
+}
+
 /// Pure: the dominant (most-recorded) mood for each location, keyed by the
 /// location's display spelling (matching [placeCountsSorted]). Replies, blank
 /// locations and moodless records are ignored. Locations are grouped

@@ -8,6 +8,7 @@ DiaryEntry _entry({
   String? location,
   String? replyTo,
   Mood? mood,
+  List<String> tags = const [],
 }) {
   final t = DateTime(2026, 6, 10);
   return DiaryEntry(
@@ -15,7 +16,7 @@ DiaryEntry _entry({
     userId: 'me',
     journalId: 'jr_default',
     content: 'c',
-    tags: const [],
+    tags: tags,
     location: location,
     mood: mood,
     replyToEntryId: replyTo,
@@ -200,6 +201,37 @@ void main() {
     test('omits places with no mood-bearing records', () {
       final map = dominantMoodByPlace([
         _entry(id: '1', location: '제주'),
+      ]);
+      expect(map, isEmpty);
+    });
+  });
+
+  group('dominantTagByPlace', () {
+    test('picks the most-used tag per place, replies excluded', () {
+      final map = dominantTagByPlace([
+        _entry(id: '1', location: '제주', tags: ['여행', '가족']),
+        _entry(id: '2', location: '제주', tags: ['여행']),
+        _entry(id: 'r', location: '제주', tags: ['가족'], replyTo: '1'),
+        _entry(id: '3', location: '서울', tags: ['일']),
+      ]);
+      expect(map['제주'], '여행'); // 여행 2 > 가족 1 (reply's 가족 ignored)
+      expect(map['서울'], '일');
+    });
+
+    test('groups case-insensitively; ties resolve alphabetically', () {
+      final map = dominantTagByPlace([
+        _entry(id: '1', location: '제주', tags: ['나']),
+        _entry(id: '2', location: '  제주  ', tags: ['가']),
+      ]);
+      expect(map.keys, ['제주']);
+      expect(map['제주'], '가'); // 가 vs 나 tie → alphabetical
+    });
+
+    test('omits places with no tagged/blank/no-location records', () {
+      final map = dominantTagByPlace([
+        _entry(id: '1', location: '제주'),
+        _entry(id: '2', location: '   ', tags: ['가족']),
+        _entry(id: '3', location: null, tags: ['일']),
       ]);
       expect(map, isEmpty);
     });

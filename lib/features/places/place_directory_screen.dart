@@ -18,6 +18,7 @@ class PlaceDirectoryScreen extends ConsumerWidget {
     final places = placeCountsSorted(entries);
     final lastVisits = lastVisitByPlace(entries);
     final moods = dominantMoodByPlace(entries);
+    final topTags = dominantTagByPlace(entries);
     final now = DateTime.now();
 
     return Scaffold(
@@ -49,7 +50,10 @@ class PlaceDirectoryScreen extends ConsumerWidget {
                 final last = lastVisits[p.key];
                 final mood = moods[p.key];
                 final share = placeSharePercent(entries, p.key);
-                final base = '${p.value}개 기록 · $share%';
+                final tag = topTags[p.key];
+                final base = tag == null
+                    ? '${p.value}개 기록 · $share%'
+                    : '${p.value}개 기록 · $share% · #$tag';
                 final subtitle = last == null
                     ? base
                     : '$base · 마지막 ${relativeDayLabel(last, now)}';
