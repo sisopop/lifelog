@@ -27,6 +27,7 @@ class DiaryEntry {
     this.photoStickers,
     this.photoTapes,
     this.photoMemos,
+    this.photoAspects,
     this.isFavorite = false,
     this.deletedAt,
     this.syncStatus = SyncStatus.synced,
@@ -87,6 +88,11 @@ class DiaryEntry {
   /// photo). null이면 메모를 단 사진이 하나도 없음(종전과 동일).
   final String? photoMemos;
 
+  /// Per-photo display-ratio ids, JSON array index-aligned with [mediaUrls] (a
+  /// `null` entry, or an index past the end, means 원본 = the photo's natural
+  /// ratio). null이면 비율을 고른 사진이 하나도 없음(종전과 동일).
+  final String? photoAspects;
+
   /// User-starred record (즐겨찾기). Independent of journal/sync.
   final bool isFavorite;
 
@@ -117,6 +123,7 @@ class DiaryEntry {
     String? photoStickers,
     String? photoTapes,
     String? photoMemos,
+    String? photoAspects,
     bool? isFavorite,
     DateTime? deletedAt,
     SyncStatus? syncStatus,
@@ -129,6 +136,7 @@ class DiaryEntry {
     bool clearPhotoStickers = false,
     bool clearPhotoTapes = false,
     bool clearPhotoMemos = false,
+    bool clearPhotoAspects = false,
   }) {
     return DiaryEntry(
       entryId: entryId,
@@ -159,6 +167,8 @@ class DiaryEntry {
           clearPhotoTapes ? null : (photoTapes ?? this.photoTapes),
       photoMemos:
           clearPhotoMemos ? null : (photoMemos ?? this.photoMemos),
+      photoAspects:
+          clearPhotoAspects ? null : (photoAspects ?? this.photoAspects),
       isFavorite: isFavorite ?? this.isFavorite,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
       syncStatus: syncStatus ?? this.syncStatus,

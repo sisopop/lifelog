@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/photo.dart';
 import '../decorate/framed_photo.dart';
+import '../decorate/photo_aspects.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
@@ -22,6 +23,7 @@ class EntryGallery extends StatefulWidget {
     this.photoStickers = const [],
     this.photoTapes = const [],
     this.photoMemos = const [],
+    this.photoAspects = const [],
   });
 
   final List<String> mediaUrls;
@@ -37,6 +39,10 @@ class EntryGallery extends StatefulWidget {
 
   /// Per-photo memo captions, index-aligned with [mediaUrls] (see photo_memos.dart).
   final List<String?> photoMemos;
+
+  /// Per-photo display-ratio ids, index-aligned with [mediaUrls]
+  /// (see photo_aspects.dart). null/원본 = use the photo's natural ratio.
+  final List<String?> photoAspects;
 
   @override
   State<EntryGallery> createState() => _EntryGalleryState();
@@ -112,13 +118,19 @@ class _EntryGalleryState extends State<EntryGallery> {
     super.dispose();
   }
 
+  /// Box ratio for the photo at [i]: an explicit per-photo choice (1:1 / 4:3 /
+  /// 3:4) wins; 원본/none falls back to the first photo's natural ratio.
+  double _aspectFor(int i) =>
+      aspectRatioForChoice(aspectAt(widget.photoAspects, i)) ??
+      galleryAspectRatio(_w, _h);
+
   @override
   Widget build(BuildContext context) {
     final photos = widget.mediaUrls;
     return Column(
       children: [
         AspectRatio(
-          aspectRatio: galleryAspectRatio(_w, _h),
+          aspectRatio: _aspectFor(_page),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: PageView.builder(

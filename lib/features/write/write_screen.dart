@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../decorate/aspect_picker_sheet.dart';
 import '../decorate/content_flow.dart';
 import '../decorate/frame_picker_sheet.dart';
 import '../decorate/framed_photo.dart';
@@ -16,6 +17,7 @@ import '../decorate/page_deco_playground.dart';
 import '../decorate/paper_page.dart';
 import '../decorate/paper_selector.dart';
 import '../decorate/photo_frames.dart';
+import '../decorate/photo_aspects.dart';
 import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
 import '../decorate/photo_tapes.dart';
@@ -226,6 +228,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
     final stickers = encodePhotoStickers(_photoStickers);
     final tapes = encodePhotoTapes(_photoTapes);
     final memos = encodePhotoMemos(_photoMemos);
+    final aspects = encodePhotoAspects(_photoAspects);
     if (_isEditing && _editing != null) {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
@@ -252,6 +255,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           clearPhotoTapes: tapes == null,
           photoMemos: memos,
           clearPhotoMemos: memos == null,
+          photoAspects: aspects,
+          clearPhotoAspects: aspects == null,
           createdAt: composeEntryDate(_date, _editing!.createdAt),
         ),
       );
@@ -277,6 +282,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           photoStickers: stickers,
           photoTapes: tapes,
           photoMemos: memos,
+          photoAspects: aspects,
           createdAt: composeEntryDate(_date, now),
           updatedAt: now,
         ),
@@ -428,6 +434,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
               photoStickers: _photoStickers,
               photoTapes: _photoTapes,
               photoMemos: _photoMemos,
+              photoAspects: _photoAspects,
               onRemove: (i) => setState(() {
                 _photoPaths.removeAt(i);
                 _removePhotoDecoAt(i);
@@ -440,6 +447,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
                   setState(() => _setTapeAt(i, tapeId)),
               onMemoPicked: (i, memo) =>
                   setState(() => _setMemoAt(i, memo)),
+              onAspectPicked: (i, aspectId) =>
+                  setState(() => _setAspectAt(i, aspectId)),
             ),
           ],
           _EntryTags(
