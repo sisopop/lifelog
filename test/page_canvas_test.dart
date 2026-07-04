@@ -125,6 +125,31 @@ void main() {
     });
   });
 
+  group('encodePageCanvasOrNull', () {
+    test('null for a blank canvas (nothing to save)', () {
+      expect(encodePageCanvasOrNull(const PageCanvas()), isNull);
+    });
+
+    test('encodes when decorated (paper style chosen)', () {
+      final json = encodePageCanvasOrNull(const PageCanvas(paper: PaperStyle.grid));
+      expect(json, isNotNull);
+      expect(decodePageCanvas(json).paper, PaperStyle.grid);
+    });
+
+    test('encodes when a layer is present', () {
+      final json = encodePageCanvasOrNull(PageCanvas(layers: [_layer('a')]));
+      expect(json, isNotNull);
+      expect(decodePageCanvas(json).layers.single.id, 'a');
+    });
+
+    test('null again after clearing the paper back to plain/cream', () {
+      final blanked = setPaperColor(setPaper(
+          const PageCanvas(paper: PaperStyle.grid, paperColorValue: 0xFFFFF0F3),
+          PaperStyle.plain), null);
+      expect(encodePageCanvasOrNull(blanked), isNull);
+    });
+  });
+
   group('addLayer', () {
     test('appends on top (topZ+1) and does not mutate input', () {
       final base = PageCanvas(layers: [_layer('a', z: 4)]);

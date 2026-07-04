@@ -12,6 +12,21 @@ mixin _PageDecoState on ConsumerState<WriteScreen> {
   /// 본문 흐름 사이에 끼운 사진들(InlinePhoto JSON, null=없음).
   String? _flowPhotos;
 
+  /// 현재 페이지 꾸미기 캔버스(속지·레이어)를 모델로 디코드해 돌려준다.
+  PageCanvas get _canvasModel => decodePageCanvas(_pageCanvas);
+
+  /// 캔버스를 저장 규칙(안 꾸몄으면 null)으로 `_pageCanvas`에 반영한다.
+  void _setCanvas(PageCanvas c) =>
+      setState(() => _pageCanvas = encodePageCanvasOrNull(c));
+
+  /// 글쓰기 화면에서 이 페이지의 속지 무늬를 바로 고른다.
+  void _setPaperStyle(PaperStyle style) =>
+      _setCanvas(setPaper(_canvasModel, style));
+
+  /// 글쓰기 화면에서 이 페이지의 속지 바탕색을 바로 고른다(null=기본 크림).
+  void _setPaperColorValue(int? value) =>
+      _setCanvas(setPaperColor(_canvasModel, value));
+
   /// Opens the canvas editor; "완료" returns the edited canvas (null = clear).
   Future<void> _editPageCanvas() async {
     final nav = Navigator.of(context);

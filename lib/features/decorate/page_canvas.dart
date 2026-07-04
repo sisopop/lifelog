@@ -284,6 +284,13 @@ class PageCanvas {
 /// 캔버스를 저장용 JSON 문자열로 직렬화한다.
 String encodePageCanvas(PageCanvas canvas) => jsonEncode(canvas.toJson());
 
+/// 캔버스를 저장하되, 실제로 꾸며지지 않았으면(무지·크림·레이어없음) null을 돌려
+/// "꾸미기 없음"을 뜻한다(편집기 `_isBlank`·저장 시 clearPageCanvas와 같은 규칙).
+/// 글쓰기 화면에서 속지·레이어를 만질 때마다 `_pageCanvas` 문자열을 이 규칙으로
+/// 갱신해, non-null ⟺ isDecorated 불변식을 항상 지킨다.
+String? encodePageCanvasOrNull(PageCanvas canvas) =>
+    canvas.isDecorated ? encodePageCanvas(canvas) : null;
+
 /// 저장된 문자열을 캔버스로 복원한다. null/빈/깨진 입력은 빈 캔버스로 폴백해
 /// 절대 예외를 던지지 않는다(기존 텍스트 전용 기록과 호환).
 PageCanvas decodePageCanvas(String? raw) {

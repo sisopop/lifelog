@@ -13,6 +13,8 @@ import '../decorate/memo_dialog.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
 import '../decorate/page_deco_playground.dart';
+import '../decorate/paper_page.dart';
+import '../decorate/paper_selector.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
@@ -366,14 +368,29 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
             onChanged: (w) => setState(() => _weather = w),
           ),
           const SizedBox(height: 20),
-          TextField(
-            controller: _contentCtrl,
-            maxLines: 8,
-            onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              hintText: '오늘 어떤 하루였나요?',
-              border: OutlineInputBorder(borderSide: BorderSide(color: AppColors.divider)),
+          // 본문을 "종이 페이지" 위에 직접 쓴다(속지 무늬·바탕색을 아래에서 바로 고름).
+          PaperPageBackground(
+            canvas: _canvasModel,
+            child: TextField(
+              controller: _contentCtrl,
+              minLines: 8,
+              maxLines: null,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(
+                  fontSize: 15, height: 1.6, color: AppColors.textPrimary),
+              decoration: const InputDecoration(
+                isCollapsed: true,
+                hintText: '오늘 어떤 하루였나요?',
+                border: InputBorder.none,
+              ),
             ),
+          ),
+          const SizedBox(height: 10),
+          PaperSelector(
+            paper: _canvasModel.paper,
+            paperColorValue: _canvasModel.paperColorValue,
+            onPaperChanged: _setPaperStyle,
+            onColorChanged: _setPaperColorValue,
           ),
           const SizedBox(height: 6),
           _ContentMeta(_contentCtrl.text),
