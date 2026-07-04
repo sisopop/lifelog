@@ -115,9 +115,11 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       body: Column(
         children: [
           Expanded(
-            child: PaperBackground(
-              paper: paper,
-              paperColor: paperColor,
+            child: _paperWrap(
+              canvas: pageCanvas,
+              compositePage: compositePage,
+              journalPaper: paper,
+              journalPaperColor: paperColor,
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
@@ -138,6 +140,8 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                     canvas: pageCanvas,
                     content: entry.content,
                     textStyle: TextStyle(fontSize: 16 * scale, height: 1.6),
+                    // 배경 속지는 _paperWrap이 화면 전체에 한 번만 깐다.
+                    showPaper: false,
                   ),
                   const SizedBox(height: 20),
                 ] else ...[
@@ -221,6 +225,37 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
           ),
           _composer(entry),
         ],
+      ),
+    );
+  }
+
+  /// 이 기록의 배경 속지를 정한다. 꾸민 기록이 자기 속지(무늬·바탕색)를 가지면
+  /// 그 종이를 제목·사진·본문·꾸밈 전체에 하나로 깔아, 글 위에 또 한 겹 종이
+  /// 카드가 얹히던 "이중 속지"를 없앤다. 그렇지 않으면 일기장 기본 속지를 쓴다.
+  Widget _paperWrap({
+    required PageCanvas canvas,
+    required bool compositePage,
+    required String journalPaper,
+    required String journalPaperColor,
+    required Widget child,
+  }) {
+    final hasOwnPaper = compositePage &&
+        (canvas.paper != PaperStyle.plain || canvas.paperColorValue != null);
+    if (!hasOwnPaper) {
+      return PaperBackground(
+          paper: journalPaper, paperColor: journalPaperColor, child: child);
+    }
+    final color = canvas.paperColorValue != null
+        ? Color(canvas.paperColorValue!)
+        : kCanvasPaperCream;
+    if (canvas.paper == PaperStyle.plain) {
+      return DecoratedBox(decoration: BoxDecoration(color: color), child: child);
+    }
+    return DecoratedBox(
+      decoration: BoxDecoration(color: color),
+      child: CustomPaint(
+        painter: PageCanvasPaperPainter(canvas.paper),
+        child: child,
       ),
     );
   }

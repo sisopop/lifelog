@@ -103,12 +103,19 @@ class DecoratedPageView extends StatelessWidget {
     required this.content,
     this.textStyle,
     this.padding = const EdgeInsets.all(16),
+    this.showPaper = true,
   });
 
   final PageCanvas canvas;
   final String content;
   final TextStyle? textStyle;
   final EdgeInsets padding;
+
+  /// 자체 종이(크림/속지 무늬 + 테두리 + 그림자)를 그릴지. 기록 상세에서는 이
+  /// 기록의 속지를 화면 전체 배경으로 한 번만 깔기 때문에 false로 넘겨, 글 위에
+  /// 또 한 겹 종이 카드가 얹히던 "이중 속지"를 없앤다(본문·레이어만 투명하게
+  /// 얹는다). 기본 true는 다른 미리보기 용도의 기존 동작을 지킨다.
+  final bool showPaper;
 
   @override
   Widget build(BuildContext context) {
@@ -123,6 +130,35 @@ class DecoratedPageView extends StatelessWidget {
         // 꾸밈 레이어가 상세에서 좁은 영역에 전부 뭉쳐 보였다. 본문이 길면
         // 그 높이만큼 자연스럽게 늘어난다(레이어는 layerAlignment로 상대 배치).
         final minHeight = w / kPageAspectRatio;
+        final stack = Stack(
+          children: [
+            // 페이지 최소 높이를 잡아 주는 보이지 않는 자.
+            SizedBox(width: w, height: minHeight),
+            if (showPaper)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: PageCanvasPaperPainter(canvas.paper,
+                      gap: paperGapForWidth(w)),
+                ),
+              ),
+            Padding(
+              padding: padding,
+              child: Text(content, style: textStyle),
+            ),
+            for (final l in layersByZ(canvas))
+              Positioned.fill(
+                child: Align(
+                  alignment: layerAlignment(l),
+                  child: Transform.rotate(
+                    angle: l.rotation * math.pi / 180,
+                    child: decoLayerContent(l, stickerSize: 44 * l.scale),
+                  ),
+                ),
+              ),
+          ],
+        );
+        // 상세에서는 배경 속지를 화면 전체에 이미 깔았으므로 투명하게 얹는다.
+        if (!showPaper) return stack;
         return Container(
           decoration: BoxDecoration(
             color: color,
@@ -138,32 +174,7 @@ class DecoratedPageView extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Stack(
-              children: [
-                // 페이지 최소 높이를 잡아 주는 보이지 않는 자.
-                SizedBox(width: w, height: minHeight),
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: PageCanvasPaperPainter(canvas.paper,
-                        gap: paperGapForWidth(w)),
-                  ),
-                ),
-                Padding(
-                  padding: padding,
-                  child: Text(content, style: textStyle),
-                ),
-                for (final l in layersByZ(canvas))
-                  Positioned.fill(
-                    child: Align(
-                      alignment: layerAlignment(l),
-                      child: Transform.rotate(
-                        angle: l.rotation * math.pi / 180,
-                        child: decoLayerContent(l, stickerSize: 44 * l.scale),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+            child: stack,
           ),
         );
       },

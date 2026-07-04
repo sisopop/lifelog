@@ -266,13 +266,11 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       ),
       body: Column(
         children: [
-          // 페이지를 세로로 넉넉한 한 장(세로 비율)으로 그리고, 남는 공간보다
-          // 크면 스크롤해서 위아래로 넓게 볼 수 있게 한다(빈 공간 세로 드래그는
-          // 스크롤, 스티커 드래그는 레이어가 가져간다).
+          // 페이지를 세로 비율 한 장으로, 남는 공간에 가장 크게 맞춰 그린다.
+          // (스크롤뷰로 감싸지 않는다 — 세로 스크롤 제스처가 스티커의 드래그
+          // 제스처를 가로채 "수정"에서 드래그 이동이 안 되던 문제를 없앤다.)
           Expanded(
-            child: SingleChildScrollView(
-              child: _page(),
-            ),
+            child: Center(child: _page()),
           ),
           if (_selected != null) _selectedToolbar(),
           PaperSelector(
@@ -378,34 +376,75 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       top: l.y * h,
       child: FractionalTranslation(
         translation: const Offset(-0.5, -0.5),
-        child: GestureDetector(
-          onTap: () => setState(() {
-            _selectedId = l.id;
-            _canvas = bringLayerToFront(_canvas, l.id);
-          }),
-          onPanUpdate: (d) => setState(() {
-            _selectedId = l.id;
-            _canvas = replaceLayer(
-              _canvas,
-              l.copyWith(
-                x: clampUnit(l.x + d.delta.dx / w),
-                y: clampUnit(l.y + d.delta.dy / h),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Padding(
+              // 선택 시 위·오른쪽에 삭제 배지가 앉을 자리를 비운다. 이렇게 해야
+              // 배지가 레이어의 히트영역(Stack 크기) 안에 들어와 탭이 먹는다.
+              // (Stack 밖으로 삐져나간 요소는 보이기만 하고 탭은 무시된다.)
+              padding: selected
+                  ? const EdgeInsets.only(top: 14, right: 14)
+                  : EdgeInsets.zero,
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _selectedId = l.id;
+                  _canvas = bringLayerToFront(_canvas, l.id);
+                }),
+                onPanUpdate: (d) => setState(() {
+                  _selectedId = l.id;
+                  _canvas = replaceLayer(
+                    _canvas,
+                    l.copyWith(
+                      x: clampUnit(l.x + d.delta.dx / w),
+                      y: clampUnit(l.y + d.delta.dy / h),
+                    ),
+                  );
+                }),
+                child: Transform.rotate(
+                  angle: l.rotation * math.pi / 180,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: selected
+                        ? BoxDecoration(
+                            border:
+                                Border.all(color: AppColors.primary, width: 2),
+                            borderRadius: BorderRadius.circular(10),
+                          )
+                        : null,
+                    child: decoLayerContent(l, stickerSize: 44 * l.scale),
+                  ),
+                ),
               ),
-            );
-          }),
-          child: Transform.rotate(
-            angle: l.rotation * math.pi / 180,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: selected
-                  ? BoxDecoration(
-                      border: Border.all(color: AppColors.primary, width: 2),
-                      borderRadius: BorderRadius.circular(10),
-                    )
-                  : null,
-              child: decoLayerContent(l, stickerSize: 44 * l.scale),
             ),
-          ),
+            // 선택된 레이어 위에 바로 뜨는 삭제 배지. 툴바 맨 끝까지 스크롤하지
+            // 않아도 눈에 보이는 곳에서 한 번에 지울 수 있게 한다.
+            if (selected)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _deleteSelected,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      color: AppColors.moodHard,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.close,
+                        size: 18, color: Colors.white),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -421,6 +460,9 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         scrollDirection: Axis.horizontal,
         child: Row(
         children: [
+          // 삭제를 맨 앞에 둬 선택하자마자 바로 보이게 한다(끝까지 스크롤 불필요).
+          _toolBtn(Icons.delete_outline, '삭제', _deleteSelected,
+              color: AppColors.moodHard),
           _toolBtn(Icons.layers_outlined, '다음 레이어', _selectNextLayer),
           _toolBtn(Icons.layers_clear_outlined, '이전 레이어',
               _selectPreviousLayer),
@@ -500,8 +542,6 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
           _toolBtn(Icons.flip_to_back, '맨 뒤',
               () => _applyToSelected(sendLayerToBack)),
           _toolBtn(Icons.delete_sweep_outlined, '종류 삭제', _deleteSameKind,
-              color: AppColors.moodHard),
-          _toolBtn(Icons.delete_outline, '삭제', _deleteSelected,
               color: AppColors.moodHard),
         ],
         ),
