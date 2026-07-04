@@ -370,4 +370,44 @@ void main() {
           isEmpty);
     });
   });
+
+  group('longestEntryWithTag', () {
+    test('picks the tag record with the longest body, replies & other tag excluded',
+        () {
+      final r = longestEntryWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], content: 'abc'),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행'], content: 'abcdefg'),
+        _e(
+            id: 'r',
+            at: DateTime(2026, 6, 3),
+            tags: ['여행'],
+            content: 'abcdefghijk',
+            replyTo: 'a'), // reply, longer but excluded
+        _e(id: 'o', at: DateTime(2026, 6, 4), tags: ['일'], content: 'abcdefghij'),
+      ], '여행');
+      expect(r?.entryId, 'b');
+    });
+
+    test('ties resolve to the most recent record', () {
+      final r = longestEntryWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], content: 'abc'),
+        _e(id: 'b', at: DateTime(2026, 6, 5), tags: ['여행'], content: 'xyz'),
+      ], '여행');
+      expect(r?.entryId, 'b');
+    });
+
+    test('null when the tag has no top-level record with text', () {
+      expect(longestEntryWithTag([], '여행'), isNull);
+      expect(
+          longestEntryWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], content: '  ')],
+              '여행'),
+          isNull);
+      expect(
+          longestEntryWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['일'], content: 'abc')],
+              '여행'),
+          isNull);
+    });
+  });
 }

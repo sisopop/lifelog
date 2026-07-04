@@ -2,6 +2,7 @@ import 'package:characters/characters.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../stats/lifetime_stats.dart';
 
 /// The weekday (DateTime.monday=1 .. sunday=7) that the most top-level records
 /// carrying [tag] fall on (replies excluded), or null when the tag has no
@@ -177,6 +178,14 @@ List<String> placesWithTag(
     });
   return limit <= 0 ? places : places.take(limit).toList();
 }
+
+/// The top-level record carrying [tag] with the longest (grapheme-aware,
+/// trimmed) body, or null when the tag has no top-level record with text.
+/// Ties resolve to the most recent record. Reuses [longestEntry] scoped to
+/// this tag's records, mirroring how longestEntryOfMonth scopes it to a
+/// month. Lets the tag view surface a tappable "가장 긴 기록" highlight.
+DiaryEntry? longestEntryWithTag(List<DiaryEntry> entries, String tag) =>
+    longestEntry(entriesWithTag(entries, tag));
 
 /// The distinct journal ids among top-level records carrying [tag] (replies
 /// excluded), in first-seen order of [entries]. Empty when the tag has no
