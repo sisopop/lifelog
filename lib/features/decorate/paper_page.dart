@@ -115,48 +115,58 @@ class DecoratedPageView extends StatelessWidget {
     final color = canvas.paperColorValue != null
         ? Color(canvas.paperColorValue!)
         : kCanvasPaperCream;
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: kCanvasGridLine.withValues(alpha: 0.6)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: LayoutBuilder(
-          builder: (context, c) => Stack(
-            children: [
-              Positioned.fill(
-                child: CustomPaint(
-                  painter: PageCanvasPaperPainter(canvas.paper,
-                      gap: paperGapForWidth(c.maxWidth)),
-                ),
+    return LayoutBuilder(
+      builder: (context, c) {
+        final w = c.maxWidth;
+        // 본문이 짧아도 최소 한 장의 세로 페이지 높이를 확보한다. 이게 없으면
+        // Stack이 짧은 본문 한 줄 높이로 쪼그라들어, 편집기에서 넓게 벌려 놓은
+        // 꾸밈 레이어가 상세에서 좁은 영역에 전부 뭉쳐 보였다. 본문이 길면
+        // 그 높이만큼 자연스럽게 늘어난다(레이어는 layerAlignment로 상대 배치).
+        final minHeight = w / kPageAspectRatio;
+        return Container(
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: kCanvasGridLine.withValues(alpha: 0.6)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
               ),
-              Padding(
-                padding: padding,
-                child: Text(content, style: textStyle),
-              ),
-              for (final l in layersByZ(canvas))
-                Positioned.fill(
-                  child: Align(
-                    alignment: layerAlignment(l),
-                    child: Transform.rotate(
-                      angle: l.rotation * math.pi / 180,
-                      child: decoLayerContent(l, stickerSize: 44 * l.scale),
-                    ),
-                  ),
-                ),
             ],
           ),
-        ),
-      ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Stack(
+              children: [
+                // 페이지 최소 높이를 잡아 주는 보이지 않는 자.
+                SizedBox(width: w, height: minHeight),
+                Positioned.fill(
+                  child: CustomPaint(
+                    painter: PageCanvasPaperPainter(canvas.paper,
+                        gap: paperGapForWidth(w)),
+                  ),
+                ),
+                Padding(
+                  padding: padding,
+                  child: Text(content, style: textStyle),
+                ),
+                for (final l in layersByZ(canvas))
+                  Positioned.fill(
+                    child: Align(
+                      alignment: layerAlignment(l),
+                      child: Transform.rotate(
+                        angle: l.rotation * math.pi / 180,
+                        child: decoLayerContent(l, stickerSize: 44 * l.scale),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

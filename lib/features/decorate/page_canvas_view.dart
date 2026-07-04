@@ -11,6 +11,11 @@ const Color kCanvasPaperCream = Color(0xFFFFF8F0); // 속지 크림 바탕
 const Color kCanvasGridLine = Color(0xFFE0D5C5); // 줄/모눈 선
 const Color kCanvasDot = Color(0xFFCFC3B0); // 도트 점
 
+/// 세로 다이어리 페이지의 기본 비율(가로:세로). 편집기·상세 합성뷰·미리보기가
+/// 모두 이 비율로 페이지 높이를 잡아, 편집한 위치가 어느 화면에서든 같은 상대
+/// 위치에 재현되게 한다(WYSIWYG). 0.75 = 폭 대비 4/3 높이의 세로 페이지.
+const double kPageAspectRatio = 3 / 4;
+
 /// 저장된 [PageCanvas]를 **읽기 전용**으로 렌더하는 위젯(탭·드래그 없음).
 ///
 /// 편집기([PageDecoPlayground])와 같은 좌표 규칙(x/y 0~1 중심비율·scale·rotation)
@@ -20,7 +25,7 @@ class PageCanvasView extends StatelessWidget {
   const PageCanvasView(
     this.canvas, {
     super.key,
-    this.aspectRatio = 3 / 4,
+    this.aspectRatio = kPageAspectRatio,
     this.stickerBaseSize = 44,
   });
 

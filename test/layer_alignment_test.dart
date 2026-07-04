@@ -24,4 +24,19 @@ void main() {
       expect(layerAlignment(_layer(x: 0.25, y: 0.75)), const Alignment(-0.5, 0.5));
     });
   });
+
+  group('kPageAspectRatio', () {
+    test('is a portrait page (taller than wide)', () {
+      // 편집기·상세 합성뷰가 공유하는 세로 페이지 비율. <1 이어야 폭보다 높이가
+      // 커서, 짧은 본문에서도 꾸밈 레이어가 뭉치지 않을 만큼 세로 여백이 생긴다.
+      expect(kPageAspectRatio, lessThan(1.0));
+      expect(kPageAspectRatio, greaterThan(0.0));
+    });
+
+    test('a page width yields a taller minimum height', () {
+      // DecoratedPageView가 쓰는 최소 높이 계산(w / 비율)이 폭보다 커야 한다.
+      const w = 320.0;
+      expect(w / kPageAspectRatio, greaterThan(w));
+    });
+  });
 }

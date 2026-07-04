@@ -266,7 +266,14 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       ),
       body: Column(
         children: [
-          Expanded(child: _page()),
+          // 페이지를 세로로 넉넉한 한 장(세로 비율)으로 그리고, 남는 공간보다
+          // 크면 스크롤해서 위아래로 넓게 볼 수 있게 한다(빈 공간 세로 드래그는
+          // 스크롤, 스티커 드래그는 레이어가 가져간다).
+          Expanded(
+            child: SingleChildScrollView(
+              child: _page(),
+            ),
+          ),
           if (_selected != null) _selectedToolbar(),
           PaperSelector(
             paper: _canvas.paper,
@@ -292,7 +299,11 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
   Widget _page() {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: ClipRRect(
+      child: AspectRatio(
+        // 상세 합성뷰(DecoratedPageView)와 같은 세로 비율로 그려, 여기서 놓은
+        // 위치가 상세에서도 같은 상대 위치에 재현되게 한다(WYSIWYG).
+        aspectRatio: kPageAspectRatio,
+        child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
@@ -354,6 +365,7 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
               );
             },
           ),
+        ),
         ),
       ),
     );
