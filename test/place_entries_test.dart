@@ -16,6 +16,7 @@ DiaryEntry _entry({
   bool favorite = false,
   String journal = 'jr_default',
   String? pageCanvas,
+  List<String> mediaUrls = const [],
 }) {
   final t = DateTime(2026, 6, day, hour);
   return DiaryEntry(
@@ -31,6 +32,7 @@ DiaryEntry _entry({
     createdAt: t,
     updatedAt: t,
     pageCanvas: pageCanvas,
+    mediaUrls: mediaUrls,
   );
 }
 
@@ -367,6 +369,42 @@ void main() {
           0);
       expect(decoratedCountAtLocation([_entry(id: 'a', location: '제주')], '제주'),
           0);
+    });
+  });
+
+  group('photoCountAtLocation', () {
+    test('counts top-level records with a photo at the place, replies excluded',
+        () {
+      final n = photoCountAtLocation([
+        _entry(id: 'a', location: '제주', mediaUrls: const ['a.jpg']),
+        _entry(id: 'b', location: '  제주  '), // no photo, trim match
+        _entry(
+            id: 'c',
+            location: '제주',
+            mediaUrls: const ['b.jpg', 'c.jpg']),
+        _entry(
+            id: 'r',
+            location: '제주',
+            replyTo: 'a',
+            mediaUrls: const ['d.jpg']), // reply
+        _entry(id: 'o', location: '서울', mediaUrls: const ['e.jpg']), // other place
+      ], '제주');
+      expect(n, 2);
+    });
+
+    test('zero for blank query, no match, or none with photos', () {
+      expect(photoCountAtLocation(const [], '제주'), 0);
+      expect(
+          photoCountAtLocation(
+              [_entry(id: 'a', location: '제주', mediaUrls: const ['a.jpg'])],
+              '  '),
+          0);
+      expect(
+          photoCountAtLocation(
+              [_entry(id: 'a', location: '서울', mediaUrls: const ['a.jpg'])],
+              '제주'),
+          0);
+      expect(photoCountAtLocation([_entry(id: 'a', location: '제주')], '제주'), 0);
     });
   });
 

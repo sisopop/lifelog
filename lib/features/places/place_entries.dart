@@ -199,6 +199,25 @@ int decoratedCountAtLocation(List<DiaryEntry> entries, String location) {
   return n;
 }
 
+/// How many top-level records at [location] (case-insensitive, trimmed;
+/// replies excluded) carry at least one attached photo ([DiaryEntry.mediaUrls]
+/// non-empty). 0 when none, nothing matches, or [location] is blank. Mirrors
+/// [decoratedCountAtLocation]'s shape but tracks a different dimension (photos
+/// vs. page decoration), extending [photoCountWithTag] to the place scope.
+/// Lets the place view show how often that place gets captured in pictures,
+/// alongside [favoriteCountAtLocation].
+int photoCountAtLocation(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return 0;
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    if (e.mediaUrls.isNotEmpty) n++;
+  }
+  return n;
+}
+
 /// The top-level record at [location] (case-insensitive, trimmed; replies
 /// excluded) with the longest (grapheme-aware, trimmed) body, or null when
 /// nothing matches or [location] is blank. Ties resolve to the most recent
