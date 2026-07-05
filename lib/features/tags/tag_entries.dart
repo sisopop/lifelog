@@ -173,6 +173,22 @@ int decoratedCountWithTag(List<DiaryEntry> entries, String tag) {
   return n;
 }
 
+/// How many top-level records carrying [tag] carry at least one attached
+/// photo ([DiaryEntry.mediaUrls] non-empty), replies excluded. 0 when none or
+/// the tag has no records. Mirrors [decoratedCountWithTag]'s shape but tracks
+/// a different dimension (photos vs. page decoration), extending
+/// [photoCountOfDay] to the tag scope. Lets the tag view show how often that
+/// theme gets captured in pictures, alongside [favoriteCountWithTag].
+int photoCountWithTag(List<DiaryEntry> entries, String tag) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (!e.tags.contains(tag)) continue;
+    if (e.mediaUrls.isNotEmpty) n++;
+  }
+  return n;
+}
+
 /// Distinct non-empty places recorded with [tag] (top-level records; replies
 /// excluded), most-frequent first with ties resolved alphabetically. Capped at
 /// [limit]. Empty when no matching record carries a place. Lets the tag view

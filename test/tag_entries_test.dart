@@ -15,6 +15,7 @@ DiaryEntry _e({
   String journal = 'j1',
   String? location,
   String? pageCanvas,
+  List<String> mediaUrls = const [],
 }) =>
     DiaryEntry(
       entryId: id,
@@ -29,6 +30,7 @@ DiaryEntry _e({
       createdAt: at,
       updatedAt: at,
       pageCanvas: pageCanvas,
+      mediaUrls: mediaUrls,
     );
 
 void main() {
@@ -277,6 +279,38 @@ void main() {
               [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
           0);
       expect(decoratedCountWithTag(const [], '여행'), 0);
+    });
+  });
+
+  group('photoCountWithTag', () {
+    test('counts top-level records with a photo for the tag, replies & other tag excluded',
+        () {
+      final n = photoCountWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], mediaUrls: const ['a.jpg']),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행']), // no photo
+        _e(
+          id: 'c',
+          at: DateTime(2026, 6, 3),
+          tags: ['여행'],
+          mediaUrls: const ['b.jpg', 'c.jpg'],
+        ),
+        _e(
+            id: 'r',
+            at: DateTime(2026, 6, 4),
+            tags: ['여행'],
+            mediaUrls: const ['d.jpg'],
+            replyTo: 'a'), // reply ignored
+        _e(id: 'o', at: DateTime(2026, 6, 5), tags: ['일'], mediaUrls: const ['e.jpg']),
+      ], '여행');
+      expect(n, 2);
+    });
+
+    test('zero when none carry photos, tag absent, or list empty', () {
+      expect(
+          photoCountWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
+          0);
+      expect(photoCountWithTag(const [], '여행'), 0);
     });
   });
 
