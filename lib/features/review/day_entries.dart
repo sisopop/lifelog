@@ -222,6 +222,19 @@ int decoratedCountOfDay(List<DiaryEntry> entries) {
   return n;
 }
 
+/// Pure: how many of [entries] (a day's already-filtered records) carry at
+/// least one attached photo ([DiaryEntry.mediaUrls] non-empty). 0 when none.
+/// Mirrors [decoratedCountOfDay]'s shape but tracks a different dimension
+/// (photos vs. page decoration) — lets the day view show how much of the
+/// day was captured in pictures alongside the other counts.
+int photoCountOfDay(List<DiaryEntry> entries) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.mediaUrls.isNotEmpty) n++;
+  }
+  return n;
+}
+
 /// Pure: the mood that appears most across [entries], or null when none carry
 /// a mood. Ties resolve to the earlier mood in [Mood.values] order. Operates
 /// on whatever list is passed (caller decides whether replies are included).

@@ -16,6 +16,7 @@ DiaryEntry _e({
   bool favorite = false,
   String journal = 'j1',
   String? pageCanvas,
+  List<String> mediaUrls = const [],
 }) =>
     DiaryEntry(
       entryId: id,
@@ -31,6 +32,7 @@ DiaryEntry _e({
       createdAt: at,
       updatedAt: at,
       pageCanvas: pageCanvas,
+      mediaUrls: mediaUrls,
     );
 
 void main() {
@@ -352,6 +354,26 @@ void main() {
     test('zero when none are decorated or list is empty', () {
       expect(decoratedCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
       expect(decoratedCountOfDay(const []), 0);
+    });
+  });
+
+  group('photoCountOfDay', () {
+    test('counts records with at least one attached photo', () {
+      final n = photoCountOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), mediaUrls: const ['a.jpg']),
+        _e(id: '2', at: DateTime(2026, 6, 1)), // no photos
+        _e(
+          id: '3',
+          at: DateTime(2026, 6, 1),
+          mediaUrls: const ['b.jpg', 'c.jpg'],
+        ),
+      ]);
+      expect(n, 2);
+    });
+
+    test('zero when none carry photos or list is empty', () {
+      expect(photoCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
+      expect(photoCountOfDay(const []), 0);
     });
   });
 
