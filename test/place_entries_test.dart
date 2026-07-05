@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifelog/features/decorate/page_canvas.dart';
 import 'package:lifelog/features/places/place_entries.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
 import 'package:lifelog/shared/models/enums.dart';
@@ -14,6 +15,7 @@ DiaryEntry _entry({
   String content = 'c',
   bool favorite = false,
   String journal = 'jr_default',
+  String? pageCanvas,
 }) {
   final t = DateTime(2026, 6, day, hour);
   return DiaryEntry(
@@ -28,6 +30,7 @@ DiaryEntry _entry({
     replyToEntryId: replyTo,
     createdAt: t,
     updatedAt: t,
+    pageCanvas: pageCanvas,
   );
 }
 
@@ -301,6 +304,69 @@ void main() {
           isEmpty);
       expect(journalIdsAtLocation([_entry(id: 'a', location: '서울')], '제주'),
           isEmpty);
+    });
+  });
+
+  group('decoratedCountAtLocation', () {
+    test('counts decorated top-level records at the place, replies excluded',
+        () {
+      final n = decoratedCountAtLocation([
+        _entry(
+            id: 'a',
+            location: '제주',
+            pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.grid))),
+        _entry(id: 'b', location: '  제주  '), // no canvas, trim match
+        _entry(
+            id: 'c',
+            location: '제주',
+            pageCanvas: encodePageCanvas(const PageCanvas())), // stored but plain
+        _entry(
+            id: 'r',
+            location: '제주',
+            replyTo: 'a',
+            pageCanvas:
+                encodePageCanvas(const PageCanvas(paper: PaperStyle.dotted))), // reply
+        _entry(
+            id: 'o',
+            location: '서울',
+            pageCanvas:
+                encodePageCanvas(const PageCanvas(paper: PaperStyle.lined))), // other place
+      ], '제주');
+      expect(n, 1);
+    });
+
+    test('malformed pageCanvas JSON never throws, counts as not decorated', () {
+      final n = decoratedCountAtLocation(
+          [_entry(id: 'a', location: '제주', pageCanvas: 'not json')], '제주');
+      expect(n, 0);
+    });
+
+    test('zero for blank query, no match, or none decorated', () {
+      expect(decoratedCountAtLocation(const [], '제주'), 0);
+      expect(
+          decoratedCountAtLocation(
+              [
+                _entry(
+                    id: 'a',
+                    location: '제주',
+                    pageCanvas:
+                        encodePageCanvas(const PageCanvas(paper: PaperStyle.grid)))
+              ],
+              '  '),
+          0);
+      expect(
+          decoratedCountAtLocation(
+              [
+                _entry(
+                    id: 'a',
+                    location: '서울',
+                    pageCanvas:
+                        encodePageCanvas(const PageCanvas(paper: PaperStyle.grid)))
+              ],
+              '제주'),
+          0);
+      expect(decoratedCountAtLocation([_entry(id: 'a', location: '제주')], '제주'),
+          0);
     });
   });
 

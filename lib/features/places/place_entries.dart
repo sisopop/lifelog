@@ -2,6 +2,7 @@ import 'package:characters/characters.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../decorate/page_canvas.dart';
 import '../stats/lifetime_stats.dart';
 
 /// Top-level records whose location matches [location] (case-insensitive,
@@ -175,6 +176,25 @@ int favoriteCountAtLocation(List<DiaryEntry> entries, String location) {
     if (e.replyToEntryId != null) continue;
     if ((e.location ?? '').trim().toLowerCase() != target) continue;
     if (e.isFavorite) n++;
+  }
+  return n;
+}
+
+/// How many top-level records at [location] (case-insensitive, trimmed;
+/// replies excluded) carry page decoration — 속지/스티커/테이프/바탕색 등
+/// ([PageCanvas.isDecorated]). Decodes [DiaryEntry.pageCanvas] defensively (a
+/// stored value that decodes to a plain/empty canvas — e.g. from an old
+/// backup/import — does not count), mirroring [decoratedCountWithTag]. 0 when
+/// none, nothing matches, or [location] is blank. Lets the place view show how
+/// often that place's records get decorated, alongside [favoriteCountAtLocation].
+int decoratedCountAtLocation(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return 0;
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    if (decodePageCanvas(e.pageCanvas).isDecorated) n++;
   }
   return n;
 }
