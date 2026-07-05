@@ -2,6 +2,7 @@ import 'package:characters/characters.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../decorate/page_canvas.dart';
 import '../stats/lifetime_stats.dart';
 
 /// The weekday (DateTime.monday=1 .. sunday=7) that the most top-level records
@@ -151,6 +152,23 @@ int favoriteCountWithTag(List<DiaryEntry> entries, String tag) {
     if (e.replyToEntryId != null) continue;
     if (!e.tags.contains(tag)) continue;
     if (e.isFavorite) n++;
+  }
+  return n;
+}
+
+/// How many top-level records carrying [tag] carry page decoration — 속지/
+/// 스티커/테이프/바탕색 등 ([PageCanvas.isDecorated]), replies excluded. Decodes
+/// [DiaryEntry.pageCanvas] defensively (a stored value that decodes to a
+/// plain/empty canvas — e.g. from an old backup/import — does not count),
+/// mirroring [decoratedCountOfDay]. 0 when none or the tag has no records.
+/// Lets the tag view show how often that theme gets decorated, alongside
+/// [favoriteCountWithTag].
+int decoratedCountWithTag(List<DiaryEntry> entries, String tag) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (!e.tags.contains(tag)) continue;
+    if (decodePageCanvas(e.pageCanvas).isDecorated) n++;
   }
   return n;
 }

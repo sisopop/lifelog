@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifelog/features/decorate/page_canvas.dart';
 import 'package:lifelog/features/tags/tag_entries.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
 import 'package:lifelog/shared/models/enums.dart';
@@ -13,6 +14,7 @@ DiaryEntry _e({
   bool favorite = false,
   String journal = 'j1',
   String? location,
+  String? pageCanvas,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -26,6 +28,7 @@ DiaryEntry _e({
       isFavorite: favorite,
       createdAt: at,
       updatedAt: at,
+      pageCanvas: pageCanvas,
     );
 
 void main() {
@@ -223,6 +226,57 @@ void main() {
               '여행'),
           0);
       expect(favoriteCountWithTag(const [], '여행'), 0);
+    });
+  });
+
+  group('decoratedCountWithTag', () {
+    test('counts decorated top-level records for the tag, replies excluded',
+        () {
+      final n = decoratedCountWithTag([
+        _e(
+          id: 'a',
+          at: DateTime(2026, 6, 1),
+          tags: ['여행'],
+          pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.grid)),
+        ),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행']), // no canvas
+        _e(
+          id: 'c',
+          at: DateTime(2026, 6, 3),
+          tags: ['여행'],
+          pageCanvas: encodePageCanvas(const PageCanvas()), // stored but plain
+        ),
+        _e(
+          id: 'r',
+          at: DateTime(2026, 6, 4),
+          tags: ['여행'],
+          replyTo: 'a',
+          pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.dotted)),
+        ), // reply ignored
+        _e(
+          id: 'o',
+          at: DateTime(2026, 6, 5),
+          tags: ['일'],
+          pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.lined)),
+        ), // other tag
+      ], '여행');
+      expect(n, 1);
+    });
+
+    test('malformed pageCanvas JSON never throws, counts as not decorated',
+        () {
+      final n = decoratedCountWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], pageCanvas: 'not json'),
+      ], '여행');
+      expect(n, 0);
+    });
+
+    test('zero when none decorated, tag absent, or list empty', () {
+      expect(
+          decoratedCountWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
+          0);
+      expect(decoratedCountWithTag(const [], '여행'), 0);
     });
   });
 

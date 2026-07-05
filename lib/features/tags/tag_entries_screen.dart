@@ -31,6 +31,7 @@ class TagEntriesScreen extends ConsumerWidget {
     final places = placesWithTag(all, tag, limit: 4);
     final avgChars = averageCharsWithTag(all, tag);
     final favorites = favoriteCountWithTag(all, tag);
+    final decorated = decoratedCountWithTag(all, tag);
     final journalNames = journalIdsWithTag(all, tag)
         .map((id) => journalMap[id]?.title)
         .whereType<String>()
@@ -97,6 +98,12 @@ class TagEntriesScreen extends ConsumerWidget {
                         if (favorites > 0) ...[
                           const SizedBox(height: 4),
                           Text('⭐ 즐겨찾기 $favorites개',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (decorated > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('🎨 꾸민 기록 $decorated개',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
