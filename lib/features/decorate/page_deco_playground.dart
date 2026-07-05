@@ -266,17 +266,21 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       ),
       body: Column(
         children: [
-          // 페이지에 넉넉한 세로 공간(약 3/5)을 고정 배분해 크게 그린다. 컨트롤은
-          // 아래 스크롤 영역으로 분리했다 — 그래야 페이지가 컨트롤에 눌려 작아지지
-          // 않고("수정"서 꾸밈 있는 영역만 좁게 보이던 문제), 스티커 드래그도
-          // 페이지 영역 안에서만 일어나 컨트롤의 세로 스크롤 제스처와 충돌하지 않는다.
+          // 페이지가 남는 세로 공간을 전부 차지하게 한다. 전엔 flex 3:2로 고정
+          // 배분해 컨트롤이 항상 화면의 2/5를 차지했는데, 좁은 화면(특히 웹
+          // 브라우저는 주소창 등으로 세로 여유가 더 줄어든다)에서는 그 3/5조차
+          // AspectRatio(세로 3:4)가 필요로 하는 높이에 못 미쳐 페이지가 폭을 다
+          // 못 쓰고 작게 보였다(사용자 신고: "꾸미기 페이지가 전체화면이 아닌
+          // 조그맣게 나옴"). 컨트롤을 아래 고정 높이(스크롤 가능)로 압축해
+          // 페이지에 필요한 높이를 최대한 돌려준다. 스티커 드래그는 여전히
+          // 페이지 영역 안에서만 일어나 컨트롤의 세로 스크롤 제스처와 충돌하지
+          // 않는다(컨트롤 스크롤 영역과 분리된 채 유지).
           Expanded(
-            flex: 3,
             child: Center(child: _page()),
           ),
           if (_selected != null) _selectedToolbar(),
-          Expanded(
-            flex: 2,
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 200),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
