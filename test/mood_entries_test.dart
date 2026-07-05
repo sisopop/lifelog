@@ -16,6 +16,7 @@ DiaryEntry _entry(
   bool favorite = false,
   String journal = 'jr_default',
   String? pageCanvas,
+  List<String> mediaUrls = const [],
 }) {
   final ts = created ?? DateTime(2026, 6, 1);
   return DiaryEntry(
@@ -31,6 +32,7 @@ DiaryEntry _entry(
     createdAt: ts,
     updatedAt: ts,
     pageCanvas: pageCanvas,
+    mediaUrls: mediaUrls,
   );
 }
 
@@ -384,6 +386,33 @@ void main() {
                 _entry('a', mood: Mood.hard,
                     pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.grid)))
               ],
+              Mood.good),
+          0);
+    });
+  });
+
+  group('photoCountWithMood', () {
+    test('counts top-level records with a photo for the mood, replies & other mood excluded',
+        () {
+      final n = photoCountWithMood([
+        _entry('a', mood: Mood.good, mediaUrls: const ['a.jpg']),
+        _entry('b', mood: Mood.good), // no photo
+        _entry('c', mood: Mood.good, mediaUrls: const ['b.jpg', 'c.jpg']),
+        _entry('r',
+            mood: Mood.good,
+            replyTo: 'a',
+            mediaUrls: const ['d.jpg']), // reply
+        _entry('h', mood: Mood.hard, mediaUrls: const ['e.jpg']), // other mood
+      ], Mood.good);
+      expect(n, 2);
+    });
+
+    test('zero when none carry photos, mood absent, or list empty', () {
+      expect(photoCountWithMood(const [], Mood.good), 0);
+      expect(photoCountWithMood([_entry('a', mood: Mood.good)], Mood.good), 0);
+      expect(
+          photoCountWithMood(
+              [_entry('a', mood: Mood.hard, mediaUrls: const ['a.jpg'])],
               Mood.good),
           0);
     });

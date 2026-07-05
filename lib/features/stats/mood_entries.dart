@@ -232,6 +232,23 @@ int decoratedCountWithMood(List<DiaryEntry> entries, Mood mood) {
   return n;
 }
 
+/// How many top-level records carrying [mood] (replies excluded) carry at
+/// least one attached photo ([DiaryEntry.mediaUrls] non-empty). 0 when none or
+/// the mood has no records. Mirrors [decoratedCountWithMood]'s shape but
+/// tracks a different dimension (photos vs. page decoration), extending
+/// [photoCountAtLocation] to the mood scope — completes the photoCount
+/// family's day/tag/place/mood symmetry. Lets the mood view show how often
+/// that feeling's records get captured in pictures, alongside
+/// [favoriteCountWithMood].
+int photoCountWithMood(List<DiaryEntry> entries, Mood mood) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    if (e.mediaUrls.isNotEmpty) n++;
+  }
+  return n;
+}
+
 /// The distinct journal ids among top-level records carrying [mood] (replies
 /// excluded), in first-seen order of [entries]. Empty when the mood has no
 /// top-level records. Lets the mood view show which journals a feeling spans.
