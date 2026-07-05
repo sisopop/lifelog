@@ -2,6 +2,7 @@ import 'package:characters/characters.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../decorate/page_canvas.dart';
 import 'lifetime_stats.dart';
 
 /// Resolves a [Mood] from its stable [Mood.name] (the value used in the
@@ -210,6 +211,23 @@ int favoriteCountWithMood(List<DiaryEntry> entries, Mood mood) {
   for (final e in entries) {
     if (e.replyToEntryId != null || e.mood != mood) continue;
     if (e.isFavorite) n++;
+  }
+  return n;
+}
+
+/// How many top-level records carrying [mood] (replies excluded) carry page
+/// decoration — 속지/스티커/테이프/바탕색 등 ([PageCanvas.isDecorated]). Decodes
+/// [DiaryEntry.pageCanvas] defensively (a stored value that decodes to a
+/// plain/empty canvas — e.g. from an old backup/import — does not count),
+/// mirroring [decoratedCountAtLocation]. 0 when none or the mood has no
+/// records. Lets the mood view show how often that feeling's records get
+/// decorated, alongside [favoriteCountWithMood]. Completes the decoratedCount
+/// family's day/tag/place/mood symmetry.
+int decoratedCountWithMood(List<DiaryEntry> entries, Mood mood) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    if (decodePageCanvas(e.pageCanvas).isDecorated) n++;
   }
   return n;
 }

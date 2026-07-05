@@ -31,6 +31,7 @@ class MoodEntriesScreen extends ConsumerWidget {
     final places = placesWithMood(all, mood, limit: 4);
     final avgChars = averageCharsWithMood(all, mood);
     final favorites = favoriteCountWithMood(all, mood);
+    final decorated = decoratedCountWithMood(all, mood);
     final journalNames = journalIdsWithMood(all, mood)
         .map((id) => journalMap[id]?.title)
         .whereType<String>()
@@ -106,6 +107,12 @@ class MoodEntriesScreen extends ConsumerWidget {
                         if (favorites > 0) ...[
                           const SizedBox(height: 4),
                           Text('⭐ 즐겨찾기 $favorites개',
+                              style: const TextStyle(
+                                  fontSize: 12, color: AppColors.textHint)),
+                        ],
+                        if (decorated > 0) ...[
+                          const SizedBox(height: 4),
+                          Text('🎨 꾸민 기록 $decorated개',
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],

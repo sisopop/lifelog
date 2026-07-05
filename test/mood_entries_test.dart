@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:lifelog/features/decorate/page_canvas.dart';
 import 'package:lifelog/features/stats/mood_entries.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
 import 'package:lifelog/shared/models/enums.dart';
@@ -14,6 +15,7 @@ DiaryEntry _entry(
   String? content,
   bool favorite = false,
   String journal = 'jr_default',
+  String? pageCanvas,
 }) {
   final ts = created ?? DateTime(2026, 6, 1);
   return DiaryEntry(
@@ -28,6 +30,7 @@ DiaryEntry _entry(
     isFavorite: favorite,
     createdAt: ts,
     updatedAt: ts,
+    pageCanvas: pageCanvas,
   );
 }
 
@@ -345,6 +348,43 @@ void main() {
       expect(
           favoriteCountWithMood(
               [_entry('a', mood: Mood.hard, favorite: true)], Mood.good),
+          0);
+    });
+  });
+
+  group('decoratedCountWithMood', () {
+    test('counts decorated top-level records with the mood, replies excluded',
+        () {
+      final n = decoratedCountWithMood([
+        _entry('a', mood: Mood.good,
+            pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.grid))),
+        _entry('b', mood: Mood.good), // no canvas
+        _entry('c', mood: Mood.good,
+            pageCanvas: encodePageCanvas(const PageCanvas())), // stored but plain
+        _entry('r', mood: Mood.good, replyTo: 'a',
+            pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.dotted))), // reply
+        _entry('h', mood: Mood.hard,
+            pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.lined))), // other mood
+      ], Mood.good);
+      expect(n, 1);
+    });
+
+    test('malformed pageCanvas JSON never throws, counts as not decorated', () {
+      final n = decoratedCountWithMood(
+          [_entry('a', mood: Mood.good, pageCanvas: 'not json')], Mood.good);
+      expect(n, 0);
+    });
+
+    test('zero when none decorated, mood absent, or list empty', () {
+      expect(decoratedCountWithMood(const [], Mood.good), 0);
+      expect(decoratedCountWithMood([_entry('a', mood: Mood.good)], Mood.good), 0);
+      expect(
+          decoratedCountWithMood(
+              [
+                _entry('a', mood: Mood.hard,
+                    pageCanvas: encodePageCanvas(const PageCanvas(paper: PaperStyle.grid)))
+              ],
+              Mood.good),
           0);
     });
   });
