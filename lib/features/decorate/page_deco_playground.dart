@@ -56,6 +56,23 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
   int _categoryIndex = 0;
   final _picker = ImagePicker();
 
+  // 페이지가 좌우 이 여백만큼 안쪽에 그려진다(_page()의 Padding과 동일한 값을
+  // 여기서도 써야 "필요한 폭"을 정확히 계산할 수 있다).
+  static const double _pagePadding = 16;
+
+  // a1b4b4b 이후에도 사용자가 "여전히 전체 폭이 아니다"라고 재신고—실기기(APK)
+  // 검증은 통과했지만 그건 브라우저 UI가 없는 네이티브 화면이었다. 모바일
+  // 웹(GitHub Pages)은 주소창·하단 제스처 영역이 세로 여유를 추가로 먹어,
+  // 컨트롤 영역이 고정 200이면 그 좁아진 세로 공간에서 세로 3:4 비율의
+  // 페이지가 필요로 하는 높이(=폭*4/3)에 못 미쳐 여전히 폭 기준이 아닌 높이
+  // 기준으로 축소됐다(같은 매커니즘, 더 극단적인 화면에서 재발). 컨트롤
+  // 영역을 고정 200이 아니라 "페이지가 전체 폭을 쓰는 데 필요한 높이를 뺀
+  // 나머지"로 동적 계산해, 화면이 짧을수록 컨트롤을 스스로 줄여(최소값까지)
+  // 페이지에 필요한 높이를 최대한 양보한다.
+  static const double _controlsMinHeight = 120;
+  static const double _controlsMaxHeight = 200;
+  static const double _toolbarHeightEstimate = 64;
+
   /// 저장할 게 없는 빈 캔버스(무늬 없음·바탕색 기본·레이어 없음)인지.
   bool get _isBlank =>
       _canvas.layers.isEmpty &&
@@ -264,55 +281,64 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          // 페이지가 남는 세로 공간을 전부 차지하게 한다. 전엔 flex 3:2로 고정
-          // 배분해 컨트롤이 항상 화면의 2/5를 차지했는데, 좁은 화면(특히 웹
-          // 브라우저는 주소창 등으로 세로 여유가 더 줄어든다)에서는 그 3/5조차
-          // AspectRatio(세로 3:4)가 필요로 하는 높이에 못 미쳐 페이지가 폭을 다
-          // 못 쓰고 작게 보였다(사용자 신고: "꾸미기 페이지가 전체화면이 아닌
-          // 조그맣게 나옴"). 컨트롤을 아래 고정 높이(스크롤 가능)로 압축해
-          // 페이지에 필요한 높이를 최대한 돌려준다. 스티커 드래그는 여전히
-          // 페이지 영역 안에서만 일어나 컨트롤의 세로 스크롤 제스처와 충돌하지
-          // 않는다(컨트롤 스크롤 영역과 분리된 채 유지).
-          Expanded(
-            child: Center(child: _page()),
-          ),
-          if (_selected != null) _selectedToolbar(),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 200),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  PaperSelector(
-                    paper: _canvas.paper,
-                    paperColorValue: _canvas.paperColorValue,
-                    onPaperChanged: (style) =>
-                        setState(() => _canvas = setPaper(_canvas, style)),
-                    onColorChanged: (value) =>
-                        setState(() => _canvas = setPaperColor(_canvas, value)),
-                  ),
-                  DecoPalette(
-                    categoryIndex: _categoryIndex,
-                    onCategory: (i) => setState(() => _categoryIndex = i),
-                    onAddPhoto: _addPhoto,
-                    onAddText: _addText,
-                    onAddTape: _addTape,
-                    onAddSticker: _addSticker,
-                  ),
-                ],
+      body: LayoutBuilder(
+        builder: (context, outer) {
+          // 페이지(세로 3:4)가 전체 폭을 쓰려면 필요한 높이를 먼저 계산하고,
+          // 컨트롤 영역은 "화면에 남는 만큼"만 차지하게 한다(최소~최대 사이로
+          // 제한). 화면이 짧을수록(모바일 웹의 주소창 등으로 세로 여유가 더
+          // 줄어드는 경우 포함) 컨트롤이 스스로 줄어 페이지에 필요한 높이를
+          // 최대한 양보하므로, 이전처럼 고정 200 컨트롤 때문에 페이지가 높이
+          // 기준으로 눌려 폭을 다 못 쓰는 상황을 크게 줄인다.
+          final neededPageHeight =
+              (outer.maxWidth - _pagePadding * 2) / kPageAspectRatio;
+          final toolbarHeight =
+              _selected != null ? _toolbarHeightEstimate : 0.0;
+          final controlsHeight =
+              (outer.maxHeight - toolbarHeight - neededPageHeight)
+                  .clamp(_controlsMinHeight, _controlsMaxHeight);
+          return Column(
+            children: [
+              Expanded(
+                child: Center(child: _page()),
               ),
-            ),
-          ),
-        ],
+              if (_selected != null) _selectedToolbar(),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: controlsHeight),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PaperSelector(
+                        paper: _canvas.paper,
+                        paperColorValue: _canvas.paperColorValue,
+                        onPaperChanged: (style) => setState(
+                            () => _canvas = setPaper(_canvas, style)),
+                        onColorChanged: (value) => setState(
+                            () => _canvas = setPaperColor(_canvas, value)),
+                      ),
+                      DecoPalette(
+                        categoryIndex: _categoryIndex,
+                        onCategory: (i) =>
+                            setState(() => _categoryIndex = i),
+                        onAddPhoto: _addPhoto,
+                        onAddText: _addText,
+                        onAddTape: _addTape,
+                        onAddSticker: _addSticker,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _page() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(_pagePadding),
       child: AspectRatio(
         // 상세 합성뷰(DecoratedPageView)와 같은 세로 비율로 그려, 여기서 놓은
         // 위치가 상세에서도 같은 상대 위치에 재현되게 한다(WYSIWYG).
