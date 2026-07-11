@@ -70,6 +70,11 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
   // 높이 상한을 둔다(일반 세로 화면에서는 항상 전체 폭).
   static const double _minControlsVisible = 96;
 
+  // 컨트롤(툴바+속지+팔레트) 시트의 현재 높이. 사용자가 시트 위 손잡이를 위아래로
+  // 끌어 직접 조절한다(위로 끌면 넓어져 스티커·색이 넉넉히, 아래로 내리면 캔버스가
+  // 다 보인다). null이면 첫 빌드에서 화면 높이의 일정 비율로 초기화한다.
+  double? _controlsHeight;
+
   /// 저장할 게 없는 빈 캔버스(무늬 없음·바탕색 기본·레이어 없음)인지.
   bool get _isBlank =>
       _canvas.layers.isEmpty &&
@@ -281,61 +286,122 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       body: LayoutBuilder(
         builder: (context, outer) {
           // 캔버스 폭 = 화면 폭 - 좌우 패딩, 높이 = 폭 / (3/4) = 폭*4/3(세로
-          // 페이지). 이 크기로 상단에 고정한다. 남는 세로 공간은 아래 컨트롤이
-          // 가져가고 툴바도 그 안에 넣으므로, 무엇을 올려도 캔버스 폭은 그대로다.
+          // 페이지). 이 크기로 상단에 고정한다. 캔버스는 항상 전체 폭이고, 컨트롤
+          // 시트는 그 위에 겹쳐 뜨는 오버레이라 무엇을 올려도 캔버스 폭은 그대로다.
           final fullWidth = outer.maxWidth - _pagePadding * 2;
           final fullWidthHeight = fullWidth / kPageAspectRatio;
-          // 세로가 짧아 Column이 넘칠 위험이 있을 때만 캔버스 높이에 상한을 둔다
-          // (컨트롤에 최소 _minControlsVisible는 남긴다). 일반 세로 화면에서는
-          // fullWidthHeight가 더 작아 이 상한에 걸리지 않고 항상 전체 폭을 쓴다.
           final maxPageHeight =
-              (outer.maxHeight - _pagePadding * 2 - _minControlsVisible)
-                  .clamp(0.0, double.infinity);
+              (outer.maxHeight - _pagePadding * 2).clamp(0.0, double.infinity);
           final pageHeight = math.min(fullWidthHeight, maxPageHeight);
           final pageWidth = pageHeight * kPageAspectRatio;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+
+          // 컨트롤 시트 높이 범위: 최소는 손잡이+한 줄이 보일 정도(_minControlsVisible),
+          // 최대는 화면의 약 85%(캔버스 상단은 항상 조금 보이게). 첫 빌드엔 화면의
+          // 약 38%에서 시작한다.
+          final minControls = _minControlsVisible;
+          final maxControls = (outer.maxHeight * 0.85).clamp(minControls, outer.maxHeight);
+          final controlsHeight =
+              (_controlsHeight ?? outer.maxHeight * 0.38).clamp(minControls, maxControls);
+
+          return Stack(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(_pagePadding),
-                child: Center(
-                  child: SizedBox(
-                    width: pageWidth,
-                    height: pageHeight,
-                    child: _page(),
+              // 캔버스: 상단에 전체 폭으로 고정(시트에 가려지는 아래쪽은 시트를
+              // 내리면 다시 드러난다).
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(_pagePadding),
+                  child: Center(
+                    child: SizedBox(
+                      width: pageWidth,
+                      height: pageHeight,
+                      child: _page(),
+                    ),
                   ),
                 ),
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_selected != null) _selectedToolbar(),
-                      PaperSelector(
-                        paper: _canvas.paper,
-                        paperColorValue: _canvas.paperColorValue,
-                        onPaperChanged: (style) => setState(
-                            () => _canvas = setPaper(_canvas, style)),
-                        onColorChanged: (value) => setState(
-                            () => _canvas = setPaperColor(_canvas, value)),
-                      ),
-                      DecoPalette(
-                        categoryIndex: _categoryIndex,
-                        onCategory: (i) =>
-                            setState(() => _categoryIndex = i),
-                        onAddPhoto: _addPhoto,
-                        onAddText: _addText,
-                        onAddTape: _addTape,
-                        onAddSticker: _addSticker,
-                      ),
-                    ],
-                  ),
-                ),
+              // 컨트롤 시트: 아래에서 위로 끌어올렸다 내렸다 하는 오버레이.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: controlsHeight,
+                child: _controlsSheet(controlsHeight, minControls, maxControls),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+
+  /// 아래에서 위로 끌어 크기를 조절하는 컨트롤 시트(툴바+속지+팔레트).
+  /// 맨 위 손잡이를 세로로 끌면 [_controlsHeight]가 바뀐다(위로=넓게, 아래로=좁게).
+  Widget _controlsSheet(
+      double height, double minControls, double maxControls) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 12,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // 끌어서 크기 조절하는 손잡이. 넉넉한 터치 영역(24px)에 작은 그립 바.
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onVerticalDragUpdate: (d) => setState(() {
+              _controlsHeight = (height - d.delta.dy).clamp(minControls, maxControls);
+            }),
+            child: SizedBox(
+              height: 24,
+              child: Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_selected != null) _selectedToolbar(),
+                  PaperSelector(
+                    paper: _canvas.paper,
+                    paperColorValue: _canvas.paperColorValue,
+                    onPaperChanged: (style) =>
+                        setState(() => _canvas = setPaper(_canvas, style)),
+                    onColorChanged: (value) =>
+                        setState(() => _canvas = setPaperColor(_canvas, value)),
+                  ),
+                  DecoPalette(
+                    categoryIndex: _categoryIndex,
+                    onCategory: (i) => setState(() => _categoryIndex = i),
+                    onAddPhoto: _addPhoto,
+                    onAddText: _addText,
+                    onAddTape: _addTape,
+                    onAddSticker: _addSticker,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
