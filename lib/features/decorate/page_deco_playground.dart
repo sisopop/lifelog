@@ -56,22 +56,19 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
   int _categoryIndex = 0;
   final _picker = ImagePicker();
 
-  // 페이지가 좌우 이 여백만큼 안쪽에 그려진다(_page()의 Padding과 동일한 값을
-  // 여기서도 써야 "필요한 폭"을 정확히 계산할 수 있다).
+  // 캔버스가 좌우 이 여백만큼 안쪽에 그려진다(전체 폭 계산에도 쓴다).
   static const double _pagePadding = 16;
 
-  // a1b4b4b 이후에도 사용자가 "여전히 전체 폭이 아니다"라고 재신고—실기기(APK)
-  // 검증은 통과했지만 그건 브라우저 UI가 없는 네이티브 화면이었다. 모바일
-  // 웹(GitHub Pages)은 주소창·하단 제스처 영역이 세로 여유를 추가로 먹어,
-  // 컨트롤 영역이 고정 200이면 그 좁아진 세로 공간에서 세로 3:4 비율의
-  // 페이지가 필요로 하는 높이(=폭*4/3)에 못 미쳐 여전히 폭 기준이 아닌 높이
-  // 기준으로 축소됐다(같은 매커니즘, 더 극단적인 화면에서 재발). 컨트롤
-  // 영역을 고정 200이 아니라 "페이지가 전체 폭을 쓰는 데 필요한 높이를 뺀
-  // 나머지"로 동적 계산해, 화면이 짧을수록 컨트롤을 스스로 줄여(최소값까지)
-  // 페이지에 필요한 높이를 최대한 양보한다.
-  static const double _controlsMinHeight = 120;
-  static const double _controlsMaxHeight = 200;
-  static const double _toolbarHeightEstimate = 64;
+  // 캔버스는 "항상 전체 폭"으로 그린다. 예전엔 캔버스를 Expanded로 "남는 높이"에
+  // 맞추고 컨트롤을 고정/동적 높이로 눌렀는데(a1b4b4b·276cdcb), 그러면 컨트롤·
+  // 툴바가 세로를 먹을수록 세로 3:4 캔버스가 폭이 아닌 높이 기준으로 축소돼
+  // 사용자가 계속 "전체 폭이 아니다"라고 신고했다. 특히 스티커를 올려 선택
+  // 툴바가 뜨면 그만큼 캔버스가 더 작아졌다. 이제 캔버스를 상단에 폭 기준
+  // 고정 크기로 두고, 툴바·컨트롤은 아래 스크롤 영역이 가져가게 해, 무엇을
+  // 올리든 캔버스 폭이 절대 줄지 않게 한다. 단 세로가 극단적으로 짧은 화면에서
+  // Column이 넘치지 않도록, 컨트롤에 최소 이 높이는 남기고 그럴 때만 캔버스
+  // 높이 상한을 둔다(일반 세로 화면에서는 항상 전체 폭).
+  static const double _minControlsVisible = 96;
 
   /// 저장할 게 없는 빈 캔버스(무늬 없음·바탕색 기본·레이어 없음)인지.
   bool get _isBlank =>
@@ -283,31 +280,38 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
       ),
       body: LayoutBuilder(
         builder: (context, outer) {
-          // 페이지(세로 3:4)가 전체 폭을 쓰려면 필요한 높이를 먼저 계산하고,
-          // 컨트롤 영역은 "화면에 남는 만큼"만 차지하게 한다(최소~최대 사이로
-          // 제한). 화면이 짧을수록(모바일 웹의 주소창 등으로 세로 여유가 더
-          // 줄어드는 경우 포함) 컨트롤이 스스로 줄어 페이지에 필요한 높이를
-          // 최대한 양보하므로, 이전처럼 고정 200 컨트롤 때문에 페이지가 높이
-          // 기준으로 눌려 폭을 다 못 쓰는 상황을 크게 줄인다.
-          final neededPageHeight =
-              (outer.maxWidth - _pagePadding * 2) / kPageAspectRatio;
-          final toolbarHeight =
-              _selected != null ? _toolbarHeightEstimate : 0.0;
-          final controlsHeight =
-              (outer.maxHeight - toolbarHeight - neededPageHeight)
-                  .clamp(_controlsMinHeight, _controlsMaxHeight);
+          // 캔버스 폭 = 화면 폭 - 좌우 패딩, 높이 = 폭 / (3/4) = 폭*4/3(세로
+          // 페이지). 이 크기로 상단에 고정한다. 남는 세로 공간은 아래 컨트롤이
+          // 가져가고 툴바도 그 안에 넣으므로, 무엇을 올려도 캔버스 폭은 그대로다.
+          final fullWidth = outer.maxWidth - _pagePadding * 2;
+          final fullWidthHeight = fullWidth / kPageAspectRatio;
+          // 세로가 짧아 Column이 넘칠 위험이 있을 때만 캔버스 높이에 상한을 둔다
+          // (컨트롤에 최소 _minControlsVisible는 남긴다). 일반 세로 화면에서는
+          // fullWidthHeight가 더 작아 이 상한에 걸리지 않고 항상 전체 폭을 쓴다.
+          final maxPageHeight =
+              (outer.maxHeight - _pagePadding * 2 - _minControlsVisible)
+                  .clamp(0.0, double.infinity);
+          final pageHeight = math.min(fullWidthHeight, maxPageHeight);
+          final pageWidth = pageHeight * kPageAspectRatio;
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Center(child: _page()),
+              Padding(
+                padding: const EdgeInsets.all(_pagePadding),
+                child: Center(
+                  child: SizedBox(
+                    width: pageWidth,
+                    height: pageHeight,
+                    child: _page(),
+                  ),
+                ),
               ),
-              if (_selected != null) _selectedToolbar(),
-              ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: controlsHeight),
+              Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (_selected != null) _selectedToolbar(),
                       PaperSelector(
                         paper: _canvas.paper,
                         paperColorValue: _canvas.paperColorValue,
@@ -336,14 +340,12 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
     );
   }
 
+  /// 캔버스 본체. 크기는 바깥(body)의 SizedBox가 폭 기준으로 정해 주므로
+  /// 여기서는 세로 비율(AspectRatio)을 강제하지 않고 주어진 상자를 꽉 채운다.
+  /// (상세 합성뷰 DecoratedPageView와 같은 kPageAspectRatio 세로 비율로
+  /// 그려지도록 body에서 폭*4/3 높이를 넘겨준다 → WYSIWYG 유지.)
   Widget _page() {
-    return Padding(
-      padding: const EdgeInsets.all(_pagePadding),
-      child: AspectRatio(
-        // 상세 합성뷰(DecoratedPageView)와 같은 세로 비율로 그려, 여기서 놓은
-        // 위치가 상세에서도 같은 상대 위치에 재현되게 한다(WYSIWYG).
-        aspectRatio: kPageAspectRatio,
-        child: ClipRRect(
+    return ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
@@ -406,8 +408,6 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
             },
           ),
         ),
-        ),
-      ),
     );
   }
 
