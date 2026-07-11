@@ -128,7 +128,7 @@ class DecoratedPageView extends StatelessWidget {
         // 본문이 짧아도 최소 한 장의 세로 페이지 높이를 확보한다. 이게 없으면
         // Stack이 짧은 본문 한 줄 높이로 쪼그라들어, 편집기에서 넓게 벌려 놓은
         // 꾸밈 레이어가 상세에서 좁은 영역에 전부 뭉쳐 보였다. 본문이 길면
-        // 그 높이만큼 자연스럽게 늘어난다(레이어는 layerAlignment로 상대 배치).
+        // 그 높이만큼 자연스럽게 늘어난다(레이어는 이 최종 높이 기준 상대 배치).
         final minHeight = w / kPageAspectRatio;
         final stack = Stack(
           children: [
@@ -145,16 +145,39 @@ class DecoratedPageView extends StatelessWidget {
               padding: padding,
               child: Text(content, style: textStyle),
             ),
-            for (final l in layersByZ(canvas))
-              Positioned.fill(
-                child: Align(
-                  alignment: layerAlignment(l),
-                  child: Transform.rotate(
-                    angle: l.rotation * math.pi / 180,
-                    child: decoLayerContent(l, stickerSize: 44 * l.scale),
-                  ),
-                ),
+            // 꾸밈 레이어: 편집기와 "완전히 같은" 방식으로 중심을 x·y 지점에
+            // 맞춰 놓는다. 예전엔 Align(layerAlignment)로 놨는데, Align은 자식
+            // 크기만큼 앵커가 밀려(가로로 childW*(x-0.5)만큼) 편집기(중심 배치)와
+            // 위치가 어긋났다 — 특히 큰 사진 레이어에서 눈에 띄게 달라, 사용자가
+            // "꾸미기 화면과 읽기 화면의 배치가 다르다"고 신고했다. LayoutBuilder로
+            // 최종 페이지 크기(lw·lh)를 재어 Positioned+FractionalTranslation(-0.5)
+            // 로 편집기(page_deco_playground `_layerWidget`)와 동일 좌표에 그린다.
+            Positioned.fill(
+              child: LayoutBuilder(
+                builder: (context, lc) {
+                  final lw = lc.maxWidth;
+                  final lh = lc.maxHeight;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      for (final l in layersByZ(canvas))
+                        Positioned(
+                          left: l.x * lw,
+                          top: l.y * lh,
+                          child: FractionalTranslation(
+                            translation: const Offset(-0.5, -0.5),
+                            child: Transform.rotate(
+                              angle: l.rotation * math.pi / 180,
+                              child: decoLayerContent(l,
+                                  stickerSize: 44 * l.scale),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
+            ),
           ],
         );
         // 상세에서는 배경 속지를 화면 전체에 이미 깔았으므로 투명하게 얹는다.
