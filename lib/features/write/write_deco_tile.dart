@@ -4,6 +4,7 @@ part of 'write_screen.dart';
 /// out of _WriteScreenState alongside _PhotoDecoState to keep
 /// write_screen.dart under the 500-line limit.
 mixin _PageDecoState on ConsumerState<WriteScreen> {
+  final _titleCtrl = TextEditingController();
   final _contentCtrl = TextEditingController();
 
   /// 내지 꾸미기 캔버스 JSON(null=꾸미기 없음).
@@ -34,6 +35,7 @@ mixin _PageDecoState on ConsumerState<WriteScreen> {
       builder: (_) => PageDecoPlayground(
         title: '페이지 꾸미기',
         initial: decodePageCanvas(_pageCanvas),
+        titleText: _titleCtrl.text,
         contentText: _contentCtrl.text,
         onDone: (canvas) {
           setState(() =>

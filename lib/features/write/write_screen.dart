@@ -87,7 +87,6 @@ class WriteScreen extends ConsumerStatefulWidget {
 
 class _WriteScreenState extends ConsumerState<WriteScreen>
     with _PhotoDecoState, _PageDecoState {
-  final _titleCtrl = TextEditingController();
   final _picker = ImagePicker();
   Mood? _mood;
   Weather? _weather;

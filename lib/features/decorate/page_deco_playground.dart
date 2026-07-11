@@ -29,14 +29,19 @@ class PageDecoPlayground extends StatefulWidget {
     this.initial,
     this.onDone,
     this.title = '페이지 꾸미기 (실험)',
+    this.titleText = '',
     this.contentText = '',
   });
 
   /// 편집을 시작할 캔버스. null이면 빈 캔버스에서 시작.
   final PageCanvas? initial;
 
+  /// 지금까지 쓴 일기 제목. 종이 맨 위에 굵게 깔아, 실제 일기 모습 그대로를
+  /// 배경으로 보며 그 위에 꾸미게 한다(빈 문자열이면 제목 줄을 생략).
+  final String titleText;
+
   /// 지금까지 쓴 본문. 종이 위에 바탕 글로 깔아, 스티커를 "쓴 글 주변"에 놓게 한다
-  /// (빈 문자열이면 종이만 꾸미는 실험 모드처럼 안내 문구를 보여준다).
+  /// (제목·본문 모두 비었으면 종이만 꾸미는 실험 모드처럼 안내 문구를 보여준다).
   final String contentText;
 
   /// 실기록 편집 모드: "완료" 버튼을 누르면 현재 캔버스를 돌려준다. 캔버스가
@@ -430,7 +435,9 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
             builder: (context, c) {
               final w = c.maxWidth;
               final h = c.maxHeight;
+              final title = widget.titleText.trim();
               final baseLines = pageBaseLines(widget.contentText);
+              final hasDiary = title.isNotEmpty || baseLines.isNotEmpty;
               return GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () => setState(() => _selectedId = null),
@@ -441,25 +448,45 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
                         painter: PageCanvasPaperPainter(_canvas.paper),
                       ),
                     ),
-                    // 쓴 글을 종이 바탕에 깔아, 그 "주변"으로 스티커를 놓게 한다.
-                    // 탭/드래그는 아래 GestureDetector·레이어로 통과시킨다.
-                    if (baseLines.isNotEmpty)
+                    // 실제 쓴 일기(제목+본문)를 종이 바탕에 깔아, 완성된 모습 위에
+                    // 스티커를 올리게 한다(WYSIWYG). 탭/드래그는 아래 레이어로 통과.
+                    if (hasDiary)
                       Positioned.fill(
                         child: IgnorePointer(
                           child: Padding(
                             padding: const EdgeInsets.all(16),
-                            child: Text(
-                              baseLines.join('\n'),
-                              style: const TextStyle(
-                                fontSize: 15,
-                                height: 1.6,
-                                color: AppColors.textPrimary,
-                              ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (title.isNotEmpty) ...[
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                      fontSize: 19,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.3,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
+                                if (baseLines.isNotEmpty)
+                                  Expanded(
+                                    child: Text(
+                                      baseLines.join('\n'),
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        height: 1.6,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                           ),
                         ),
                       ),
-                    if (_canvas.isEmpty && baseLines.isEmpty)
+                    if (_canvas.isEmpty && !hasDiary)
                       const Center(
                         child: Text(
                           '아래 스티커를 눌러 올려보세요\n끌어서 옮기고, 골라서 키우거나 돌릴 수 있어요',
