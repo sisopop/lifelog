@@ -377,6 +377,23 @@ void main() {
     });
   });
 
+  group('titledCountOfDay', () {
+    test('counts records with a non-empty title, replies excluded', () {
+      final n = titledCountOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), title: '제주도에서의 하루'),
+        _e(id: '2', at: DateTime(2026, 6, 1)), // no title
+        _e(id: '3', at: DateTime(2026, 6, 1), title: '   '), // blank title
+        _e(id: '4', at: DateTime(2026, 6, 1), title: '답장', replyTo: '1'),
+      ]);
+      expect(n, 1);
+    });
+
+    test('zero when none carry a title or list is empty', () {
+      expect(titledCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
+      expect(titledCountOfDay(const []), 0);
+    });
+  });
+
   group('journalIdsOfDay', () {
     test('distinct journal ids in first-seen order', () {
       final r = journalIdsOfDay([

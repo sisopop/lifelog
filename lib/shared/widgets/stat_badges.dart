@@ -37,6 +37,10 @@ List<Widget> statBadgeDecorated(int decorated) =>
 List<Widget> statBadgePhotos(int photos) =>
     photos > 0 ? _badge('📷 사진 있는 기록 $photos개') : const [];
 
+/// '📝 제목 있는 기록 N개' — records carrying a non-empty title.
+List<Widget> statBadgeTitled(int titled) =>
+    titled > 0 ? _badge('📝 제목 있는 기록 $titled개') : const [];
+
 /// '📓 저널1 · 저널2 …' — up to four owning journals.
 List<Widget> statBadgeJournalNames(List<String> names) =>
     names.isNotEmpty ? _badge('📓 ${names.take(4).join(' · ')}') : const [];

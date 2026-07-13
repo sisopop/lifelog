@@ -17,6 +17,7 @@ void main() {
       ...statBadgeFavorites(1),
       ...statBadgeDecorated(2),
       ...statBadgePhotos(3),
+      ...statBadgeTitled(4),
       ...statBadgeJournalNames(const ['나의 일기장', 'Exchange']),
       ...statBadgeWeekday(6), // 토
       ...statBadgeDayPart(1), // 아침
@@ -25,6 +26,7 @@ void main() {
     expect(find.text('⭐ 즐겨찾기 1개'), findsOneWidget);
     expect(find.text('🎨 꾸민 기록 2개'), findsOneWidget);
     expect(find.text('📷 사진 있는 기록 3개'), findsOneWidget);
+    expect(find.text('📝 제목 있는 기록 4개'), findsOneWidget);
     expect(find.text('📓 나의 일기장 · Exchange'), findsOneWidget);
     expect(find.text('📆 주로 토요일'), findsOneWidget);
     expect(find.text('🕘 주로 아침에 기록'), findsOneWidget);
@@ -35,6 +37,7 @@ void main() {
     expect(statBadgeFavorites(0), isEmpty);
     expect(statBadgeDecorated(0), isEmpty);
     expect(statBadgePhotos(0), isEmpty);
+    expect(statBadgeTitled(0), isEmpty);
     expect(statBadgeJournalNames(const []), isEmpty);
     expect(statBadgeWeekday(null), isEmpty);
     expect(statBadgeDayPart(null), isEmpty);

@@ -235,6 +235,15 @@ int photoCountOfDay(List<DiaryEntry> entries) {
   return n;
 }
 
+/// Pure: how many of [entries] (a day's already-filtered records) carry a
+/// non-empty title (non-whitespace text). 0 when none. Reuses
+/// [titledEntryCount] directly — the caller already scoped [entries] to one
+/// day (and excluded replies), so no extra filtering is needed. Brings the
+/// title dimension already surfaced at the month/lifetime scope
+/// ("📝 제목을 단 기록") down to the day view, sitting alongside
+/// [photoCountOfDay]/[decoratedCountOfDay]/[favoriteCountOfDay].
+int titledCountOfDay(List<DiaryEntry> entries) => titledEntryCount(entries);
+
 /// Pure: the mood that appears most across [entries], or null when none carry
 /// a mood. Ties resolve to the earlier mood in [Mood.values] order. Operates
 /// on whatever list is passed (caller decides whether replies are included).
