@@ -1,25 +1,21 @@
 part of 'write_screen.dart';
 
-/// 글쓰기 화면 상단 탭 라벨. 글쓰기 / 꾸미기 2개뿐.
-const List<String> kWriteTabs = ['글쓰기', '꾸미기'];
+/// 글쓰기 화면 상단 탭 라벨. 글쓰기 + 꾸미기 4종 = 6개.
+/// (글쓰기 / 속지 / 바탕색 / 사진 / 테이프 / 스티커)
+const List<String> kWriteTabs = ['글쓰기', '속지', '바탕색', '사진', '테이프', '스티커'];
 
-/// 꾸미기 탭에서 한 줄로 펼쳐지는 항목 목록(제목, 아이콘 순서 고정).
-const List<(String, IconData)> kDecorItems = [
-  ('속지', Icons.texture),
-  ('바탕색', Icons.palette_outlined),
-  ('사진', Icons.photo_outlined),
-  ('테이프', Icons.straighten),
-  ('스티커', Icons.emoji_emotions_outlined),
-];
+/// 캔버스에 레이어를 얹는(=미리보기 드래그가 필요한) 탭 인덱스.
+/// 사진(3)/테이프(4)/스티커(5). 속지·바탕색은 배경만 바꾼다.
+const Set<int> kWriteLayerTabs = {3, 4, 5};
 
 /// 글쓰기 화면 본문.
 ///
-/// 구조: [TabBar](글쓰기/꾸미기) + [TabBarView].
+/// 구조: [TabBar](6개) + [TabBarView].
 ///   - 글쓰기 탭: 메타(저널/제목/날짜/감정/날씨) + 본문 입력 + 프롬프트 + 태그 + 첨부 + 저장.
-///   - 꾸미기 탭: 상단 고정 미리보기 캔버스(레이어 드래그) + 그 아래 속지/바탕색/사진/
-///     테이프/스티커 5개를 한 줄씩 [ExpansionTile]로 나열(탭하면 해당 컨트롤이 펼쳐짐).
+///   - 속지/바탕색/사진/테이프/스티커 탭: 각각 상단 고정 미리보기 캔버스(레이어 드래그) +
+///     그 아래 해당 컨트롤(종이 선택 / 색 선택 / 사진·글자 추가 / 테이프 / 스티커).
 ///
-/// 캔버스는 꾸미기 탭 상단에 스크롤 밖으로 고정해, 아래 목록 스크롤이 스티커 드래그를
+/// 각 꾸미기 탭의 캔버스는 스크롤 밖에 고정해, 아래 컨트롤 스크롤이 스티커 드래그를
 /// 가로채지 않게 한다. 본문(글쓰기 탭)을 바꾸면 캔버스에 WYSIWYG로 비친다.
 ///
 /// 상태는 모두 [_WriteScreenState] `s`가 소유하고, 이 위젯은 그것을 읽어 그린다.
@@ -34,6 +30,8 @@ class _WriteCanvasBody extends ConsumerWidget {
       children: [
         TabBar(
           controller: s._tab,
+          isScrollable: true,
+          tabAlignment: TabAlignment.center,
           tabs: [for (final t in kWriteTabs) Tab(text: t)],
         ),
         Expanded(
@@ -41,7 +39,11 @@ class _WriteCanvasBody extends ConsumerWidget {
             controller: s._tab,
             children: [
               _writeTab(context, ref),
-              _decorateTab(context),
+              _decorTab(context, () => _paperControls()), // 속지
+              _decorTab(context, () => _colorControls()), // 바탕색
+              _decorTab(context, () => _photoControls(context)), // 사진 + 글자
+              _decorTab(context, () => _tapeControls(context)), // 테이프
+              _decorTab(context, () => _stickerControls(context)), // 스티커
             ],
           ),
         ),
@@ -261,20 +263,22 @@ class _WriteCanvasBody extends ConsumerWidget {
     );
   }
 
-  // ── 꾸미기 탭: 상단 고정 캔버스 + 5개 확장 항목(속지/바탕색/사진/테이프/스티커) ──
+  // ── 꾸미기 탭 공통 뼈대: 상단 고정 캔버스 + 아래 컨트롤 스크롤 ─────────────
 
-  Widget _decorateTab(BuildContext context) {
+  /// [controls]는 **빌더 함수**로 받는다: AnimatedBuilder 안에서 매번 build 해야
+  /// PaperSelector/DecoPalette가 컨트롤러 최신값(선택 칩 하이라이트 등)을 반영한다.
+  /// 미리 만든 위젯을 넘기면 최초 빌드값에 고정돼 갱신되지 않는다(5bde29a 교훈).
+  Widget _decorTab(BuildContext context, Widget Function() controls) {
     return LayoutBuilder(
       builder: (context, box) {
         final fullWidth = box.maxWidth - 32; // 좌우 16 여백
         final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
-        // 캔버스: 가로 100% 고정. 세로는 3:4가 들어가면 3:4, 아니면 탭 높이의 42%.
         final canvasMax = box.maxHeight * 0.42;
         final canvasH = ideal < canvasMax ? ideal : canvasMax;
         return Column(
           children: [
-            // 상단 고정 미리보기 캔버스(레이어 드래그 가능). ListView 밖이라
-            // 아래 목록 스크롤이 스티커 드래그를 가로채지 않는다.
+            // 상단 고정 미리보기 캔버스(레이어 드래그 가능). 스크롤 밖이라
+            // 아래 컨트롤 스크롤이 스티커 드래그를 가로채지 않는다.
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: Center(
@@ -291,17 +295,12 @@ class _WriteCanvasBody extends ConsumerWidget {
               ),
             ),
             const Divider(height: 1),
-            // 속지/바탕색/사진/테이프/스티커 — 각 한 줄, 탭하면 컨트롤이 펼쳐진다.
-            // 컨트롤러 값이 최신으로 반영되도록 AnimatedBuilder로 감싼다.
             Expanded(
               child: AnimatedBuilder(
                 animation: s._deco,
-                builder: (context, _) => ListView(
+                builder: (context, _) => SingleChildScrollView(
                   padding: const EdgeInsets.only(bottom: 24),
-                  children: [
-                    for (final (title, icon) in kDecorItems)
-                      _decoExpansion(title, icon, _decorControls(context, title)),
-                  ],
+                  child: controls(),
                 ),
               ),
             ),
@@ -311,61 +310,42 @@ class _WriteCanvasBody extends ConsumerWidget {
     );
   }
 
-  /// 한 줄짜리 확장 항목(제목만 보이다가 탭하면 [child] 컨트롤이 펼쳐진다).
-  ///
-  /// ⚠️ PageStorageKey를 두지 않는다: 그러면 자식 팔레트의 가로 스크롤뷰가 이
-  /// 타일의 저장 슬롯을 물려받아, ExpansionTile이 써 둔 확장상태(bool)를
-  /// 스크롤오프셋(double?)으로 잘못 읽어 `bool is not double?` 캐스트 오류가 난다.
-  /// 항목 순서가 고정이라 키 없이도 확장상태는 위치로 유지된다.
-  Widget _decoExpansion(String title, IconData icon, Widget child) {
-    return ExpansionTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title:
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      tilePadding: const EdgeInsets.symmetric(horizontal: 20),
-      childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
-      children: [child],
-    );
-  }
+  // ── 탭별 컨트롤(속지/바탕색/사진+글자/테이프/스티커) ───────────────────────
 
-  /// 항목별 컨트롤 위젯(속지/바탕색=종이 선택, 사진/테이프/스티커=레이어 팔레트).
-  Widget _decorControls(BuildContext context, String title) {
-    switch (title) {
-      case '속지':
-        return PaperSelector(
-          paper: s._deco.canvas.paper,
-          paperColorValue: s._deco.canvas.paperColorValue,
-          onPaperChanged: s._deco.setPaperStyle,
-          onColorChanged: s._deco.setPaperColorValue,
-          showColor: false,
-        );
-      case '바탕색':
-        return PaperSelector(
-          paper: s._deco.canvas.paper,
-          paperColorValue: s._deco.canvas.paperColorValue,
-          onPaperChanged: s._deco.setPaperStyle,
-          onColorChanged: s._deco.setPaperColorValue,
-          showPaper: false,
-        );
-      case '사진':
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(12, 4, 12, 0),
-              child: Text('사진·글자를 얹고, 위 미리보기에서 끌어 옮기세요',
-                  style: TextStyle(fontSize: 12, color: AppColors.textHint)),
-            ),
-            _decoPalette(context, showTape: false, showSticker: false),
-          ],
-        );
-      case '테이프':
-        return _decoPalette(context, showPhoto: false, showSticker: false);
-      case '스티커':
-      default:
-        return _decoPalette(context, showPhoto: false, showTape: false);
-    }
-  }
+  Widget _paperControls() => PaperSelector(
+        paper: s._deco.canvas.paper,
+        paperColorValue: s._deco.canvas.paperColorValue,
+        onPaperChanged: s._deco.setPaperStyle,
+        onColorChanged: s._deco.setPaperColorValue,
+        showColor: false,
+      );
+
+  Widget _colorControls() => PaperSelector(
+        paper: s._deco.canvas.paper,
+        paperColorValue: s._deco.canvas.paperColorValue,
+        onPaperChanged: s._deco.setPaperStyle,
+        onColorChanged: s._deco.setPaperColorValue,
+        showPaper: false,
+      );
+
+  /// 사진 탭: 사진 추가 + **글자(텍스트 박스) 넣기** 버튼을 함께 노출한다.
+  Widget _photoControls(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Text('사진·글자를 얹고, 위 미리보기에서 끌어 옮기세요',
+                style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+          ),
+          _decoPalette(context, showTape: false, showSticker: false),
+        ],
+      );
+
+  Widget _tapeControls(BuildContext context) =>
+      _decoPalette(context, showPhoto: false, showSticker: false);
+
+  Widget _stickerControls(BuildContext context) =>
+      _decoPalette(context, showPhoto: false, showTape: false);
 
   Widget _decoPalette(
     BuildContext context, {
