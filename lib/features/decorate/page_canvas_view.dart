@@ -134,9 +134,10 @@ Widget _decoLayerBody(
   double? boxHeight,
 }) {
   if (l.kind == DecoKind.textbox) {
-    // 사용자가 크기를 정한 빈 상자(흰 배경+옅은 테두리) 안에 쓴 글. 크기는 호출부가
-    // 페이지 대비 비율(boxW·boxH)을 픽셀로 환산해 넘긴다(없으면 기본 크기). 글은
-    // 상자 안에서 자연스럽게 줄바꿈되고, 넘치면 살짝 잘린다.
+    // 사용자가 크기를 정한 빈 상자(투명 배경+옅은 테두리) 안에 쓴 글. 배경이 투명이라
+    // 뒤의 속지 무늬·바탕색이 그대로 비친다. 크기는 호출부가 페이지 대비 비율
+    // (boxW·boxH)을 픽셀로 환산해 넘긴다(없으면 기본 크기). 글은 상자 안에서 자연스럽게
+    // 줄바꿈되고, 넘치면 살짝 잘린다.
     final bw = boxWidth ?? stickerSize * 3.4;
     final bh = boxHeight ?? stickerSize * 1.4;
     final fontSize = stickerSize * 0.4;
@@ -145,7 +146,7 @@ Widget _decoLayerBody(
       height: bh,
       padding: EdgeInsets.all(stickerSize * 0.14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.transparent,
         border: Border.all(color: kCanvasGridLine, width: 1),
         borderRadius: BorderRadius.circular(6),
       ),

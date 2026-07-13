@@ -148,11 +148,11 @@ class PageDecoCanvas extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Padding(
-              // 선택 시 위·오른쪽에 삭제 배지가 앉을 자리를 비운다. 이렇게 해야
-              // 배지가 레이어의 히트영역(Stack 크기) 안에 들어와 탭이 먹는다.
-              // (Stack 밖으로 삐져나간 요소는 보이기만 하고 탭은 무시된다.)
+              // 선택 시 네 모서리에 손잡이(삭제·회전·크기조절)가 앉을 자리를
+              // 사방으로 비운다. 이렇게 해야 손잡이가 레이어의 히트영역(Stack 크기)
+              // 안에 들어와 탭·드래그가 먹는다(Stack 밖 요소는 보이기만 하고 무시).
               padding: selected
-                  ? const EdgeInsets.only(top: 14, right: 14)
+                  ? const EdgeInsets.all(14)
                   : EdgeInsets.zero,
               child: GestureDetector(
                 onTap: interactive ? () => controller.selectLayer(l.id) : null,
@@ -170,49 +170,26 @@ class PageDecoCanvas extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           )
                         : null,
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        inner,
-                        // 텍스트박스 선택 시 오른쪽 아래 모서리에 크기조절 손잡이.
-                        // 드래그로 상자를 키우거나 줄인다(이동 드래그와 별개—
-                        // 손잡이 위 터치는 이 제스처가 가져간다).
-                        if (selected && isBox)
-                          Positioned(
-                            right: -8,
-                            bottom: -8,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onPanUpdate: (d) => controller.resizeBox(
-                                  l, d.delta.dx, d.delta.dy, w, h),
-                              child: Container(
-                                width: 24,
-                                height: 24,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.primary,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 1),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(Icons.open_in_full,
-                                    size: 13, color: Colors.white),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
+                    child: inner,
                   ),
                 ),
               ),
             ),
-            // 선택된 레이어 위에 바로 뜨는 삭제 배지. 툴바 맨 끝까지 스크롤하지
-            // 않아도 눈에 보이는 곳에서 한 번에 지울 수 있게 한다.
-            if (selected)
+            // 손잡이는 회전(Transform.rotate) 밖 화면 정렬 코너에 둬, 레이어가
+            // 돌아가도 항상 같은 자리에서 잡을 수 있게 한다. 모든 종류의 레이어에
+            // 동일하게 붙는다(텍스트박스·스티커·사진·테이프·글자).
+            if (selected) ...[
+              // 좌상단: 회전 손잡이(드래그로 Z축 회전).
+              Positioned(
+                top: 0,
+                left: 0,
+                child: _cornerHandle(
+                  icon: Icons.rotate_right,
+                  onPanUpdate: (d) =>
+                      controller.rotateLayer(l, d.delta.dx, d.delta.dy),
+                ),
+              ),
+              // 우상단: 삭제 배지.
               Positioned(
                 top: 0,
                 right: 0,
@@ -237,8 +214,47 @@ class PageDecoCanvas extends StatelessWidget {
                   ),
                 ),
               ),
+              // 우하단: 크기조절 손잡이(드래그로 확대·축소).
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: _cornerHandle(
+                  icon: Icons.open_in_full,
+                  onPanUpdate: (d) =>
+                      controller.resizeLayer(l, d.delta.dx, d.delta.dy, w, h),
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// 선택 레이어 코너에 붙는 원형 조작 손잡이(회전·크기조절 공용). 드래그를
+  /// [onPanUpdate]로 흘려보낸다.
+  Widget _cornerHandle({
+    required IconData icon,
+    required GestureDragUpdateCallback onPanUpdate,
+  }) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanUpdate: onPanUpdate,
+      child: Container(
+        width: 26,
+        height: 26,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 4,
+              offset: Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Icon(icon, size: 14, color: Colors.white),
       ),
     );
   }
@@ -287,7 +303,7 @@ class _TextBoxEditorState extends State<_TextBoxEditor> {
       height: widget.height,
       padding: EdgeInsets.all(widget.stickerSize * 0.14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.transparent,
         border: Border.all(color: kCanvasGridLine, width: 1),
         borderRadius: BorderRadius.circular(6),
       ),

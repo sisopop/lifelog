@@ -93,5 +93,40 @@ void main() {
       expect(after.boxH, closeTo(kDefaultTextBoxH + 0.2, 1e-9));
       addTearDown(c.dispose);
     });
+
+    test('resizeLayer scales a non-textbox layer by drag delta', () {
+      final c = PageDecoEditorController();
+      c.addSticker('🌸');
+      final l = c.canvas.layers.single;
+      expect(l.scale, 1.0);
+      // 100px 페이지에서 우하로 50px → (50/100 + 0/100)*2.0 = 1.0 만큼 배율 증가.
+      c.resizeLayer(l, 50, 0, 100, 100);
+      expect(c.canvas.layers.single.scale, closeTo(2.0, 1e-9));
+      expect(c.selectedId, l.id);
+      addTearDown(c.dispose);
+    });
+
+    test('rotateLayer rotates a non-textbox layer by drag delta', () {
+      final c = PageDecoEditorController();
+      c.addSticker('🌸');
+      final l = c.canvas.layers.single;
+      expect(l.rotation, 0.0);
+      // 50px 오른쪽으로 끌면 50*0.6 = 30도 회전.
+      c.rotateLayer(l, 50, 0);
+      expect(c.canvas.layers.single.rotation, closeTo(30.0, 1e-9));
+      addTearDown(c.dispose);
+    });
+
+    test('resizeLayer on a textbox delegates to box resize', () {
+      final c = PageDecoEditorController();
+      c.addTextBox();
+      final l = c.canvas.layers.single;
+      c.resizeLayer(l, 10, 10, 100, 100);
+      final after = c.canvas.layers.single;
+      expect(after.boxW, closeTo(kDefaultTextBoxW + 0.2, 1e-9));
+      expect(after.boxH, closeTo(kDefaultTextBoxH + 0.2, 1e-9));
+      expect(after.scale, 1.0, reason: 'textbox uses box size, not scale');
+      addTearDown(c.dispose);
+    });
   });
 }

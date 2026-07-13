@@ -17,6 +17,15 @@ import 'text_layer_dialog.dart';
 part 'page_deco_editor_canvas.dart';
 part 'page_deco_editor_toolbar.dart';
 
+/// 리사이즈 손잡이 드래그(픽셀)를 배율(scale) 증감으로 환산할 때의 민감도. 손잡이를
+/// 페이지 폭만큼 우하로 끌면 대략 scale이 이 값만큼 커진다(가로+세로 이동 비율의 합에
+/// 곱한다). 텍스트박스가 아닌 스티커·사진·테이프·글자에 쓰인다.
+const double kScaleDragSensitivity = 2.0;
+
+/// 회전 손잡이 드래그(픽셀)를 회전 각도(도)로 환산할 때의 민감도(도/픽셀 근사).
+/// 좌상단 손잡이를 오른쪽/위로 끌면 시계방향으로 돈다.
+const double kRotateDragSensitivity = 0.6;
+
 /// 페이지 꾸미기 편집기의 **상태를 소유**하는 컨트롤러.
 ///
 /// Phase 1에서는 편집 위젯이 캔버스를 들고 컨트롤러는 호스트에 읽기/알림만
@@ -191,6 +200,31 @@ class PageDecoEditorController extends ChangeNotifier {
   /// 텍스트박스 안의 글을 [text]로 바꾼다(빈 값 허용). 인라인 편집용.
   void setBoxText(String id, String text) =>
       _mutate(() => _canvas = setTextBoxText(_canvas, id, text));
+
+  /// 선택된 레이어 [l]의 크기를 우하 리사이즈 손잡이 드래그([dxPx],[dyPx] 픽셀)만큼
+  /// 조절한다. 텍스트박스는 상자 크기(boxW·boxH)를, 그 외(스티커·사진·테이프·글자)는
+  /// 배율(scale)을 바꿔 모든 레이어가 같은 손잡이로 크기 조절된다. [w],[h]는 페이지
+  /// 픽셀 크기.
+  void resizeLayer(DecoLayer l, double dxPx, double dyPx, double w, double h) {
+    if (l.kind == DecoKind.textbox) {
+      resizeBox(l, dxPx, dyPx, w, h);
+      return;
+    }
+    _mutate(() {
+      _selectedId = l.id;
+      _canvas = stepLayerScale(
+          _canvas, l.id, (dxPx / w + dyPx / h) * kScaleDragSensitivity);
+    });
+  }
+
+  /// 선택된 레이어 [l]를 좌상단 회전 손잡이 드래그([dxPx],[dyPx] 픽셀)만큼 Z축
+  /// 회전한다. 손잡이가 좌상단이라 오른쪽/위로 끌면 시계방향(+)으로, 왼쪽/아래로
+  /// 끌면 반시계방향으로 돈다(접선 방향 근사). 모든 종류(텍스트박스 포함)에 쓰인다.
+  void rotateLayer(DecoLayer l, double dxPx, double dyPx) => _mutate(() {
+        _selectedId = l.id;
+        _canvas = stepLayerRotation(
+            _canvas, l.id, (dxPx - dyPx) * kRotateDragSensitivity);
+      });
 
   void applyToSelected(PageCanvas Function(PageCanvas, String) op) {
     final id = _selectedId;
