@@ -351,14 +351,24 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? '기록 수정' : '새 기록'),
-        leading: IconButton(
-            icon: const Icon(Icons.close), onPressed: _confirmClose),
+    // 물리 back key도 X(닫기) 버튼과 똑같이 초안 폐기 확인을 거치게 한다.
+    // canPop:false로 시스템 pop을 막고, 확인 다이얼로그를 통과한 경우에만
+    // _confirmClose가 직접 pop 한다(초안 없으면 바로 닫힘).
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _confirmClose();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(_isEditing ? '기록 수정' : '새 기록'),
+          leading: IconButton(
+              icon: const Icon(Icons.close), onPressed: _confirmClose),
+        ),
+        // 캔버스(세로 3:4)를 상단에 고정하고, 하단에 탭바 + 탭별 컨트롤 패널을 둔다.
+        body: _WriteCanvasBody(this),
       ),
-      // 캔버스(세로 3:4)를 상단에 고정하고, 하단에 탭바 + 탭별 컨트롤 패널을 둔다.
-      body: _WriteCanvasBody(this),
     );
   }
 }
