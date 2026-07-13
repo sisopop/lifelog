@@ -1,27 +1,26 @@
 part of 'write_screen.dart';
 
-/// 글쓰기 화면 하단 탭 라벨. 순서가 인덱스이므로 [kWriteLayerTabs]와 함께 맞춘다.
-const List<String> kWriteTabs = ['글쓰기', '속지', '바탕색', '사진', '테이프', '스티커'];
+/// 글쓰기 화면 상단 탭 라벨. 글쓰기 / 꾸미기 2개뿐.
+const List<String> kWriteTabs = ['글쓰기', '꾸미기'];
 
-/// 캔버스를 레이어 드래그 모드(상호작용)로 켜는 탭 인덱스(사진·테이프·스티커).
-/// 나머지 탭에서는 캔버스가 읽기전용 배경(WYSIWYG 미리보기)이 된다.
-const Set<int> kWriteLayerTabs = {3, 4, 5};
+/// 꾸미기 탭에서 한 줄로 펼쳐지는 항목 목록(제목, 아이콘 순서 고정).
+const List<(String, IconData)> kDecorItems = [
+  ('속지', Icons.texture),
+  ('바탕색', Icons.palette_outlined),
+  ('사진', Icons.photo_outlined),
+  ('테이프', Icons.straighten),
+  ('스티커', Icons.emoji_emotions_outlined),
+];
 
 /// 글쓰기 화면 본문.
 ///
-/// 구조(위→아래, 세로 [Column]):
-///   1) 메타필드(저널/제목/날짜/감정/날씨) + 공용 미리보기 캔버스(가로 100%)를
-///      **하나의 연속 스크롤 영역**으로 묶는다(분리선 없이 함께 위로 올라감).
-///   2) [TabBar] (글쓰기/속지/바탕색/사진/테이프/스티커)
-///   3) [TabBarView] — 그 탭의 컨트롤만:
-///      - 글쓰기 탭: 본문 입력 + 프롬프트 + 태그 + 첨부 + 저장
-///      - 속지/바탕색: 종이·색상 선택
-///      - 사진/테이프/스티커: 레이어 편집 컨트롤(캔버스에서 끌어 배치)
+/// 구조: [TabBar](글쓰기/꾸미기) + [TabBarView].
+///   - 글쓰기 탭: 메타(저널/제목/날짜/감정/날씨) + 본문 입력 + 프롬프트 + 태그 + 첨부 + 저장.
+///   - 꾸미기 탭: 상단 고정 미리보기 캔버스(레이어 드래그) + 그 아래 속지/바탕색/사진/
+///     테이프/스티커 5개를 한 줄씩 [ExpansionTile]로 나열(탭하면 해당 컨트롤이 펼쳐짐).
 ///
-/// 캔버스를 탭 안이 아닌 공용 영역에 두는 이유: 글을 쓰면서도, 속지를 고르면서도
-/// 완성 모습(미리보기)을 항상 같은 자리에서 보게 하기 위함. 글쓰기 탭에서 본문을
-/// 입력하면 위 캔버스에 즉시 비치고(WYSIWYG), 속지/바탕색을 바꾸면 배경이,
-/// 사진/테이프/스티커를 올리면 레이어가 그 위에 실시간으로 얹힌다.
+/// 캔버스는 꾸미기 탭 상단에 스크롤 밖으로 고정해, 아래 목록 스크롤이 스티커 드래그를
+/// 가로채지 않게 한다. 본문(글쓰기 탭)을 바꾸면 캔버스에 WYSIWYG로 비친다.
 ///
 /// 상태는 모두 [_WriteScreenState] `s`가 소유하고, 이 위젯은 그것을 읽어 그린다.
 class _WriteCanvasBody extends ConsumerWidget {
@@ -31,125 +30,69 @@ class _WriteCanvasBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return LayoutBuilder(
-      builder: (context, box) {
-        final body = box.maxHeight;
-        final fullWidth = box.maxWidth - 32; // 좌우 16 여백
-        final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
-        // 미리보기 캔버스: 가로 100% 고정. 세로는 3:4가 들어가면 3:4, 아니면 화면의
-        // 36%까지(전체폭 유지 → 미리보기 띠).
-        final canvasMax = body * 0.36;
-        final canvasH = ideal < canvasMax ? ideal : canvasMax;
-        // 메타 + 캔버스를 묶은 상단 스크롤 영역의 뷰포트 높이(화면의 절반).
-        // 내용(메타+캔버스)이 더 길면 이 안에서 함께 위아래로 스크롤된다.
-        final headerH = body * 0.5;
-        final interactive = kWriteLayerTabs.contains(s._tab.index);
-        return Column(
-          children: [
-            // 1) 메타필드 + 공용 미리보기 캔버스 — 하나의 연속 스크롤(분리선 없이 함께 올라감).
-            //    레이어 탭(사진/테이프/스티커)에서는 스크롤이 스티커 드래그를 가로채지
-            //    않도록 스크롤을 끈다(_headerScroll 자동 스크롤로 캔버스가 노출됨).
-            SizedBox(
-              height: headerH,
-              child: SingleChildScrollView(
-                controller: s._headerScroll,
-                physics: interactive
-                    ? const NeverScrollableScrollPhysics()
-                    : null,
-                child: Column(
-                  children: [
-                    _metaHeader(context, ref),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                      child: Center(
-                        child: SizedBox(
-                          width: fullWidth,
-                          height: canvasH,
-                          child: PageDecoCanvas(
-                            controller: s._deco,
-                            titleText: s._titleCtrl.text,
-                            contentText: s._contentCtrl.text,
-                            interactive: interactive,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // 2) 탭바
-            TabBar(
-              controller: s._tab,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
-              tabs: [for (final t in kWriteTabs) Tab(text: t)],
-            ),
-            // 3) 탭 콘텐츠(남는 세로 공간 전부)
-            Expanded(
-              child: TabBarView(
-                controller: s._tab,
-                children: [
-                  _writeTab(context, ref),
-                  _paperTab(),
-                  _colorTab(),
-                  _photoTab(context),
-                  _tapeTab(context),
-                  _stickerTab(context),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+    return Column(
+      children: [
+        TabBar(
+          controller: s._tab,
+          tabs: [for (final t in kWriteTabs) Tab(text: t)],
+        ),
+        Expanded(
+          child: TabBarView(
+            controller: s._tab,
+            children: [
+              _writeTab(context, ref),
+              _decorateTab(context),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  // ── 1) 상단 고정 메타(저널/제목/날짜/감정/날씨) ─────────────────────────────
+  // ── 글쓰기 탭 상단 메타(저널/제목/날짜/감정/날씨) ────────────────────────────
+  // ListView 자식으로 쓰이므로 가로 여백은 바깥 ListView가 준다(자체 Padding 없음).
 
   Widget _metaHeader(BuildContext context, WidgetRef ref) {
     final journals =
         ref.watch(journalsProvider).asData?.value ?? const <Journal>[];
     final jid = s._targetJournalId;
     final journal = journals.where((j) => j.journalId == jid).firstOrNull;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (!s._isEditing && journal != null) ...[
-            _JournalSelector(
-              journal: journal,
-              canSwitch: s._canSwitchJournal,
-              onTap: s._canSwitchJournal ? () => s._pickJournal(journals) : null,
-            ),
-            _NewEntryOrdinal(journalId: jid),
-            const SizedBox(height: 8),
-          ],
-          _TitleField(
-            controller: s._titleCtrl,
-            contentText: s._contentCtrl.text,
-            onApply: (t) {
-              s._titleCtrl.text = t;
-              s.refresh(() {});
-            },
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (!s._isEditing && journal != null) ...[
+          _JournalSelector(
+            journal: journal,
+            canSwitch: s._canSwitchJournal,
+            onTap: s._canSwitchJournal ? () => s._pickJournal(journals) : null,
           ),
-          const Divider(),
-          DateField(date: s._date, onTap: s._pickDate),
-          if (!s._isEditing) _SameDayCount(journalId: jid, date: s._date),
+          _NewEntryOrdinal(journalId: jid),
           const SizedBox(height: 8),
-          MoodField(
-            value: s._mood,
-            contentText: s._contentCtrl.text,
-            onChanged: (m) => s.refresh(() => s._mood = m),
-          ),
-          const SizedBox(height: 12),
-          WeatherField(
-            value: s._weather,
-            onChanged: (w) => s.refresh(() => s._weather = w),
-          ),
         ],
-      ),
+        _TitleField(
+          controller: s._titleCtrl,
+          contentText: s._contentCtrl.text,
+          onApply: (t) {
+            s._titleCtrl.text = t;
+            s.refresh(() {});
+          },
+        ),
+        const Divider(),
+        DateField(date: s._date, onTap: s._pickDate),
+        if (!s._isEditing) _SameDayCount(journalId: jid, date: s._date),
+        const SizedBox(height: 8),
+        MoodField(
+          value: s._mood,
+          contentText: s._contentCtrl.text,
+          onChanged: (m) => s.refresh(() => s._mood = m),
+        ),
+        const SizedBox(height: 12),
+        WeatherField(
+          value: s._weather,
+          onChanged: (w) => s.refresh(() => s._weather = w),
+        ),
+        const Divider(height: 24),
+      ],
     );
   }
 
@@ -165,7 +108,7 @@ class _WriteCanvasBody extends ConsumerWidget {
     if (input != null) s._deco.addTextInput(input);
   }
 
-  // ── 4-글쓰기 탭: 본문 입력 + 프롬프트 + 태그 + 첨부 + 저장(메타 제외) ────────
+  // ── 글쓰기 탭: 메타 + 본문 입력 + 프롬프트 + 태그 + 첨부 + 저장 ──────────────
 
   Widget _writeTab(BuildContext context, WidgetRef ref) {
     final journals =
@@ -177,7 +120,9 @@ class _WriteCanvasBody extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [
-        // 본문: 위 캔버스에 실시간으로 비친다(WYSIWYG).
+        // 상단 메타(저널/제목/날짜/감정/날씨).
+        _metaHeader(context, ref),
+        // 본문: 꾸미기 탭 캔버스에 실시간으로 비친다(WYSIWYG).
         TextField(
           controller: s._contentCtrl,
           minLines: 6,
@@ -316,40 +261,94 @@ class _WriteCanvasBody extends ConsumerWidget {
     );
   }
 
-  // ── 4-꾸미기 탭들: 각 탭의 컨트롤만(캔버스는 위 공용 영역에 이미 표시됨) ──────
+  // ── 꾸미기 탭: 상단 고정 캔버스 + 5개 확장 항목(속지/바탕색/사진/테이프/스티커) ──
 
-  // child를 빌더로 받아 AnimatedBuilder 안에서 매번 새로 만든다.
-  // (미리 만든 위젯을 넘기면 컨트롤러 값이 최초 빌드에 고정돼 갱신 안 됨)
-  Widget _tabScroll(Widget Function() build) => AnimatedBuilder(
-        animation: s._deco,
-        builder: (context, _) => SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
-          child: build(),
-        ),
-      );
+  Widget _decorateTab(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, box) {
+        final fullWidth = box.maxWidth - 32; // 좌우 16 여백
+        final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
+        // 캔버스: 가로 100% 고정. 세로는 3:4가 들어가면 3:4, 아니면 탭 높이의 42%.
+        final canvasMax = box.maxHeight * 0.42;
+        final canvasH = ideal < canvasMax ? ideal : canvasMax;
+        return Column(
+          children: [
+            // 상단 고정 미리보기 캔버스(레이어 드래그 가능). ListView 밖이라
+            // 아래 목록 스크롤이 스티커 드래그를 가로채지 않는다.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              child: Center(
+                child: SizedBox(
+                  width: fullWidth,
+                  height: canvasH,
+                  child: PageDecoCanvas(
+                    controller: s._deco,
+                    titleText: s._titleCtrl.text,
+                    contentText: s._contentCtrl.text,
+                    interactive: true,
+                  ),
+                ),
+              ),
+            ),
+            const Divider(height: 1),
+            // 속지/바탕색/사진/테이프/스티커 — 각 한 줄, 탭하면 컨트롤이 펼쳐진다.
+            // 컨트롤러 값이 최신으로 반영되도록 AnimatedBuilder로 감싼다.
+            Expanded(
+              child: AnimatedBuilder(
+                animation: s._deco,
+                builder: (context, _) => ListView(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  children: [
+                    for (final (title, icon) in kDecorItems)
+                      _decoExpansion(title, icon, _decorControls(context, title)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-  Widget _paperTab() => _tabScroll(
-        () => PaperSelector(
+  /// 한 줄짜리 확장 항목(제목만 보이다가 탭하면 [child] 컨트롤이 펼쳐진다).
+  ///
+  /// ⚠️ PageStorageKey를 두지 않는다: 그러면 자식 팔레트의 가로 스크롤뷰가 이
+  /// 타일의 저장 슬롯을 물려받아, ExpansionTile이 써 둔 확장상태(bool)를
+  /// 스크롤오프셋(double?)으로 잘못 읽어 `bool is not double?` 캐스트 오류가 난다.
+  /// 항목 순서가 고정이라 키 없이도 확장상태는 위치로 유지된다.
+  Widget _decoExpansion(String title, IconData icon, Widget child) {
+    return ExpansionTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title:
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 20),
+      childrenPadding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+      children: [child],
+    );
+  }
+
+  /// 항목별 컨트롤 위젯(속지/바탕색=종이 선택, 사진/테이프/스티커=레이어 팔레트).
+  Widget _decorControls(BuildContext context, String title) {
+    switch (title) {
+      case '속지':
+        return PaperSelector(
           paper: s._deco.canvas.paper,
           paperColorValue: s._deco.canvas.paperColorValue,
           onPaperChanged: s._deco.setPaperStyle,
           onColorChanged: s._deco.setPaperColorValue,
           showColor: false,
-        ),
-      );
-
-  Widget _colorTab() => _tabScroll(
-        () => PaperSelector(
+        );
+      case '바탕색':
+        return PaperSelector(
           paper: s._deco.canvas.paper,
           paperColorValue: s._deco.canvas.paperColorValue,
           onPaperChanged: s._deco.setPaperStyle,
           onColorChanged: s._deco.setPaperColorValue,
           showPaper: false,
-        ),
-      );
-
-  Widget _photoTab(BuildContext context) => _tabScroll(
-        () => Column(
+        );
+      case '사진':
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
@@ -359,14 +358,14 @@ class _WriteCanvasBody extends ConsumerWidget {
             ),
             _decoPalette(context, showTape: false, showSticker: false),
           ],
-        ),
-      );
-
-  Widget _tapeTab(BuildContext context) => _tabScroll(
-      () => _decoPalette(context, showPhoto: false, showSticker: false));
-
-  Widget _stickerTab(BuildContext context) => _tabScroll(
-      () => _decoPalette(context, showPhoto: false, showTape: false));
+        );
+      case '테이프':
+        return _decoPalette(context, showPhoto: false, showSticker: false);
+      case '스티커':
+      default:
+        return _decoPalette(context, showPhoto: false, showTape: false);
+    }
+  }
 
   Widget _decoPalette(
     BuildContext context, {
