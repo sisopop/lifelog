@@ -144,23 +144,27 @@ class PageDecoCanvas extends StatelessWidget {
       top: l.y * h,
       child: FractionalTranslation(
         translation: const Offset(-0.5, -0.5),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Padding(
-              // 선택 시 네 모서리에 손잡이(삭제·회전·크기조절)가 앉을 자리를
-              // 사방으로 비운다. 이렇게 해야 손잡이가 레이어의 히트영역(Stack 크기)
-              // 안에 들어와 탭·드래그가 먹는다(Stack 밖 요소는 보이기만 하고 무시).
-              padding: selected
-                  ? const EdgeInsets.all(14)
-                  : EdgeInsets.zero,
-              child: GestureDetector(
-                onTap: interactive ? () => controller.selectLayer(l.id) : null,
-                onPanUpdate: interactive
-                    ? (d) => controller.dragLayer(l, d.delta.dx, d.delta.dy, w, h)
-                    : null,
-                child: Transform.rotate(
-                  angle: l.rotation * math.pi / 180,
+        // 회전을 레이어 본체 + 손잡이(삭제·회전·크기조절)를 모두 감싸도록 바깥에
+        // 두어, 레이어가 돌아가면 세 손잡이도 모서리를 따라 함께 회전한다.
+        child: Transform.rotate(
+          angle: l.rotation * math.pi / 180,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Padding(
+                // 선택 시 네 모서리에 손잡이가 앉을 자리를 사방으로 비운다. 이렇게
+                // 해야 손잡이가 레이어의 히트영역(Stack 크기) 안에 들어와 탭·드래그가
+                // 먹는다(Stack 밖 요소는 보이기만 하고 무시).
+                padding: selected
+                    ? const EdgeInsets.all(14)
+                    : EdgeInsets.zero,
+                child: GestureDetector(
+                  onTap:
+                      interactive ? () => controller.selectLayer(l.id) : null,
+                  onPanUpdate: interactive
+                      ? (d) =>
+                          controller.dragLayer(l, d.delta.dx, d.delta.dy, w, h)
+                      : null,
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: selected
@@ -174,58 +178,58 @@ class PageDecoCanvas extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
-            // 손잡이는 회전(Transform.rotate) 밖 화면 정렬 코너에 둬, 레이어가
-            // 돌아가도 항상 같은 자리에서 잡을 수 있게 한다. 모든 종류의 레이어에
-            // 동일하게 붙는다(텍스트박스·스티커·사진·테이프·글자).
-            if (selected) ...[
-              // 좌상단: 회전 손잡이(드래그로 Z축 회전).
-              Positioned(
-                top: 0,
-                left: 0,
-                child: _cornerHandle(
-                  icon: Icons.rotate_right,
-                  onPanUpdate: (d) =>
-                      controller.rotateLayer(l, d.delta.dx, d.delta.dy),
-                ),
-              ),
-              // 우상단: 삭제 배지.
-              Positioned(
-                top: 0,
-                right: 0,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: controller.deleteSelected,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: AppColors.moodHard,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 4,
-                          offset: Offset(0, 1),
-                        ),
-                      ],
+              // 손잡이 3개는 Transform.rotate 안에 있어 레이어와 함께 회전한다.
+              // 드래그 델타(d.delta)는 항상 화면(글로벌) 좌표라 회전 여부와 무관하게
+              // 크기조절·회전 계산은 그대로 동작한다.
+              if (selected) ...[
+                // 우상단: 삭제 배지.
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: controller.deleteSelected,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: AppColors.moodHard,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 4,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(Icons.close,
+                          size: 18, color: Colors.white),
                     ),
-                    child:
-                        const Icon(Icons.close, size: 18, color: Colors.white),
                   ),
                 ),
-              ),
-              // 우하단: 크기조절 손잡이(드래그로 확대·축소).
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: _cornerHandle(
-                  icon: Icons.open_in_full,
-                  onPanUpdate: (d) =>
-                      controller.resizeLayer(l, d.delta.dx, d.delta.dy, w, h),
+                // 좌하단: 크기조절 손잡이(드래그로 확대·축소).
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  child: _cornerHandle(
+                    icon: Icons.open_in_full,
+                    onPanUpdate: (d) =>
+                        controller.resizeLayer(l, d.delta.dx, d.delta.dy, w, h),
+                  ),
                 ),
-              ),
+                // 우하단: 회전 손잡이(드래그로 Z축 회전).
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: _cornerHandle(
+                    icon: Icons.rotate_right,
+                    onPanUpdate: (d) =>
+                        controller.rotateLayer(l, d.delta.dx, d.delta.dy),
+                  ),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
