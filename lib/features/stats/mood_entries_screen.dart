@@ -34,6 +34,7 @@ class MoodEntriesScreen extends ConsumerWidget {
     final favorites = favoriteCountWithMood(all, mood);
     final decorated = decoratedCountWithMood(all, mood);
     final photos = photoCountWithMood(all, mood);
+    final titled = titledCountWithMood(all, mood);
     final journalNames = journalIdsWithMood(all, mood)
         .map((id) => journalMap[id]?.title)
         .whereType<String>()
@@ -102,6 +103,7 @@ class MoodEntriesScreen extends ConsumerWidget {
                         ...statBadgeFavorites(favorites),
                         ...statBadgeDecorated(decorated),
                         ...statBadgePhotos(photos),
+                        ...statBadgeTitled(titled),
                         ...statBadgeJournalNames(journalNames),
                         ...statBadgeWeekday(weekday),
                         ...statBadgeDayPart(dayPart),

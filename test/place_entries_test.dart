@@ -12,6 +12,7 @@ DiaryEntry _entry({
   String? replyTo,
   List<String> tags = const [],
   Mood? mood,
+  String? title,
   String content = 'c',
   bool favorite = false,
   String journal = 'jr_default',
@@ -23,6 +24,7 @@ DiaryEntry _entry({
     entryId: id,
     userId: 'me',
     journalId: journal,
+    title: title,
     content: content,
     tags: tags,
     location: location,
@@ -405,6 +407,29 @@ void main() {
               '제주'),
           0);
       expect(photoCountAtLocation([_entry(id: 'a', location: '제주')], '제주'), 0);
+    });
+  });
+
+  group('titledCountAtLocation', () {
+    test('counts top-level records with a title at the place, replies & blank excluded',
+        () {
+      final n = titledCountAtLocation([
+        _entry(id: 'a', location: '제주', title: '제주도에서의 하루'),
+        _entry(id: 'b', location: '  제주  '), // no title, trim match
+        _entry(id: 'c', location: '제주', title: '   '), // blank title
+        _entry(id: 'r', location: '제주', replyTo: 'a', title: '답장'), // reply
+        _entry(id: 'o', location: '서울', title: '서울'), // other place
+      ], '제주');
+      expect(n, 1);
+    });
+
+    test('zero for blank query, no match, or none with a title', () {
+      expect(titledCountAtLocation(const [], '제주'), 0);
+      expect(
+          titledCountAtLocation(
+              [_entry(id: 'a', location: '제주', title: '제주')], '  '),
+          0);
+      expect(titledCountAtLocation([_entry(id: 'a', location: '제주')], '제주'), 0);
     });
   });
 

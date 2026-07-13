@@ -10,6 +10,7 @@ DiaryEntry _e({
   List<String> tags = const [],
   String? replyTo,
   Mood? mood,
+  String? title,
   String content = 'x',
   bool favorite = false,
   String journal = 'j1',
@@ -22,6 +23,7 @@ DiaryEntry _e({
       userId: 'me',
       journalId: journal,
       replyToEntryId: replyTo,
+      title: title,
       content: content,
       tags: tags,
       mood: mood,
@@ -311,6 +313,33 @@ void main() {
               [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
           0);
       expect(photoCountWithTag(const [], '여행'), 0);
+    });
+  });
+
+  group('titledCountWithTag', () {
+    test('counts top-level records with a title for the tag, replies & other tag & blank excluded',
+        () {
+      final n = titledCountWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], title: '제주'),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행']), // no title
+        _e(id: 'c', at: DateTime(2026, 6, 3), tags: ['여행'], title: '   '), // blank
+        _e(
+            id: 'r',
+            at: DateTime(2026, 6, 4),
+            tags: ['여행'],
+            title: '답장',
+            replyTo: 'a'), // reply ignored
+        _e(id: 'o', at: DateTime(2026, 6, 5), tags: ['일'], title: '회사'), // other tag
+      ], '여행');
+      expect(n, 1);
+    });
+
+    test('zero when none carry a title, tag absent, or list empty', () {
+      expect(
+          titledCountWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
+          0);
+      expect(titledCountWithTag(const [], '여행'), 0);
     });
   });
 

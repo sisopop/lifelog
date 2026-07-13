@@ -34,6 +34,7 @@ class TagEntriesScreen extends ConsumerWidget {
     final favorites = favoriteCountWithTag(all, tag);
     final decorated = decoratedCountWithTag(all, tag);
     final photos = photoCountWithTag(all, tag);
+    final titled = titledCountWithTag(all, tag);
     final journalNames = journalIdsWithTag(all, tag)
         .map((id) => journalMap[id]?.title)
         .whereType<String>()
@@ -93,6 +94,7 @@ class TagEntriesScreen extends ConsumerWidget {
                         ...statBadgeFavorites(favorites),
                         ...statBadgeDecorated(decorated),
                         ...statBadgePhotos(photos),
+                        ...statBadgeTitled(titled),
                         ...statBadgeJournalNames(journalNames),
                         ...statBadgeWeekday(weekday),
                         ...statBadgeDayPart(dayPart),

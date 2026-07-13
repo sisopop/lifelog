@@ -249,6 +249,21 @@ int photoCountWithMood(List<DiaryEntry> entries, Mood mood) {
   return n;
 }
 
+/// How many top-level records carrying [mood] (replies excluded) carry a
+/// non-empty title (non-whitespace text). 0 when none or the mood has no
+/// records. Extends [titledCountOfDay] to the mood scope, mirroring
+/// [photoCountWithMood]'s shape — completes the titledCount family's
+/// day/tag/place/mood symmetry. Lets the mood view show how often that
+/// feeling's records got a title, alongside [photoCountWithMood].
+int titledCountWithMood(List<DiaryEntry> entries, Mood mood) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    if ((e.title?.trim().isNotEmpty ?? false)) n++;
+  }
+  return n;
+}
+
 /// The distinct journal ids among top-level records carrying [mood] (replies
 /// excluded), in first-seen order of [entries]. Empty when the mood has no
 /// top-level records. Lets the mood view show which journals a feeling spans.

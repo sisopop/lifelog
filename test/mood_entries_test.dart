@@ -12,6 +12,7 @@ DiaryEntry _entry(
   DateTime? created,
   List<String> tags = const [],
   String? location,
+  String? title,
   String? content,
   bool favorite = false,
   String journal = 'jr_default',
@@ -24,6 +25,7 @@ DiaryEntry _entry(
     userId: 'me',
     journalId: journal,
     replyToEntryId: replyTo,
+    title: title,
     content: content ?? id,
     mood: mood,
     tags: tags,
@@ -414,6 +416,29 @@ void main() {
           photoCountWithMood(
               [_entry('a', mood: Mood.hard, mediaUrls: const ['a.jpg'])],
               Mood.good),
+          0);
+    });
+  });
+
+  group('titledCountWithMood', () {
+    test('counts top-level records with a title for the mood, replies & other mood & blank excluded',
+        () {
+      final n = titledCountWithMood([
+        _entry('a', mood: Mood.good, title: '제주'),
+        _entry('b', mood: Mood.good), // no title
+        _entry('c', mood: Mood.good, title: '   '), // blank title
+        _entry('r', mood: Mood.good, replyTo: 'a', title: '답장'), // reply
+        _entry('h', mood: Mood.hard, title: '회사'), // other mood
+      ], Mood.good);
+      expect(n, 1);
+    });
+
+    test('zero when none carry a title, mood absent, or list empty', () {
+      expect(titledCountWithMood(const [], Mood.good), 0);
+      expect(titledCountWithMood([_entry('a', mood: Mood.good)], Mood.good), 0);
+      expect(
+          titledCountWithMood(
+              [_entry('a', mood: Mood.hard, title: '제주')], Mood.good),
           0);
     });
   });

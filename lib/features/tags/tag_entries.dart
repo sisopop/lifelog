@@ -189,6 +189,21 @@ int photoCountWithTag(List<DiaryEntry> entries, String tag) {
   return n;
 }
 
+/// How many top-level records carrying [tag] carry a non-empty title (non-
+/// whitespace text), replies excluded. 0 when none or the tag has no records.
+/// Extends [titledCountOfDay] to the tag scope, mirroring [photoCountWithTag]'s
+/// shape. Lets the tag view show how often that theme got a title, alongside
+/// [photoCountWithTag].
+int titledCountWithTag(List<DiaryEntry> entries, String tag) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (!e.tags.contains(tag)) continue;
+    if ((e.title?.trim().isNotEmpty ?? false)) n++;
+  }
+  return n;
+}
+
 /// Distinct non-empty places recorded with [tag] (top-level records; replies
 /// excluded), most-frequent first with ties resolved alphabetically. Capped at
 /// [limit]. Empty when no matching record carries a place. Lets the tag view

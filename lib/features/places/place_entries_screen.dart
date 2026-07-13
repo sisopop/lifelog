@@ -33,6 +33,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
     final favorites = favoriteCountAtLocation(all, location);
     final decorated = decoratedCountAtLocation(all, location);
     final photos = photoCountAtLocation(all, location);
+    final titled = titledCountAtLocation(all, location);
     final journalNames = journalIdsAtLocation(all, location)
         .map((id) => journalMap[id]?.title)
         .whereType<String>()
@@ -105,6 +106,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
                         ...statBadgeFavorites(favorites),
                         ...statBadgeDecorated(decorated),
                         ...statBadgePhotos(photos),
+                        ...statBadgeTitled(titled),
                         ...statBadgeJournalNames(journalNames),
                         ...statBadgeWeekday(weekday),
                         ...statBadgeDayPart(dayPart),
