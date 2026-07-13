@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../shared/models/diary_entry.dart';
 import '../../shared/widgets/entry_card.dart';
+import '../../shared/widgets/longest_entry_card.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../timeline/timeline_filter.dart';
@@ -138,9 +138,10 @@ class TagEntriesScreen extends ConsumerWidget {
                         ],
                         if (longest != null) ...[
                           const SizedBox(height: 12),
-                          _LongestEntryCard(
+                          LongestEntryCard(
                             entry: longest,
                             chars: longest.content.trim().characters.length,
+                            scopeLabel: '이 태그의',
                           ),
                         ],
                       ],
@@ -158,49 +159,6 @@ class TagEntriesScreen extends ConsumerWidget {
                 );
               },
             ),
-    );
-  }
-}
-
-/// Tappable highlight for this tag's longest record; opens the entry.
-/// Mirrors review_widgets.dart's _MonthLongestCard for the tag view.
-class _LongestEntryCard extends StatelessWidget {
-  const _LongestEntryCard({required this.entry, required this.chars});
-  final DiaryEntry entry;
-  final int chars;
-
-  @override
-  Widget build(BuildContext context) {
-    final title = (entry.title?.trim().isNotEmpty ?? false)
-        ? entry.title!.trim()
-        : entry.content.trim();
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () => context.push('/entry/${entry.entryId}'),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.primarySoft,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('📜 이 태그의 가장 긴 기록 ($chars자)',
-                style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryDark)),
-            const SizedBox(height: 6),
-            Text(title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    fontSize: 13, color: AppColors.textSecondary)),
-          ],
-        ),
-      ),
     );
   }
 }
