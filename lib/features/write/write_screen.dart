@@ -39,6 +39,7 @@ import '../journals/journal_repository.dart';
 import '../tags/tag_suggest.dart';
 import '../timeline/timeline_filter.dart';
 import 'date_field.dart';
+import 'decor_sheet.dart';
 import 'draft_guard.dart';
 import 'journal_picker_sheet.dart';
 import 'entry_date.dart';

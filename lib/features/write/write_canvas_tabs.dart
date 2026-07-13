@@ -259,63 +259,94 @@ class _WriteCanvasBody extends ConsumerWidget {
 
   // ── 꾸미기 탭: 상단 고정 캔버스 + 하위 6탭(속지/바탕색/사진/테이프/스티커/텍스트) ─
 
-  /// 꾸미기 탭 전체. 상단에 미리보기 캔버스를 고정하고, 그 아래에 하위 TabBar
-  /// (속지/바탕색/사진/테이프/스티커/텍스트)와 각 탭의 컨트롤을 담는다.
+  /// 꾸미기 탭 전체. 상단에 미리보기 캔버스를 고정하고, 그 위에 **드래그로 높이가
+  /// 조절되는 하단 시트**([_DecorSheet])를 오버레이로 얹는다. 시트 안에는 하위 TabBar
+  /// (속지/바탕색/사진/테이프/스티커/텍스트)와 각 탭의 컨트롤이 들어간다.
   ///
-  /// 캔버스는 하위 TabBarView 밖(위)에 두어, 컨트롤 스크롤이나 탭 전환이
-  /// 레이어 드래그를 가로채지 않는다. 하위 6탭은 [DefaultTabController]로 관리.
+  /// 시트를 아래로 끌어 접으면 캔버스가 넓게 드러나고(접힌 상태에서도 캔버스 조작 가능),
+  /// 위로 끌면 컨트롤(스티커 격자 등)이 넉넉히 보인다. 캔버스는 시트 **아래**(Stack의
+  /// 먼저 그린 자식)라 시트가 가리는 부분 외에는 레이어 드래그가 그대로 먹는다.
+  ///
+  /// 높이 계산은 `box.maxHeight`에 키보드 인셋을 더해(=키보드 무관 안정 높이) 하므로,
+  /// 텍스트박스를 인라인 편집하느라 키보드가 떠도 캔버스·상자가 납작해지지 않는다.
   Widget _decorateTab(BuildContext context) {
-    return DefaultTabController(
-      length: kDecorSubTabs.length,
-      child: LayoutBuilder(
-        builder: (context, box) {
-          final fullWidth = box.maxWidth - 32; // 좌우 16 여백
-          final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
-          final canvasMax = box.maxHeight * 0.42;
-          final canvasH = ideal < canvasMax ? ideal : canvasMax;
-          return Column(
-            children: [
-              // 상단 고정 미리보기 캔버스(레이어 드래그 가능). 하위 TabBarView
-              // 밖이라 컨트롤 스크롤/탭 전환이 스티커 드래그를 가로채지 않는다.
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                child: Center(
-                  child: SizedBox(
-                    width: fullWidth,
-                    height: canvasH,
-                    child: PageDecoCanvas(
-                      controller: s._deco,
-                      titleText: s._titleCtrl.text,
-                      contentText: s._contentCtrl.text,
-                      interactive: true,
-                    ),
+    return LayoutBuilder(
+      builder: (context, box) {
+        // 키보드 높이. Scaffold(resizeToAvoidBottomInset)가 body에 넘겨주는
+        // MediaQuery는 bottom inset을 이미 소비해 0으로 보이므로, FlutterView에서
+        // 직접 물리 inset(논리 px)을 읽는다. 키보드가 뜨면 box.maxHeight가 그만큼
+        // 줄어드는데, 여기에 kb를 더해 키보드와 무관한 원래 높이(stableH)를 복원한다.
+        final kb = MediaQueryData.fromView(View.of(context)).viewInsets.bottom;
+        final stableH = box.maxHeight + kb; // 키보드와 무관한 안정 높이
+        final fullWidth = box.maxWidth - 32; // 좌우 16 여백
+        final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
+        final canvasMax = stableH * 0.5;
+        final canvasH = ideal < canvasMax ? ideal : canvasMax;
+        final sheetMax = (stableH - 24).clamp(120.0, stableH).toDouble();
+        const sheetMin = 96.0;
+        final sheetInit =
+            (stableH * 0.4).clamp(sheetMin, sheetMax).toDouble();
+        return Stack(
+          children: [
+            // 상단 고정 미리보기 캔버스(레이어 드래그 가능). Stack의 먼저 그린 자식이라
+            // 시트가 가리는 아래쪽 외에는 드래그가 그대로 먹는다.
+            Positioned(
+              top: 8,
+              left: 16,
+              right: 16,
+              height: canvasH,
+              child: PageDecoCanvas(
+                controller: s._deco,
+                titleText: s._titleCtrl.text,
+                contentText: s._contentCtrl.text,
+                interactive: true,
+              ),
+            ),
+            // 드래그로 높이 조절되는 하단 컨트롤 시트. 텍스트박스를 인라인 편집하느라
+            // 키보드가 떠 있을 때(kb>0)는 시트를 숨겨, 위 캔버스의 편집 중인 상자가
+            // 키보드 위로 드러나게 한다(시트가 가리지 않도록).
+            if (kb == 0)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: DecorSheet(
+                minHeight: sheetMin,
+                maxHeight: sheetMax,
+                initialHeight: sheetInit,
+                child: DefaultTabController(
+                  length: kDecorSubTabs.length,
+                  child: Column(
+                    children: [
+                      TabBar(
+                        isScrollable: true,
+                        tabAlignment: TabAlignment.center,
+                        labelPadding:
+                            const EdgeInsets.symmetric(horizontal: 14),
+                        tabs: [for (final t in kDecorSubTabs) Tab(text: t)],
+                      ),
+                      const Divider(height: 1),
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            _decorPanel(() => _paperControls()), // 속지
+                            _decorPanel(() => _colorControls()), // 바탕색
+                            _decorPanel(() => _photoControls(context)), // 사진
+                            _decorPanel(() => _tapeControls(context)), // 테이프
+                            _decorPanel(
+                                () => _stickerControls(context)), // 스티커
+                            _decorPanel(() => _textControls(context)), // 텍스트
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              // 하위 탭바(속지/바탕색/사진/테이프/스티커/텍스트).
-              TabBar(
-                isScrollable: true,
-                tabAlignment: TabAlignment.center,
-                labelPadding: const EdgeInsets.symmetric(horizontal: 14),
-                tabs: [for (final t in kDecorSubTabs) Tab(text: t)],
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    _decorPanel(() => _paperControls()), // 속지
-                    _decorPanel(() => _colorControls()), // 바탕색
-                    _decorPanel(() => _photoControls(context)), // 사진
-                    _decorPanel(() => _tapeControls(context)), // 테이프
-                    _decorPanel(() => _stickerControls(context)), // 스티커
-                    _decorPanel(() => _textControls(context)), // 텍스트
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+            ),
+          ],
+        );
+      },
     );
   }
 

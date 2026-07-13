@@ -329,11 +329,6 @@ class _TextBoxEditorState extends State<_TextBoxEditor> {
       width: widget.width,
       height: widget.height,
       padding: EdgeInsets.all(widget.stickerSize * 0.14),
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-        border: Border.all(color: kCanvasGridLine, width: 1),
-        borderRadius: BorderRadius.circular(6),
-      ),
       child: TextField(
         controller: _c,
         onChanged: widget.onChanged,
