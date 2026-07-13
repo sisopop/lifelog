@@ -13,6 +13,7 @@ DiaryEntry _entry({
   List<String> tags = const [],
   Mood? mood,
   String? title,
+  String? aiSummary,
   String content = 'c',
   bool favorite = false,
   String journal = 'jr_default',
@@ -25,6 +26,7 @@ DiaryEntry _entry({
     userId: 'me',
     journalId: journal,
     title: title,
+    aiSummary: aiSummary,
     content: content,
     tags: tags,
     location: location,
@@ -430,6 +432,30 @@ void main() {
               [_entry(id: 'a', location: '제주', title: '제주')], '  '),
           0);
       expect(titledCountAtLocation([_entry(id: 'a', location: '제주')], '제주'), 0);
+    });
+  });
+
+  group('aiSummaryCountAtLocation', () {
+    test('counts top-level records with an AI summary at the place, replies & blank excluded',
+        () {
+      final n = aiSummaryCountAtLocation([
+        _entry(id: 'a', location: '제주', aiSummary: '제주 요약'),
+        _entry(id: 'b', location: '  제주  '), // no summary, trim match
+        _entry(id: 'c', location: '제주', aiSummary: '   '), // blank
+        _entry(id: 'r', location: '제주', replyTo: 'a', aiSummary: '답장 요약'), // reply
+        _entry(id: 'o', location: '서울', aiSummary: '서울 요약'), // other place
+      ], '제주');
+      expect(n, 1);
+    });
+
+    test('zero for blank query, no match, or none with a summary', () {
+      expect(aiSummaryCountAtLocation(const [], '제주'), 0);
+      expect(
+          aiSummaryCountAtLocation(
+              [_entry(id: 'a', location: '제주', aiSummary: '요약')], '  '),
+          0);
+      expect(
+          aiSummaryCountAtLocation([_entry(id: 'a', location: '제주')], '제주'), 0);
     });
   });
 

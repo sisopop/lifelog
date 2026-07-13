@@ -11,6 +11,7 @@ DiaryEntry _e({
   String? replyTo,
   Mood? mood,
   String? title,
+  String? aiSummary,
   String content = 'x',
   bool favorite = false,
   String journal = 'j1',
@@ -24,6 +25,7 @@ DiaryEntry _e({
       journalId: journal,
       replyToEntryId: replyTo,
       title: title,
+      aiSummary: aiSummary,
       content: content,
       tags: tags,
       mood: mood,
@@ -340,6 +342,33 @@ void main() {
               [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
           0);
       expect(titledCountWithTag(const [], '여행'), 0);
+    });
+  });
+
+  group('aiSummaryCountWithTag', () {
+    test('counts top-level records with an AI summary for the tag, replies & other tag & blank excluded',
+        () {
+      final n = aiSummaryCountWithTag([
+        _e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'], aiSummary: '요약'),
+        _e(id: 'b', at: DateTime(2026, 6, 2), tags: ['여행']), // no summary
+        _e(id: 'c', at: DateTime(2026, 6, 3), tags: ['여행'], aiSummary: '  '), // blank
+        _e(
+            id: 'r',
+            at: DateTime(2026, 6, 4),
+            tags: ['여행'],
+            aiSummary: '답장 요약',
+            replyTo: 'a'), // reply ignored
+        _e(id: 'o', at: DateTime(2026, 6, 5), tags: ['일'], aiSummary: '회사 요약'), // other tag
+      ], '여행');
+      expect(n, 1);
+    });
+
+    test('zero when none carry a summary, tag absent, or list empty', () {
+      expect(
+          aiSummaryCountWithTag(
+              [_e(id: 'a', at: DateTime(2026, 6, 1), tags: ['여행'])], '여행'),
+          0);
+      expect(aiSummaryCountWithTag(const [], '여행'), 0);
     });
   });
 

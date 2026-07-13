@@ -10,6 +10,7 @@ DiaryEntry _e({
   String? replyTo,
   Mood? mood,
   String? title,
+  String? aiSummary,
   String content = 'x',
   List<String> tags = const [],
   String? place,
@@ -24,6 +25,7 @@ DiaryEntry _e({
       journalId: journal,
       replyToEntryId: replyTo,
       title: title,
+      aiSummary: aiSummary,
       content: content,
       mood: mood,
       tags: tags,
@@ -391,6 +393,23 @@ void main() {
     test('zero when none carry a title or list is empty', () {
       expect(titledCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
       expect(titledCountOfDay(const []), 0);
+    });
+  });
+
+  group('aiSummaryCountOfDay', () {
+    test('counts records with a non-empty AI summary, replies excluded', () {
+      final n = aiSummaryCountOfDay([
+        _e(id: '1', at: DateTime(2026, 6, 1), aiSummary: '오늘의 요약'),
+        _e(id: '2', at: DateTime(2026, 6, 1)), // no summary
+        _e(id: '3', at: DateTime(2026, 6, 1), aiSummary: '   '), // blank
+        _e(id: '4', at: DateTime(2026, 6, 1), aiSummary: '답장 요약', replyTo: '1'),
+      ]);
+      expect(n, 1);
+    });
+
+    test('zero when none carry a summary or list is empty', () {
+      expect(aiSummaryCountOfDay([_e(id: '1', at: DateTime(2026, 6, 1))]), 0);
+      expect(aiSummaryCountOfDay(const []), 0);
     });
   });
 

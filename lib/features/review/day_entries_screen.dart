@@ -99,6 +99,7 @@ class DayEntriesScreen extends ConsumerWidget {
                   final decorated = decoratedCountOfDay(entries);
                   final photos = photoCountOfDay(entries);
                   final titled = titledCountOfDay(entries);
+                  final aiSummaries = aiSummaryCountOfDay(entries);
                   final journalNames = journalIdsOfDay(entries)
                       .map((id) => journalMap[id]?.title)
                       .whereType<String>()
@@ -130,6 +131,7 @@ class DayEntriesScreen extends ConsumerWidget {
                         ...statBadgeDecorated(decorated),
                         ...statBadgePhotos(photos),
                         ...statBadgeTitled(titled),
+                        ...statBadgeAiSummary(aiSummaries),
                         ...statBadgeJournalNames(journalNames),
                         if (longest != null) ...[
                           const SizedBox(height: 12),

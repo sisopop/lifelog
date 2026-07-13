@@ -264,6 +264,20 @@ int titledCountWithMood(List<DiaryEntry> entries, Mood mood) {
   return n;
 }
 
+/// How many top-level records carrying [mood] (replies excluded) carry a
+/// non-empty AI summary ([DiaryEntry.aiSummary] with non-whitespace text). 0
+/// when none or the mood has no records. Extends [aiSummaryCountOfDay] to the
+/// mood scope, mirroring [titledCountWithMood]'s shape — completes the
+/// aiSummaryCount family's day/tag/place/mood symmetry.
+int aiSummaryCountWithMood(List<DiaryEntry> entries, Mood mood) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null || e.mood != mood) continue;
+    if (e.aiSummary?.trim().isNotEmpty ?? false) n++;
+  }
+  return n;
+}
+
 /// The distinct journal ids among top-level records carrying [mood] (replies
 /// excluded), in first-seen order of [entries]. Empty when the mood has no
 /// top-level records. Lets the mood view show which journals a feeling spans.

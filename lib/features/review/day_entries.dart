@@ -244,6 +244,14 @@ int photoCountOfDay(List<DiaryEntry> entries) {
 /// [photoCountOfDay]/[decoratedCountOfDay]/[favoriteCountOfDay].
 int titledCountOfDay(List<DiaryEntry> entries) => titledEntryCount(entries);
 
+/// Pure: how many of [entries] (a day's already-filtered records) carry a
+/// non-empty AI summary ([DiaryEntry.aiSummary] with non-whitespace text). 0
+/// when none. Reuses [aiSummaryCount] directly — the caller already scoped
+/// [entries] to one day (and excluded replies). Brings the AI-summary
+/// dimension already surfaced at the month/lifetime scope down to the day
+/// view, sitting alongside [photoCountOfDay]/[titledCountOfDay].
+int aiSummaryCountOfDay(List<DiaryEntry> entries) => aiSummaryCount(entries);
+
 /// Pure: the mood that appears most across [entries], or null when none carry
 /// a mood. Ties resolve to the earlier mood in [Mood.values] order. Operates
 /// on whatever list is passed (caller decides whether replies are included).

@@ -236,6 +236,23 @@ int titledCountAtLocation(List<DiaryEntry> entries, String location) {
   return n;
 }
 
+/// How many top-level records at [location] (case-insensitive, trimmed;
+/// replies excluded) carry a non-empty AI summary ([DiaryEntry.aiSummary] with
+/// non-whitespace text). 0 when none, nothing matches, or [location] is blank.
+/// Extends [aiSummaryCountOfDay] to the place scope, mirroring
+/// [titledCountAtLocation]'s shape.
+int aiSummaryCountAtLocation(List<DiaryEntry> entries, String location) {
+  final target = location.trim().toLowerCase();
+  if (target.isEmpty) return 0;
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if ((e.location ?? '').trim().toLowerCase() != target) continue;
+    if (e.aiSummary?.trim().isNotEmpty ?? false) n++;
+  }
+  return n;
+}
+
 /// The top-level record at [location] (case-insensitive, trimmed; replies
 /// excluded) with the longest (grapheme-aware, trimmed) body, or null when
 /// nothing matches or [location] is blank. Ties resolve to the most recent

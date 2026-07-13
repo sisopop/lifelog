@@ -204,6 +204,20 @@ int titledCountWithTag(List<DiaryEntry> entries, String tag) {
   return n;
 }
 
+/// How many top-level records carrying [tag] carry a non-empty AI summary
+/// ([DiaryEntry.aiSummary] with non-whitespace text), replies excluded. 0 when
+/// none or the tag has no records. Extends [aiSummaryCountOfDay] to the tag
+/// scope, mirroring [titledCountWithTag]'s shape.
+int aiSummaryCountWithTag(List<DiaryEntry> entries, String tag) {
+  var n = 0;
+  for (final e in entries) {
+    if (e.replyToEntryId != null) continue;
+    if (!e.tags.contains(tag)) continue;
+    if (e.aiSummary?.trim().isNotEmpty ?? false) n++;
+  }
+  return n;
+}
+
 /// Distinct non-empty places recorded with [tag] (top-level records; replies
 /// excluded), most-frequent first with ties resolved alphabetically. Capped at
 /// [limit]. Empty when no matching record carries a place. Lets the tag view

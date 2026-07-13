@@ -13,6 +13,7 @@ DiaryEntry _entry(
   List<String> tags = const [],
   String? location,
   String? title,
+  String? aiSummary,
   String? content,
   bool favorite = false,
   String journal = 'jr_default',
@@ -26,6 +27,7 @@ DiaryEntry _entry(
     journalId: journal,
     replyToEntryId: replyTo,
     title: title,
+    aiSummary: aiSummary,
     content: content ?? id,
     mood: mood,
     tags: tags,
@@ -439,6 +441,30 @@ void main() {
       expect(
           titledCountWithMood(
               [_entry('a', mood: Mood.hard, title: '제주')], Mood.good),
+          0);
+    });
+  });
+
+  group('aiSummaryCountWithMood', () {
+    test('counts top-level records with an AI summary for the mood, replies & other mood & blank excluded',
+        () {
+      final n = aiSummaryCountWithMood([
+        _entry('a', mood: Mood.good, aiSummary: '요약'),
+        _entry('b', mood: Mood.good), // no summary
+        _entry('c', mood: Mood.good, aiSummary: '   '), // blank
+        _entry('r', mood: Mood.good, replyTo: 'a', aiSummary: '답장 요약'), // reply
+        _entry('h', mood: Mood.hard, aiSummary: '회사 요약'), // other mood
+      ], Mood.good);
+      expect(n, 1);
+    });
+
+    test('zero when none carry a summary, mood absent, or list empty', () {
+      expect(aiSummaryCountWithMood(const [], Mood.good), 0);
+      expect(
+          aiSummaryCountWithMood([_entry('a', mood: Mood.good)], Mood.good), 0);
+      expect(
+          aiSummaryCountWithMood(
+              [_entry('a', mood: Mood.hard, aiSummary: '요약')], Mood.good),
           0);
     });
   });
