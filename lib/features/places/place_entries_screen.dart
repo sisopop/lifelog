@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../../shared/widgets/longest_entry_card.dart';
+import '../../shared/widgets/stat_badges.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../timeline/timeline_filter.dart';
@@ -37,9 +38,7 @@ class PlaceEntriesScreen extends ConsumerWidget {
         .whereType<String>()
         .toList();
     final weekday = busiestWeekdayAtLocation(all, location);
-    const weekdayNames = ['', '월', '화', '수', '목', '금', '토', '일'];
     final dayPart = busiestDayPartAtLocation(all, location);
-    const dayPartNames = ['새벽', '아침', '오후', '저녁'];
     final longest = longestEntryAtLocation(all, location);
     final locale = Localizations.localeOf(context).toLanguageTag();
     final md = DateFormat.MMMMd(locale);
@@ -102,48 +101,13 @@ class PlaceEntriesScreen extends ConsumerWidget {
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
-                        if (avgChars > 0) ...[
-                          const SizedBox(height: 4),
-                          Text('✍️ 평균 $avgChars자',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (favorites > 0) ...[
-                          const SizedBox(height: 4),
-                          Text('⭐ 즐겨찾기 $favorites개',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (decorated > 0) ...[
-                          const SizedBox(height: 4),
-                          Text('🎨 꾸민 기록 $decorated개',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (photos > 0) ...[
-                          const SizedBox(height: 4),
-                          Text('📷 사진 있는 기록 $photos개',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (journalNames.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text('📓 ${journalNames.take(4).join(' · ')}',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (weekday != null) ...[
-                          const SizedBox(height: 4),
-                          Text('📆 주로 ${weekdayNames[weekday]}요일',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (dayPart != null) ...[
-                          const SizedBox(height: 4),
-                          Text('🕘 주로 ${dayPartNames[dayPart]}에 기록',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
+                        ...statBadgeAvgChars(avgChars),
+                        ...statBadgeFavorites(favorites),
+                        ...statBadgeDecorated(decorated),
+                        ...statBadgePhotos(photos),
+                        ...statBadgeJournalNames(journalNames),
+                        ...statBadgeWeekday(weekday),
+                        ...statBadgeDayPart(dayPart),
                         if (longest != null) ...[
                           const SizedBox(height: 12),
                           LongestEntryCard(

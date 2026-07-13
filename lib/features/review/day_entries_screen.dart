@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/entry_card.dart';
 import '../../shared/widgets/longest_entry_card.dart';
+import '../../shared/widgets/stat_badges.dart';
 import '../entries/entries_provider.dart';
 import '../journals/journals_provider.dart';
 import '../timeline/timeline_filter.dart';
@@ -123,36 +124,11 @@ class DayEntriesScreen extends ConsumerWidget {
                               style: const TextStyle(
                                   fontSize: 12, color: AppColors.textHint)),
                         ],
-                        if (entries.length >= 2 && avgChars > 0) ...[
-                          const SizedBox(height: 4),
-                          Text('✍️ 평균 $avgChars자',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (favorites > 0) ...[
-                          const SizedBox(height: 4),
-                          Text('⭐ 즐겨찾기 $favorites개',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (decorated > 0) ...[
-                          const SizedBox(height: 4),
-                          Text('🎨 꾸민 기록 $decorated개',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (photos > 0) ...[
-                          const SizedBox(height: 4),
-                          Text('📷 사진 있는 기록 $photos개',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
-                        if (journalNames.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text('📓 ${journalNames.take(4).join(' · ')}',
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.textHint)),
-                        ],
+                        if (entries.length >= 2) ...statBadgeAvgChars(avgChars),
+                        ...statBadgeFavorites(favorites),
+                        ...statBadgeDecorated(decorated),
+                        ...statBadgePhotos(photos),
+                        ...statBadgeJournalNames(journalNames),
                         if (longest != null) ...[
                           const SizedBox(height: 12),
                           LongestEntryCard(
