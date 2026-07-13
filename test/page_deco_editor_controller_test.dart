@@ -85,9 +85,10 @@ void main() {
       final id = c.canvas.layers.single.id;
       c.setBoxText(id, '직접 입력한 글');
       expect(c.canvas.layers.single.value, '직접 입력한 글');
-      // 100px 페이지에서 오른쪽·아래로 10px 끌면 2*10/100 = 0.2씩 커진다.
+      // 좌하 손잡이 기준: 100px 페이지에서 왼쪽(-10)·아래(+10)로 끌면
+      // 폭 2*10/100, 높이 2*10/100 = 0.2씩 커진다.
       final before = c.canvas.layers.single;
-      c.resizeBox(before, 10, 10, 100, 100);
+      c.resizeBox(before, -10, 10, 100, 100);
       final after = c.canvas.layers.single;
       expect(after.boxW, closeTo(kDefaultTextBoxW + 0.2, 1e-9));
       expect(after.boxH, closeTo(kDefaultTextBoxH + 0.2, 1e-9));
@@ -99,8 +100,8 @@ void main() {
       c.addSticker('🌸');
       final l = c.canvas.layers.single;
       expect(l.scale, 1.0);
-      // 100px 페이지에서 우하로 50px → (50/100 + 0/100)*2.0 = 1.0 만큼 배율 증가.
-      c.resizeLayer(l, 50, 0, 100, 100);
+      // 좌하 손잡이 기준: 아래로 50px → (0/100 + 50/100)*2.0 = 1.0 만큼 배율 증가.
+      c.resizeLayer(l, 0, 50, 100, 100);
       expect(c.canvas.layers.single.scale, closeTo(2.0, 1e-9));
       expect(c.selectedId, l.id);
       addTearDown(c.dispose);
@@ -111,8 +112,8 @@ void main() {
       c.addSticker('🌸');
       final l = c.canvas.layers.single;
       expect(l.rotation, 0.0);
-      // 50px 오른쪽으로 끌면 50*0.6 = 30도 회전.
-      c.rotateLayer(l, 50, 0);
+      // 좌하 손잡이 기준: 왼쪽으로 50px → -(-50+0)*0.6 = 30도 회전.
+      c.rotateLayer(l, -50, 0);
       expect(c.canvas.layers.single.rotation, closeTo(30.0, 1e-9));
       addTearDown(c.dispose);
     });
@@ -121,7 +122,7 @@ void main() {
       final c = PageDecoEditorController();
       c.addTextBox();
       final l = c.canvas.layers.single;
-      c.resizeLayer(l, 10, 10, 100, 100);
+      c.resizeLayer(l, -10, 10, 100, 100);
       final after = c.canvas.layers.single;
       expect(after.boxW, closeTo(kDefaultTextBoxW + 0.2, 1e-9));
       expect(after.boxH, closeTo(kDefaultTextBoxH + 0.2, 1e-9));

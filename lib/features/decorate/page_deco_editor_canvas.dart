@@ -207,23 +207,15 @@ class PageDecoCanvas extends StatelessWidget {
                     ),
                   ),
                 ),
-                // 좌하단: 크기조절 손잡이(드래그로 확대·축소).
+                // 좌하단: 크기조절+회전 통합 손잡이. 드래그 방향으로 자동 판단한다
+                // (바깥/안쪽=확대·축소, 그와 수직으로 도는 접선=회전).
                 Positioned(
                   bottom: 0,
                   left: 0,
-                  child: _cornerHandle(
-                    icon: Icons.open_in_full,
-                    onPanUpdate: (d) =>
+                  child: _TransformHandle(
+                    onResize: (d) =>
                         controller.resizeLayer(l, d.delta.dx, d.delta.dy, w, h),
-                  ),
-                ),
-                // 우하단: 회전 손잡이(드래그로 Z축 회전).
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: _cornerHandle(
-                    icon: Icons.rotate_right,
-                    onPanUpdate: (d) =>
+                    onRotate: (d) =>
                         controller.rotateLayer(l, d.delta.dx, d.delta.dy),
                   ),
                 ),
@@ -235,15 +227,46 @@ class PageDecoCanvas extends StatelessWidget {
     );
   }
 
-  /// 선택 레이어 코너에 붙는 원형 조작 손잡이(회전·크기조절 공용). 드래그를
-  /// [onPanUpdate]로 흘려보낸다.
-  Widget _cornerHandle({
-    required IconData icon,
-    required GestureDragUpdateCallback onPanUpdate,
-  }) {
+}
+
+/// 좌하단 코너에 붙는 원형 조작 손잡이. 하나로 **크기조절과 회전을 겸한다**. 한 번의
+/// 드래그(onPanStart~onPanUpdate) 동안 누적 이동량을 좌하 코너 기준 래디얼·접선 성분으로
+/// 분해해, 어느 쪽이 더 큰지로 그 드래그가 "크기조절"인지 "회전"인지 정한다(죽은 구간
+/// 없이 매끄럽게 전환). 판정 후 델타는 컨트롤러가 글로벌 좌표로 계산하므로 그대로 넘긴다.
+class _TransformHandle extends StatefulWidget {
+  const _TransformHandle({required this.onResize, required this.onRotate});
+
+  final GestureDragUpdateCallback onResize;
+  final GestureDragUpdateCallback onRotate;
+
+  @override
+  State<_TransformHandle> createState() => _TransformHandleState();
+}
+
+class _TransformHandleState extends State<_TransformHandle> {
+  double _cumDx = 0;
+  double _cumDy = 0;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onPanUpdate: onPanUpdate,
+      onPanStart: (_) {
+        _cumDx = 0;
+        _cumDy = 0;
+      },
+      onPanUpdate: (d) {
+        _cumDx += d.delta.dx;
+        _cumDy += d.delta.dy;
+        // 좌하 코너 기준: 래디얼(바깥=왼쪽아래)=(-dx+dy), 접선(회전)=(dx+dy).
+        final radial = (-_cumDx + _cumDy).abs();
+        final tangential = (_cumDx + _cumDy).abs();
+        if (radial >= tangential) {
+          widget.onResize(d);
+        } else {
+          widget.onRotate(d);
+        }
+      },
       child: Container(
         width: 26,
         height: 26,
@@ -258,7 +281,7 @@ class PageDecoCanvas extends StatelessWidget {
             ),
           ],
         ),
-        child: Icon(icon, size: 14, color: Colors.white),
+        child: const Icon(Icons.open_in_full, size: 14, color: Colors.white),
       ),
     );
   }
