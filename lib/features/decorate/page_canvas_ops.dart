@@ -351,6 +351,8 @@ PageCanvas duplicateLayer(
       strike: src.strike,
       shadow: src.shadow,
       letterSpacing: src.letterSpacing,
+      boxW: src.boxW,
+      boxH: src.boxH,
     ),
   );
 }

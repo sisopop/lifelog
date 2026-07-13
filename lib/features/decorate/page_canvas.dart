@@ -13,10 +13,12 @@ import 'dart:convert';
 part 'page_canvas_ops.dart';
 part 'page_canvas_arrange.dart';
 part 'page_canvas_query.dart';
+part 'page_canvas_textbox.dart';
 
 /// 페이지 위에 놓을 수 있는 요소의 종류.
 /// tape=마스킹테이프(워시테이프) 색 조각.
-enum DecoKind { text, sticker, photo, tape }
+/// textbox=사용자가 크기를 정한 빈 상자(흰 배경+테두리)에 직접 글을 쓰는 요소.
+enum DecoKind { text, sticker, photo, tape, textbox }
 
 DecoKind _kindFromName(String? name) => DecoKind.values.firstWhere(
       (k) => k.name == name,
@@ -58,6 +60,8 @@ class DecoLayer {
     this.flipY = false,
     this.opacity = 1.0,
     this.letterSpacing = 0.0,
+    this.boxW,
+    this.boxH,
   });
 
   final String id;
@@ -120,6 +124,15 @@ class DecoLayer {
   /// 동일). 자간-/자간+ 툴바 버튼이 조절한다. bold·italic 등 다른 글자 속성과 독립.
   final double letterSpacing;
 
+  /// 텍스트박스의 가로 크기(페이지 폭 대비 0~1 비율). null이면 텍스트박스가 아니거나
+  /// 크기 미지정(기본 크기로 렌더). textbox 레이어에만 쓰인다. 페이지 크기에 무관한
+  /// 배치·크기 재현을 위해 비율로 저장한다(옛 저장본은 null이라 종전과 동일).
+  final double? boxW;
+
+  /// 텍스트박스의 세로 크기(페이지 높이 대비 0~1 비율). null이면 텍스트박스가
+  /// 아니거나 크기 미지정. textbox 레이어에만 쓰인다.
+  final double? boxH;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -139,6 +152,8 @@ class DecoLayer {
     bool? flipY,
     double? opacity,
     double? letterSpacing,
+    double? boxW,
+    double? boxH,
   }) =>
       DecoLayer(
         id: id,
@@ -160,6 +175,8 @@ class DecoLayer {
         flipY: flipY ?? this.flipY,
         opacity: opacity ?? this.opacity,
         letterSpacing: letterSpacing ?? this.letterSpacing,
+        boxW: boxW ?? this.boxW,
+        boxH: boxH ?? this.boxH,
       );
 
   Map<String, dynamic> toJson() => {
@@ -192,6 +209,10 @@ class DecoLayer {
         if (opacity != 1.0) 'opacity': opacity,
         // 자간이 기본(0.0)이면 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (letterSpacing != 0.0) 'ls': letterSpacing,
+        // 텍스트박스 크기가 없으면(다른 종류/미지정) 키를 빼서 옛 저장본과 바이트가
+        // 같게 유지한다.
+        if (boxW != null) 'bw': boxW,
+        if (boxH != null) 'bh': boxH,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -215,6 +236,8 @@ class DecoLayer {
         flipY: json['flipY'] == true,
         opacity: _toDouble(json['opacity'], 1.0),
         letterSpacing: _toDouble(json['ls'], 0.0),
+        boxW: (json['bw'] as num?)?.toDouble(),
+        boxH: (json['bh'] as num?)?.toDouble(),
       );
 }
 

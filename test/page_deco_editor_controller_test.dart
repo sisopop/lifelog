@@ -67,5 +67,31 @@ void main() {
           reason: 'clear keeps paper style');
       addTearDown(c.dispose);
     });
+
+    test('addTextBox adds an empty selected textbox with default size', () {
+      final c = PageDecoEditorController();
+      c.addTextBox();
+      final l = c.canvas.layers.single;
+      expect(l.kind, DecoKind.textbox);
+      expect(l.value, '');
+      expect(l.boxW, kDefaultTextBoxW);
+      expect(c.selectedId, l.id);
+      addTearDown(c.dispose);
+    });
+
+    test('setBoxText and resizeBox mutate the textbox', () {
+      final c = PageDecoEditorController();
+      c.addTextBox();
+      final id = c.canvas.layers.single.id;
+      c.setBoxText(id, '직접 입력한 글');
+      expect(c.canvas.layers.single.value, '직접 입력한 글');
+      // 100px 페이지에서 오른쪽·아래로 10px 끌면 2*10/100 = 0.2씩 커진다.
+      final before = c.canvas.layers.single;
+      c.resizeBox(before, 10, 10, 100, 100);
+      final after = c.canvas.layers.single;
+      expect(after.boxW, closeTo(kDefaultTextBoxW + 0.2, 1e-9));
+      expect(after.boxH, closeTo(kDefaultTextBoxH + 0.2, 1e-9));
+      addTearDown(c.dispose);
+    });
   });
 }

@@ -17,8 +17,10 @@ class DecoPalette extends StatelessWidget {
     required this.onAddText,
     required this.onAddTape,
     required this.onAddSticker,
+    this.onAddTextBox,
     this.showPhoto = true,
     this.showText = true,
+    this.showTextBox = false,
     this.showTape = true,
     this.showSticker = true,
   });
@@ -38,14 +40,23 @@ class DecoPalette extends StatelessWidget {
   /// 사진 추가 버튼을 보일지("사진" 탭 전용).
   final bool showPhoto;
 
-  /// 글자(텍스트 박스) 추가 버튼을 보일지("텍스트" 탭 전용).
+  /// 빈 텍스트박스(직접 입력하는 상자)를 올린다. null이면 버튼을 감춘다.
+  final VoidCallback? onAddTextBox;
+
+  /// 글자 넣기 버튼을 보일지("텍스트" 탭 전용).
   final bool showText;
+
+  /// 텍스트박스 추가 버튼을 보일지("텍스트" 탭 전용). onAddTextBox가 있어야 뜬다.
+  final bool showTextBox;
 
   /// 마스킹테이프 색 띠를 보일지("테이프" 탭 전용).
   final bool showTape;
 
   /// 스티커 카테고리+이모지 격자를 보일지("스티커" 탭 전용).
   final bool showSticker;
+
+  /// 텍스트박스 버튼을 그릴 수 있는지(보이기 플래그 + 콜백 모두 있을 때).
+  bool get _canBox => showTextBox && onAddTextBox != null;
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +68,10 @@ class DecoPalette extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showPhoto || showText)
-            Row(
+          if (showPhoto || showText || _canBox)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 if (showPhoto)
                   OutlinedButton.icon(
@@ -67,17 +80,22 @@ class DecoPalette extends StatelessWidget {
                         size: 20),
                     label: const Text('사진 추가'),
                   ),
-                if (showPhoto && showText) const SizedBox(width: 8),
                 if (showText)
                   OutlinedButton.icon(
                     onPressed: onAddText,
                     icon: const Icon(Icons.text_fields, size: 20),
-                    label: const Text('글자'),
+                    label: const Text('글자 넣기'),
+                  ),
+                if (_canBox)
+                  OutlinedButton.icon(
+                    onPressed: onAddTextBox,
+                    icon: const Icon(Icons.crop_square, size: 20),
+                    label: const Text('텍스트박스'),
                   ),
               ],
             ),
           if (showTape) ...[
-            if (showPhoto || showText) const SizedBox(height: 8),
+            if (showPhoto || showText || _canBox) const SizedBox(height: 8),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(

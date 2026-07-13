@@ -84,7 +84,12 @@ class PageCanvasView extends StatelessWidget {
         translation: const Offset(-0.5, -0.5),
         child: Transform.rotate(
           angle: l.rotation * math.pi / 180,
-          child: decoLayerContent(l, stickerSize: stickerBaseSize * l.scale),
+          child: decoLayerContent(
+            l,
+            stickerSize: stickerBaseSize * l.scale,
+            boxWidth: l.boxW == null ? null : l.boxW! * w,
+            boxHeight: l.boxH == null ? null : l.boxH! * h,
+          ),
         ),
       ),
     );
@@ -99,11 +104,20 @@ class PageCanvasView extends StatelessWidget {
 /// to fit its content. Pure & top-level so it is unit-testable.
 Alignment layerAlignment(DecoLayer l) => Alignment(l.x * 2 - 1, l.y * 2 - 1);
 
-/// 레이어 한 개의 시각 표현. 사진(photo)은 흰 액자(폴라로이드풍)로, 그 외
-/// (텍스트·스티커)는 글자로 그린다. [stickerSize]는 scale이 이미 반영된 글자
-/// 크기. 편집기와 읽기전용 뷰가 이 함수를 공유해 배치가 항상 일치한다.
-Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
-  Widget content = _decoLayerBody(l, stickerSize);
+/// 레이어 한 개의 시각 표현. 사진(photo)은 흰 액자(폴라로이드풍)로, 텍스트박스
+/// (textbox)는 흰 배경+테두리 상자 안 글로, 그 외(텍스트·스티커)는 글자로 그린다.
+/// [stickerSize]는 scale이 이미 반영된 글자 크기. [boxWidth]·[boxHeight]는
+/// 텍스트박스의 실제 픽셀 크기(호출부가 페이지 크기×boxW/boxH로 계산해 넘긴다.
+/// null이면 stickerSize 기준 기본 크기). 편집기와 읽기전용 뷰가 이 함수를 공유해
+/// 배치가 항상 일치한다.
+Widget decoLayerContent(
+  DecoLayer l, {
+  required double stickerSize,
+  double? boxWidth,
+  double? boxHeight,
+}) {
+  Widget content =
+      _decoLayerBody(l, stickerSize, boxWidth: boxWidth, boxHeight: boxHeight);
   // 좌우/위아래 뒤집기(거울상). 회전·배치는 상위에서 이미 적용된다.
   if (l.flipX || l.flipY) {
     content = Transform.flip(flipX: l.flipX, flipY: l.flipY, child: content);
@@ -113,7 +127,40 @@ Widget decoLayerContent(DecoLayer l, {required double stickerSize}) {
   return content;
 }
 
-Widget _decoLayerBody(DecoLayer l, double stickerSize) {
+Widget _decoLayerBody(
+  DecoLayer l,
+  double stickerSize, {
+  double? boxWidth,
+  double? boxHeight,
+}) {
+  if (l.kind == DecoKind.textbox) {
+    // 사용자가 크기를 정한 빈 상자(흰 배경+옅은 테두리) 안에 쓴 글. 크기는 호출부가
+    // 페이지 대비 비율(boxW·boxH)을 픽셀로 환산해 넘긴다(없으면 기본 크기). 글은
+    // 상자 안에서 자연스럽게 줄바꿈되고, 넘치면 살짝 잘린다.
+    final bw = boxWidth ?? stickerSize * 3.4;
+    final bh = boxHeight ?? stickerSize * 1.4;
+    final fontSize = stickerSize * 0.4;
+    return Container(
+      width: bw,
+      height: bh,
+      padding: EdgeInsets.all(stickerSize * 0.14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: kCanvasGridLine, width: 1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        l.value,
+        style: TextStyle(
+          fontSize: fontSize,
+          height: 1.35,
+          color: l.colorValue == null ? null : Color(l.colorValue!),
+          fontWeight: l.bold ? FontWeight.w700 : null,
+          fontStyle: l.italic ? FontStyle.italic : null,
+        ),
+      ),
+    );
+  }
   if (l.kind == DecoKind.tape) {
     // 반투명 색 띠(가로로 길쭉). 회전(rotation)은 상위에서 이미 적용된다.
     return Container(

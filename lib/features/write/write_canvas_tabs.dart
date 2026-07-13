@@ -370,17 +370,22 @@ class _WriteCanvasBody extends ConsumerWidget {
   Widget _stickerControls(BuildContext context) =>
       _decoPalette(context, showPhoto: false, showText: false, showTape: false);
 
-  /// 텍스트 탭: **글자(텍스트 박스) 넣기** 버튼만 노출한다.
+  /// 텍스트 탭: **글자 넣기**(기존 다이얼로그)와 **텍스트박스**(직접 입력하는 상자)
+  /// 두 버튼을 노출한다.
   Widget _textControls(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('글자를 얹고, 위 미리보기에서 끌어 옮기세요',
+            child: Text(
+                '글자 넣기: 미리 꾸민 글 · 텍스트박스: 상자를 놓고 그 안에 직접 입력',
                 style: TextStyle(fontSize: 12, color: AppColors.textHint)),
           ),
           _decoPalette(context,
-              showPhoto: false, showTape: false, showSticker: false),
+              showPhoto: false,
+              showTape: false,
+              showSticker: false,
+              showTextBox: true),
         ],
       );
 
@@ -390,6 +395,7 @@ class _WriteCanvasBody extends ConsumerWidget {
     bool showText = true,
     bool showTape = true,
     bool showSticker = true,
+    bool showTextBox = false,
   }) {
     return DecoPalette(
       categoryIndex: s._deco.categoryIndex,
@@ -398,10 +404,12 @@ class _WriteCanvasBody extends ConsumerWidget {
       onAddText: () => _addCanvasText(context),
       onAddTape: s._deco.addTape,
       onAddSticker: s._deco.addSticker,
+      onAddTextBox: s._deco.addTextBox,
       showPhoto: showPhoto,
       showText: showText,
       showTape: showTape,
       showSticker: showSticker,
+      showTextBox: showTextBox,
     );
   }
 }

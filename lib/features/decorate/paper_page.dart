@@ -168,8 +168,12 @@ class DecoratedPageView extends StatelessWidget {
                             translation: const Offset(-0.5, -0.5),
                             child: Transform.rotate(
                               angle: l.rotation * math.pi / 180,
-                              child: decoLayerContent(l,
-                                  stickerSize: 44 * l.scale),
+                              child: decoLayerContent(
+                                l,
+                                stickerSize: 44 * l.scale,
+                                boxWidth: l.boxW == null ? null : l.boxW! * lw,
+                                boxHeight: l.boxH == null ? null : l.boxH! * lh,
+                              ),
                             ),
                           ),
                         ),

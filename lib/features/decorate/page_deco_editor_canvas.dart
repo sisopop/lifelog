@@ -122,6 +122,23 @@ class PageDecoCanvas extends StatelessWidget {
 
   Widget _layerWidget(DecoLayer l, double w, double h) {
     final selected = interactive && l.id == controller.selectedId;
+    final isBox = l.kind == DecoKind.textbox;
+    final stickerSize = 44 * l.scale;
+    final boxW = isBox ? (l.boxW ?? kDefaultTextBoxW) * w : null;
+    final boxH = isBox ? (l.boxH ?? kDefaultTextBoxH) * h : null;
+    // 텍스트박스를 고르면 상자 안에서 바로 글을 쓸 수 있게 편집 필드로 바꾼다.
+    // 그 외(또는 미선택 텍스트박스)는 읽기용 렌더를 그대로 보여준다.
+    final Widget inner = (isBox && selected)
+        ? _TextBoxEditor(
+            key: ValueKey('tbedit-${l.id}'),
+            layer: l,
+            width: boxW!,
+            height: boxH!,
+            stickerSize: stickerSize,
+            onChanged: (t) => controller.setBoxText(l.id, t),
+          )
+        : decoLayerContent(l,
+            stickerSize: stickerSize, boxWidth: boxW, boxHeight: boxH);
     return Positioned(
       left: l.x * w,
       top: l.y * h,
@@ -153,7 +170,42 @@ class PageDecoCanvas extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                           )
                         : null,
-                    child: decoLayerContent(l, stickerSize: 44 * l.scale),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        inner,
+                        // 텍스트박스 선택 시 오른쪽 아래 모서리에 크기조절 손잡이.
+                        // 드래그로 상자를 키우거나 줄인다(이동 드래그와 별개—
+                        // 손잡이 위 터치는 이 제스처가 가져간다).
+                        if (selected && isBox)
+                          Positioned(
+                            right: -8,
+                            bottom: -8,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onPanUpdate: (d) => controller.resizeBox(
+                                  l, d.delta.dx, d.delta.dy, w, h),
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: const BoxDecoration(
+                                  color: AppColors.primary,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 4,
+                                      offset: Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                                child: const Icon(Icons.open_in_full,
+                                    size: 13, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -186,6 +238,78 @@ class PageDecoCanvas extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 선택된 텍스트박스 안에서 직접 글을 입력하는 편집 필드. 자체 [TextEditingController]
+/// 를 들어(캔버스가 [AnimatedBuilder]로 매 변형마다 다시 그려져도) 커서·입력 내용이
+/// 날아가지 않도록 StatefulWidget으로 둔다(각 상자마다 ValueKey로 상태 분리). 값이
+/// 바뀔 때마다 [onChanged]로 컨트롤러에 반영한다(빈 값 허용). 상자 크기(width·height)
+/// 는 리사이즈에 따라 부모가 갱신해 넘긴다.
+class _TextBoxEditor extends StatefulWidget {
+  const _TextBoxEditor({
+    super.key,
+    required this.layer,
+    required this.width,
+    required this.height,
+    required this.stickerSize,
+    required this.onChanged,
+  });
+
+  final DecoLayer layer;
+  final double width;
+  final double height;
+  final double stickerSize;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_TextBoxEditor> createState() => _TextBoxEditorState();
+}
+
+class _TextBoxEditorState extends State<_TextBoxEditor> {
+  late final TextEditingController _c =
+      TextEditingController(text: widget.layer.value);
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fontSize = widget.stickerSize * 0.4;
+    return Container(
+      width: widget.width,
+      height: widget.height,
+      padding: EdgeInsets.all(widget.stickerSize * 0.14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: kCanvasGridLine, width: 1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: TextField(
+        controller: _c,
+        onChanged: widget.onChanged,
+        maxLines: null,
+        expands: true,
+        textAlignVertical: TextAlignVertical.top,
+        cursorColor: AppColors.primary,
+        style: TextStyle(
+          fontSize: fontSize,
+          height: 1.35,
+          color: widget.layer.colorValue == null
+              ? AppColors.textPrimary
+              : Color(widget.layer.colorValue!),
+          fontWeight: widget.layer.bold ? FontWeight.w700 : null,
+          fontStyle: widget.layer.italic ? FontStyle.italic : null,
+        ),
+        decoration: InputDecoration.collapsed(
+          hintText: '여기에 입력',
+          hintStyle: TextStyle(fontSize: fontSize, color: AppColors.textHint),
         ),
       ),
     );

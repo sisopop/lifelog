@@ -10,7 +10,7 @@ part of 'page_canvas.dart';
 /// 없으면(레이어 0 · 무지 · 바탕색 없음) null. 편집기를 열지 않고도 무엇이 올라가
 /// 있는지 한눈에 보여줄 때 쓴다.
 String? pageCanvasSummary(PageCanvas canvas) {
-  var stickers = 0, photos = 0, texts = 0, tapes = 0;
+  var stickers = 0, photos = 0, texts = 0, tapes = 0, boxes = 0;
   for (final l in canvas.layers) {
     switch (l.kind) {
       case DecoKind.sticker:
@@ -21,6 +21,8 @@ String? pageCanvasSummary(PageCanvas canvas) {
         texts++;
       case DecoKind.tape:
         tapes++;
+      case DecoKind.textbox:
+        boxes++;
     }
   }
   final parts = <String>[
@@ -30,6 +32,7 @@ String? pageCanvasSummary(PageCanvas canvas) {
     if (photos > 0) '사진 $photos',
     if (tapes > 0) '테이프 $tapes',
     if (texts > 0) '글자 $texts',
+    if (boxes > 0) '텍스트박스 $boxes',
   ];
   return parts.isEmpty ? null : parts.join(' · ');
 }

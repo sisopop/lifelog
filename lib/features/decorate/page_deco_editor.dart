@@ -159,6 +159,39 @@ class PageDecoEditorController extends ChangeNotifier {
         );
       });
 
+  /// 빈 텍스트박스를 캔버스에 얹고 바로 선택한다(사용자가 크기를 조절한 뒤 그 안에
+  /// 직접 글을 쓴다). 글자 넣기(addTextInput)와 별개다.
+  void addTextBox() {
+    final id = 'b${_seq++}';
+    _mutate(() {
+      _canvas = addTextBoxLayer(
+        _canvas,
+        id,
+        x: 0.5 + (math.Random().nextDouble() - 0.5) * 0.2,
+        y: 0.4 + (math.Random().nextDouble() - 0.5) * 0.2,
+      );
+      _selectedId = id;
+    });
+  }
+
+  /// 텍스트박스 [l]의 크기를 리사이즈 핸들 드래그([dxPx],[dyPx] 픽셀)만큼 바꾼다.
+  /// 상자는 중심 고정(FractionalTranslation)이라 오른쪽·아래 모서리가 손가락을 따라
+  /// 오도록 이동량의 2배를 비율로 더한다. [w],[h]는 페이지 픽셀 크기.
+  void resizeBox(DecoLayer l, double dxPx, double dyPx, double w, double h) =>
+      _mutate(() {
+        _selectedId = l.id;
+        _canvas = resizeTextBox(
+          _canvas,
+          l.id,
+          (l.boxW ?? kDefaultTextBoxW) + 2 * dxPx / w,
+          (l.boxH ?? kDefaultTextBoxH) + 2 * dyPx / h,
+        );
+      });
+
+  /// 텍스트박스 안의 글을 [text]로 바꾼다(빈 값 허용). 인라인 편집용.
+  void setBoxText(String id, String text) =>
+      _mutate(() => _canvas = setTextBoxText(_canvas, id, text));
+
   void applyToSelected(PageCanvas Function(PageCanvas, String) op) {
     final id = _selectedId;
     if (id != null) _mutate(() => _canvas = op(_canvas, id));
@@ -405,6 +438,8 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
                       onAddText: _addText,
                       onAddTape: _ctrl.addTape,
                       onAddSticker: _ctrl.addSticker,
+                      onAddTextBox: _ctrl.addTextBox,
+                      showTextBox: true,
                     ),
                   ],
                 ),
