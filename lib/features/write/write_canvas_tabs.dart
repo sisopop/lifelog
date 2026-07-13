@@ -10,10 +10,10 @@ const Set<int> kWriteLayerTabs = {3, 4, 5};
 /// 글쓰기 화면 본문.
 ///
 /// 구조(위→아래, 세로 [Column]):
-///   1) 메타필드(저널/제목/날짜/감정/날씨) — 상단 **고정**(스크롤 안 함)
-///   2) 공용 미리보기 캔버스(가로 100%) — 모든 탭에서 **항상 표시**, 실시간 반영
-///   3) [TabBar] (글쓰기/속지/바탕색/사진/테이프/스티커)
-///   4) [TabBarView] — 그 탭의 컨트롤만:
+///   1) 메타필드(저널/제목/날짜/감정/날씨) + 공용 미리보기 캔버스(가로 100%)를
+///      **하나의 연속 스크롤 영역**으로 묶는다(분리선 없이 함께 위로 올라감).
+///   2) [TabBar] (글쓰기/속지/바탕색/사진/테이프/스티커)
+///   3) [TabBarView] — 그 탭의 컨트롤만:
 ///      - 글쓰기 탭: 본문 입력 + 프롬프트 + 태그 + 첨부 + 저장
 ///      - 속지/바탕색: 종이·색상 선택
 ///      - 사진/테이프/스티커: 레이어 편집 컨트롤(캔버스에서 끌어 배치)
@@ -36,46 +36,56 @@ class _WriteCanvasBody extends ConsumerWidget {
         final body = box.maxHeight;
         final fullWidth = box.maxWidth - 32; // 좌우 16 여백
         final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
-        // 메타는 화면의 최대 42%까지만 차지(넘치면 그 안에서만 스크롤). 감정·날씨
-        // 카드까지 다 고정하면 화면의 ~76%라 미리보기+탭이 안 들어가기 때문.
-        final metaMax = body * 0.42;
         // 미리보기 캔버스: 가로 100% 고정. 세로는 3:4가 들어가면 3:4, 아니면 화면의
-        // 36%까지(전체폭 유지 → 위쪽 미리보기 띠).
+        // 36%까지(전체폭 유지 → 미리보기 띠).
         final canvasMax = body * 0.36;
         final canvasH = ideal < canvasMax ? ideal : canvasMax;
+        // 메타 + 캔버스를 묶은 상단 스크롤 영역의 뷰포트 높이(화면의 절반).
+        // 내용(메타+캔버스)이 더 길면 이 안에서 함께 위아래로 스크롤된다.
+        final headerH = body * 0.5;
         final interactive = kWriteLayerTabs.contains(s._tab.index);
         return Column(
           children: [
-            // 1) 메타필드: 상단 고정(넘칠 때만 내부 스크롤)
-            ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: metaMax),
-              child: SingleChildScrollView(child: _metaHeader(context, ref)),
-            ),
-            const Divider(height: 1),
-            // 2) 공용 미리보기 캔버스(가로 100%, 항상 표시)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Center(
-                child: SizedBox(
-                  width: fullWidth,
-                  height: canvasH,
-                  child: PageDecoCanvas(
-                    controller: s._deco,
-                    titleText: s._titleCtrl.text,
-                    contentText: s._contentCtrl.text,
-                    interactive: interactive,
-                  ),
+            // 1) 메타필드 + 공용 미리보기 캔버스 — 하나의 연속 스크롤(분리선 없이 함께 올라감).
+            //    레이어 탭(사진/테이프/스티커)에서는 스크롤이 스티커 드래그를 가로채지
+            //    않도록 스크롤을 끈다(_headerScroll 자동 스크롤로 캔버스가 노출됨).
+            SizedBox(
+              height: headerH,
+              child: SingleChildScrollView(
+                controller: s._headerScroll,
+                physics: interactive
+                    ? const NeverScrollableScrollPhysics()
+                    : null,
+                child: Column(
+                  children: [
+                    _metaHeader(context, ref),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                      child: Center(
+                        child: SizedBox(
+                          width: fullWidth,
+                          height: canvasH,
+                          child: PageDecoCanvas(
+                            controller: s._deco,
+                            titleText: s._titleCtrl.text,
+                            contentText: s._contentCtrl.text,
+                            interactive: interactive,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            // 3) 탭바
+            // 2) 탭바
             TabBar(
               controller: s._tab,
               isScrollable: true,
               tabAlignment: TabAlignment.start,
               tabs: [for (final t in kWriteTabs) Tab(text: t)],
             ),
-            // 4) 탭 콘텐츠(남는 세로 공간 전부)
+            // 3) 탭 콘텐츠(남는 세로 공간 전부)
             Expanded(
               child: TabBarView(
                 controller: s._tab,

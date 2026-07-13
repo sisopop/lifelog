@@ -98,13 +98,29 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   DiaryEntry? _editing;
   bool _prefilled = false;
 
+  /// 메타(저널/제목/날짜/감정/날씨)와 공용 미리보기 캔버스를 하나의 연속 스크롤
+  /// 영역으로 묶는 컨트롤러. 꾸미기 계열 탭 진입 시 캔버스가 바로 보이도록
+  /// 프로그래밍적으로 아래까지 스크롤하는 데 쓴다.
+  final ScrollController _headerScroll = ScrollController();
+
   /// 하단 탭(글쓰기/속지/바탕색/사진/테이프/스티커). 캔버스는 상단에 고정되고,
   /// 이 탭이 아래 컨트롤 패널과 캔버스의 레이어 편집 활성 여부를 바꾼다.
   late final TabController _tab =
       TabController(length: kWriteTabs.length, vsync: this)
         ..addListener(() {
           // 탭이 바뀌면 캔버스 상호작용(레이어 드래그) 여부가 달라지므로 다시 그린다.
-          if (mounted) setState(() {});
+          if (!mounted) return;
+          setState(() {});
+          // 글쓰기 탭이 아니면(꾸미기 계열) 미리보기 캔버스가 바로 보이도록 아래로
+          // 스크롤한다. 레이어 탭(사진/테이프/스티커)에서는 스크롤이 꺼져 있어
+          // 스티커 드래그를 가로채지 않으므로, 이 자동 스크롤로 캔버스를 노출한다.
+          if (_tab.index != 0) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_headerScroll.hasClients) {
+                _headerScroll.jumpTo(_headerScroll.position.maxScrollExtent);
+              }
+            });
+          }
         });
 
   /// Selected calendar day (date part only; time-of-day preserved on save).
@@ -164,6 +180,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   @override
   void dispose() {
     _tab.dispose();
+    _headerScroll.dispose();
     _deco.dispose();
     _titleCtrl.dispose();
     _contentCtrl.dispose();
