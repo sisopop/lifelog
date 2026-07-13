@@ -99,7 +99,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   bool _prefilled = false;
 
   /// 상단 2개 탭(글쓰기/꾸미기). 글쓰기 탭은 메타+본문, 꾸미기 탭은 미리보기
-  /// 캔버스 + 속지/바탕색/사진/테이프/스티커 확장 항목을 담는다.
+  /// 캔버스 + 하위 5탭(속지/바탕색/사진/테이프/스티커)을 담는다.
   late final TabController _tab =
       TabController(length: kWriteTabs.length, vsync: this)
         ..addListener(() {

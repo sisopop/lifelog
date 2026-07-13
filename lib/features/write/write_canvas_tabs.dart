@@ -1,24 +1,24 @@
 part of 'write_screen.dart';
 
-/// 글쓰기 화면 상단 탭 라벨. 글쓰기 + 꾸미기 4종 = 6개.
-/// (글쓰기 / 속지 / 바탕색 / 사진 / 테이프 / 스티커)
-const List<String> kWriteTabs = ['글쓰기', '속지', '바탕색', '사진', '테이프', '스티커'];
+/// 글쓰기 화면 **상단** 탭 라벨. 글쓰기 / 꾸미기 2개.
+const List<String> kWriteTabs = ['글쓰기', '꾸미기'];
 
-/// 캔버스에 레이어를 얹는(=미리보기 드래그가 필요한) 탭 인덱스.
-/// 사진(3)/테이프(4)/스티커(5). 속지·바탕색은 배경만 바꾼다.
-const Set<int> kWriteLayerTabs = {3, 4, 5};
+/// 꾸미기 탭 **안쪽** 하위 탭 라벨. 속지 / 바탕색 / 사진 / 테이프 / 스티커 5개.
+const List<String> kDecorSubTabs = ['속지', '바탕색', '사진', '테이프', '스티커'];
 
 /// 글쓰기 화면 본문.
 ///
-/// 구조: [TabBar](6개) + [TabBarView].
+/// 구조: 상단 [TabBar](글쓰기/꾸미기) + [TabBarView].
 ///   - 글쓰기 탭: 메타(저널/제목/날짜/감정/날씨) + 본문 입력 + 프롬프트 + 태그 + 첨부 + 저장.
-///   - 속지/바탕색/사진/테이프/스티커 탭: 각각 상단 고정 미리보기 캔버스(레이어 드래그) +
-///     그 아래 해당 컨트롤(종이 선택 / 색 선택 / 사진·글자 추가 / 테이프 / 스티커).
+///   - 꾸미기 탭: 상단 고정 미리보기 캔버스(레이어 드래그) + 그 아래 **하위 TabBar**
+///     (속지/바탕색/사진/테이프/스티커) + 각 탭의 컨트롤.
 ///
-/// 각 꾸미기 탭의 캔버스는 스크롤 밖에 고정해, 아래 컨트롤 스크롤이 스티커 드래그를
+/// 꾸미기 캔버스는 스크롤 밖에 고정해, 아래 컨트롤 스크롤이 스티커 드래그를
 /// 가로채지 않게 한다. 본문(글쓰기 탭)을 바꾸면 캔버스에 WYSIWYG로 비친다.
 ///
 /// 상태는 모두 [_WriteScreenState] `s`가 소유하고, 이 위젯은 그것을 읽어 그린다.
+/// (하위 5탭은 [DefaultTabController]로 관리해 write_screen의 TabController는
+/// 상단 2탭만 담당한다.)
 class _WriteCanvasBody extends ConsumerWidget {
   const _WriteCanvasBody(this.s);
 
@@ -30,8 +30,6 @@ class _WriteCanvasBody extends ConsumerWidget {
       children: [
         TabBar(
           controller: s._tab,
-          isScrollable: true,
-          tabAlignment: TabAlignment.center,
           tabs: [for (final t in kWriteTabs) Tab(text: t)],
         ),
         Expanded(
@@ -39,11 +37,7 @@ class _WriteCanvasBody extends ConsumerWidget {
             controller: s._tab,
             children: [
               _writeTab(context, ref),
-              _decorTab(context, () => _paperControls()), // 속지
-              _decorTab(context, () => _colorControls()), // 바탕색
-              _decorTab(context, () => _photoControls(context)), // 사진 + 글자
-              _decorTab(context, () => _tapeControls(context)), // 테이프
-              _decorTab(context, () => _stickerControls(context)), // 스티커
+              _decorateTab(context),
             ],
           ),
         ),
@@ -263,52 +257,79 @@ class _WriteCanvasBody extends ConsumerWidget {
     );
   }
 
-  // ── 꾸미기 탭 공통 뼈대: 상단 고정 캔버스 + 아래 컨트롤 스크롤 ─────────────
+  // ── 꾸미기 탭: 상단 고정 캔버스 + 하위 5탭(속지/바탕색/사진/테이프/스티커) ────
 
-  /// [controls]는 **빌더 함수**로 받는다: AnimatedBuilder 안에서 매번 build 해야
-  /// PaperSelector/DecoPalette가 컨트롤러 최신값(선택 칩 하이라이트 등)을 반영한다.
-  /// 미리 만든 위젯을 넘기면 최초 빌드값에 고정돼 갱신되지 않는다(5bde29a 교훈).
-  Widget _decorTab(BuildContext context, Widget Function() controls) {
-    return LayoutBuilder(
-      builder: (context, box) {
-        final fullWidth = box.maxWidth - 32; // 좌우 16 여백
-        final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
-        final canvasMax = box.maxHeight * 0.42;
-        final canvasH = ideal < canvasMax ? ideal : canvasMax;
-        return Column(
-          children: [
-            // 상단 고정 미리보기 캔버스(레이어 드래그 가능). 스크롤 밖이라
-            // 아래 컨트롤 스크롤이 스티커 드래그를 가로채지 않는다.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: Center(
-                child: SizedBox(
-                  width: fullWidth,
-                  height: canvasH,
-                  child: PageDecoCanvas(
-                    controller: s._deco,
-                    titleText: s._titleCtrl.text,
-                    contentText: s._contentCtrl.text,
-                    interactive: true,
+  /// 꾸미기 탭 전체. 상단에 미리보기 캔버스를 고정하고, 그 아래에 하위 TabBar
+  /// (속지/바탕색/사진/테이프/스티커)와 각 탭의 컨트롤을 담는다.
+  ///
+  /// 캔버스는 하위 TabBarView 밖(위)에 두어, 컨트롤 스크롤이나 탭 전환이
+  /// 레이어 드래그를 가로채지 않는다. 하위 5탭은 [DefaultTabController]로 관리.
+  Widget _decorateTab(BuildContext context) {
+    return DefaultTabController(
+      length: kDecorSubTabs.length,
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final fullWidth = box.maxWidth - 32; // 좌우 16 여백
+          final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
+          final canvasMax = box.maxHeight * 0.42;
+          final canvasH = ideal < canvasMax ? ideal : canvasMax;
+          return Column(
+            children: [
+              // 상단 고정 미리보기 캔버스(레이어 드래그 가능). 하위 TabBarView
+              // 밖이라 컨트롤 스크롤/탭 전환이 스티커 드래그를 가로채지 않는다.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Center(
+                  child: SizedBox(
+                    width: fullWidth,
+                    height: canvasH,
+                    child: PageDecoCanvas(
+                      controller: s._deco,
+                      titleText: s._titleCtrl.text,
+                      contentText: s._contentCtrl.text,
+                      interactive: true,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: AnimatedBuilder(
-                animation: s._deco,
-                builder: (context, _) => SingleChildScrollView(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: controls(),
+              // 하위 탭바(속지/바탕색/사진/테이프/스티커).
+              TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.center,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+                tabs: [for (final t in kDecorSubTabs) Tab(text: t)],
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _decorPanel(() => _paperControls()), // 속지
+                    _decorPanel(() => _colorControls()), // 바탕색
+                    _decorPanel(() => _photoControls(context)), // 사진 + 글자
+                    _decorPanel(() => _tapeControls(context)), // 테이프
+                    _decorPanel(() => _stickerControls(context)), // 스티커
+                  ],
                 ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
+
+  /// 하위 탭 한 칸의 컨트롤 패널.
+  ///
+  /// [controls]는 **빌더 함수**로 받는다: AnimatedBuilder 안에서 매번 build 해야
+  /// PaperSelector/DecoPalette가 컨트롤러 최신값(선택 칩 하이라이트 등)을 반영한다.
+  /// 미리 만든 위젯을 넘기면 최초 빌드값에 고정돼 갱신되지 않는다(5bde29a 교훈).
+  Widget _decorPanel(Widget Function() controls) => AnimatedBuilder(
+        animation: s._deco,
+        builder: (context, _) => SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: controls(),
+        ),
+      );
 
   // ── 탭별 컨트롤(속지/바탕색/사진+글자/테이프/스티커) ───────────────────────
 
