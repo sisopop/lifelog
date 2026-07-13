@@ -3,21 +3,21 @@ part of 'write_screen.dart';
 /// 글쓰기 화면 **상단** 탭 라벨. 글쓰기 / 꾸미기 2개.
 const List<String> kWriteTabs = ['글쓰기', '꾸미기'];
 
-/// 꾸미기 탭 **안쪽** 하위 탭 라벨. 속지 / 바탕색 / 사진 / 테이프 / 스티커 5개.
-const List<String> kDecorSubTabs = ['속지', '바탕색', '사진', '테이프', '스티커'];
+/// 꾸미기 탭 **안쪽** 하위 탭 라벨. 속지 / 바탕색 / 사진 / 테이프 / 스티커 / 텍스트 6개.
+const List<String> kDecorSubTabs = ['속지', '바탕색', '사진', '테이프', '스티커', '텍스트'];
 
 /// 글쓰기 화면 본문.
 ///
 /// 구조: 상단 [TabBar](글쓰기/꾸미기) + [TabBarView].
 ///   - 글쓰기 탭: 메타(저널/제목/날짜/감정/날씨) + 본문 입력 + 프롬프트 + 태그 + 첨부 + 저장.
 ///   - 꾸미기 탭: 상단 고정 미리보기 캔버스(레이어 드래그) + 그 아래 **하위 TabBar**
-///     (속지/바탕색/사진/테이프/스티커) + 각 탭의 컨트롤.
+///     (속지/바탕색/사진/테이프/스티커/텍스트) + 각 탭의 컨트롤.
 ///
 /// 꾸미기 캔버스는 스크롤 밖에 고정해, 아래 컨트롤 스크롤이 스티커 드래그를
 /// 가로채지 않게 한다. 본문(글쓰기 탭)을 바꾸면 캔버스에 WYSIWYG로 비친다.
 ///
 /// 상태는 모두 [_WriteScreenState] `s`가 소유하고, 이 위젯은 그것을 읽어 그린다.
-/// (하위 5탭은 [DefaultTabController]로 관리해 write_screen의 TabController는
+/// (하위 6탭은 [DefaultTabController]로 관리해 write_screen의 TabController는
 /// 상단 2탭만 담당한다.)
 class _WriteCanvasBody extends ConsumerWidget {
   const _WriteCanvasBody(this.s);
@@ -257,13 +257,13 @@ class _WriteCanvasBody extends ConsumerWidget {
     );
   }
 
-  // ── 꾸미기 탭: 상단 고정 캔버스 + 하위 5탭(속지/바탕색/사진/테이프/스티커) ────
+  // ── 꾸미기 탭: 상단 고정 캔버스 + 하위 6탭(속지/바탕색/사진/테이프/스티커/텍스트) ─
 
   /// 꾸미기 탭 전체. 상단에 미리보기 캔버스를 고정하고, 그 아래에 하위 TabBar
-  /// (속지/바탕색/사진/테이프/스티커)와 각 탭의 컨트롤을 담는다.
+  /// (속지/바탕색/사진/테이프/스티커/텍스트)와 각 탭의 컨트롤을 담는다.
   ///
   /// 캔버스는 하위 TabBarView 밖(위)에 두어, 컨트롤 스크롤이나 탭 전환이
-  /// 레이어 드래그를 가로채지 않는다. 하위 5탭은 [DefaultTabController]로 관리.
+  /// 레이어 드래그를 가로채지 않는다. 하위 6탭은 [DefaultTabController]로 관리.
   Widget _decorateTab(BuildContext context) {
     return DefaultTabController(
       length: kDecorSubTabs.length,
@@ -292,7 +292,7 @@ class _WriteCanvasBody extends ConsumerWidget {
                   ),
                 ),
               ),
-              // 하위 탭바(속지/바탕색/사진/테이프/스티커).
+              // 하위 탭바(속지/바탕색/사진/테이프/스티커/텍스트).
               TabBar(
                 isScrollable: true,
                 tabAlignment: TabAlignment.center,
@@ -305,9 +305,10 @@ class _WriteCanvasBody extends ConsumerWidget {
                   children: [
                     _decorPanel(() => _paperControls()), // 속지
                     _decorPanel(() => _colorControls()), // 바탕색
-                    _decorPanel(() => _photoControls(context)), // 사진 + 글자
+                    _decorPanel(() => _photoControls(context)), // 사진
                     _decorPanel(() => _tapeControls(context)), // 테이프
                     _decorPanel(() => _stickerControls(context)), // 스티커
+                    _decorPanel(() => _textControls(context)), // 텍스트
                   ],
                 ),
               ),
@@ -331,7 +332,7 @@ class _WriteCanvasBody extends ConsumerWidget {
         ),
       );
 
-  // ── 탭별 컨트롤(속지/바탕색/사진+글자/테이프/스티커) ───────────────────────
+  // ── 탭별 컨트롤(속지/바탕색/사진/테이프/스티커/텍스트) ─────────────────────
 
   Widget _paperControls() => PaperSelector(
         paper: s._deco.canvas.paper,
@@ -349,28 +350,44 @@ class _WriteCanvasBody extends ConsumerWidget {
         showPaper: false,
       );
 
-  /// 사진 탭: 사진 추가 + **글자(텍스트 박스) 넣기** 버튼을 함께 노출한다.
+  /// 사진 탭: 사진 추가 버튼만 노출한다(글자는 텍스트 탭으로 이동).
   Widget _photoControls(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Padding(
             padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
-            child: Text('사진·글자를 얹고, 위 미리보기에서 끌어 옮기세요',
+            child: Text('사진을 얹고, 위 미리보기에서 끌어 옮기세요',
                 style: TextStyle(fontSize: 12, color: AppColors.textHint)),
           ),
-          _decoPalette(context, showTape: false, showSticker: false),
+          _decoPalette(context,
+              showText: false, showTape: false, showSticker: false),
         ],
       );
 
-  Widget _tapeControls(BuildContext context) =>
-      _decoPalette(context, showPhoto: false, showSticker: false);
+  Widget _tapeControls(BuildContext context) => _decoPalette(context,
+      showPhoto: false, showText: false, showSticker: false);
 
   Widget _stickerControls(BuildContext context) =>
-      _decoPalette(context, showPhoto: false, showTape: false);
+      _decoPalette(context, showPhoto: false, showText: false, showTape: false);
+
+  /// 텍스트 탭: **글자(텍스트 박스) 넣기** 버튼만 노출한다.
+  Widget _textControls(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 8, 20, 0),
+            child: Text('글자를 얹고, 위 미리보기에서 끌어 옮기세요',
+                style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+          ),
+          _decoPalette(context,
+              showPhoto: false, showTape: false, showSticker: false),
+        ],
+      );
 
   Widget _decoPalette(
     BuildContext context, {
     bool showPhoto = true,
+    bool showText = true,
     bool showTape = true,
     bool showSticker = true,
   }) {
@@ -382,6 +399,7 @@ class _WriteCanvasBody extends ConsumerWidget {
       onAddTape: s._deco.addTape,
       onAddSticker: s._deco.addSticker,
       showPhoto: showPhoto,
+      showText: showText,
       showTape: showTape,
       showSticker: showSticker,
     );

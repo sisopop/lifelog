@@ -18,6 +18,7 @@ class DecoPalette extends StatelessWidget {
     required this.onAddTape,
     required this.onAddSticker,
     this.showPhoto = true,
+    this.showText = true,
     this.showTape = true,
     this.showSticker = true,
   });
@@ -34,8 +35,11 @@ class DecoPalette extends StatelessWidget {
   /// 스티커 이모지를 올린다.
   final ValueChanged<String> onAddSticker;
 
-  /// 사진·글자 추가 버튼 줄을 보일지("사진" 탭 전용).
+  /// 사진 추가 버튼을 보일지("사진" 탭 전용).
   final bool showPhoto;
+
+  /// 글자(텍스트 박스) 추가 버튼을 보일지("텍스트" 탭 전용).
+  final bool showText;
 
   /// 마스킹테이프 색 띠를 보일지("테이프" 탭 전용).
   final bool showTape;
@@ -53,25 +57,27 @@ class DecoPalette extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (showPhoto)
+          if (showPhoto || showText)
             Row(
               children: [
-                OutlinedButton.icon(
-                  onPressed: onAddPhoto,
-                  icon:
-                      const Icon(Icons.add_photo_alternate_outlined, size: 20),
-                  label: const Text('사진 추가'),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: onAddText,
-                  icon: const Icon(Icons.text_fields, size: 20),
-                  label: const Text('글자'),
-                ),
+                if (showPhoto)
+                  OutlinedButton.icon(
+                    onPressed: onAddPhoto,
+                    icon: const Icon(Icons.add_photo_alternate_outlined,
+                        size: 20),
+                    label: const Text('사진 추가'),
+                  ),
+                if (showPhoto && showText) const SizedBox(width: 8),
+                if (showText)
+                  OutlinedButton.icon(
+                    onPressed: onAddText,
+                    icon: const Icon(Icons.text_fields, size: 20),
+                    label: const Text('글자'),
+                  ),
               ],
             ),
           if (showTape) ...[
-            if (showPhoto) const SizedBox(height: 8),
+            if (showPhoto || showText) const SizedBox(height: 8),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
