@@ -24,6 +24,8 @@ class PaperSelector extends StatelessWidget {
     required this.paperColorValue,
     required this.onPaperChanged,
     required this.onColorChanged,
+    this.showPaper = true,
+    this.showColor = true,
   });
 
   final PaperStyle paper;
@@ -32,6 +34,12 @@ class PaperSelector extends StatelessWidget {
 
   /// null이면 기본 크림.
   final ValueChanged<int?> onColorChanged;
+
+  /// 무늬(속지) 줄을 보일지. 글쓰기 탭 통합에서 "속지" 탭만 무늬를 보이게 끈다.
+  final bool showPaper;
+
+  /// 바탕색 줄을 보일지. "바탕색" 탭에서만 색을 보이게 끈다.
+  final bool showColor;
 
   @override
   Widget build(BuildContext context) {
@@ -42,37 +50,39 @@ class PaperSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              const Text('속지',
-                  style:
-                      TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-              const SizedBox(width: 8),
-              for (final style in PaperStyle.values)
-                Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: ChoiceChip(
-                    label: Text(_paperLabels[style]!),
-                    selected: paper == style,
-                    onSelected: (_) => onPaperChanged(style),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+          if (showPaper)
+            Row(
               children: [
-                const Text('바탕색',
+                const Text('속지',
                     style: TextStyle(
                         fontSize: 12, color: AppColors.textSecondary)),
                 const SizedBox(width: 8),
-                _dot(null, kPaperDefaultCream, '기본'),
-                for (final c in kPaperColors) _dot(c.toARGB32(), c, null),
+                for (final style in PaperStyle.values)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: ChoiceChip(
+                      label: Text(_paperLabels[style]!),
+                      selected: paper == style,
+                      onSelected: (_) => onPaperChanged(style),
+                    ),
+                  ),
               ],
             ),
-          ),
+          if (showPaper && showColor) const SizedBox(height: 6),
+          if (showColor)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  const Text('바탕색',
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary)),
+                  const SizedBox(width: 8),
+                  _dot(null, kPaperDefaultCream, '기본'),
+                  for (final c in kPaperColors) _dot(c.toARGB32(), c, null),
+                ],
+              ),
+            ),
         ],
       ),
     );

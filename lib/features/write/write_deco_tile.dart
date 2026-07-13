@@ -1,133 +1,31 @@
 part of 'write_screen.dart';
 
-/// Page-canvas/inline-photo editing actions for the write screen, factored
-/// out of _WriteScreenState alongside _PhotoDecoState to keep
-/// write_screen.dart under the 500-line limit.
+/// Page-canvas/inline-photo editing state for the write screen, factored out of
+/// _WriteScreenState alongside _PhotoDecoState to keep write_screen.dart under
+/// the 500-line limit.
+///
+/// Phase 2(탭 통합)부터 페이지 꾸미기는 별도 전체화면 편집기가 아니라 글쓰기 화면
+/// 안에서 바로 이뤄진다. 살아있는 캔버스 상태(속지·바탕색·레이어)는
+/// [PageDecoEditorController]가 소유하고, 저장·프리필은 그 캔버스를 JSON으로
+/// 직렬화/역직렬화해 오간다.
 mixin _PageDecoState on ConsumerState<WriteScreen> {
   final _titleCtrl = TextEditingController();
   final _contentCtrl = TextEditingController();
 
-  /// 내지 꾸미기 캔버스 JSON(null=꾸미기 없음).
-  String? _pageCanvas;
+  /// 글쓰기 화면에 얹은 페이지 꾸미기 캔버스의 살아있는 상태.
+  final _deco = PageDecoEditorController();
 
   /// 본문 흐름 사이에 끼운 사진들(InlinePhoto JSON, null=없음).
   String? _flowPhotos;
 
-  /// 현재 페이지 꾸미기 캔버스(속지·레이어)를 모델로 디코드해 돌려준다.
-  PageCanvas get _canvasModel => decodePageCanvas(_pageCanvas);
-
-  /// 캔버스를 저장 규칙(안 꾸몄으면 null)으로 `_pageCanvas`에 반영한다.
-  void _setCanvas(PageCanvas c) =>
-      setState(() => _pageCanvas = encodePageCanvasOrNull(c));
-
-  /// 글쓰기 화면에서 이 페이지의 속지 무늬를 바로 고른다.
-  void _setPaperStyle(PaperStyle style) =>
-      _setCanvas(setPaper(_canvasModel, style));
-
-  /// 글쓰기 화면에서 이 페이지의 속지 바탕색을 바로 고른다(null=기본 크림).
-  void _setPaperColorValue(int? value) =>
-      _setCanvas(setPaperColor(_canvasModel, value));
-
-  /// Opens the canvas editor; "완료" returns the edited canvas (null = clear).
-  Future<void> _editPageCanvas() async {
-    final nav = Navigator.of(context);
-    await nav.push(MaterialPageRoute<void>(
-      builder: (_) => PageDecoPlayground(
-        title: '페이지 꾸미기',
-        initial: decodePageCanvas(_pageCanvas),
-        titleText: _titleCtrl.text,
-        contentText: _contentCtrl.text,
-        onDone: (canvas) {
-          setState(() =>
-              _pageCanvas = canvas == null ? null : encodePageCanvas(canvas));
-          nav.pop();
-        },
-      ),
-    ));
-  }
+  /// 저장/프리필용 캔버스 JSON. 안 꾸몄으면(빈 캔버스) null.
+  String? get _pageCanvasJson =>
+      _deco.isBlank ? null : encodePageCanvas(_deco.canvas);
 
   /// 본문 흐름 사이에 끼울 사진을 고르는 편집기를 연다.
   Future<void> _editInlinePhotos() async {
     final v = await editInlinePhotosFlow(context,
         content: _contentCtrl.text, current: _flowPhotos);
     if (mounted) setState(() => _flowPhotos = v);
-  }
-}
-
-/// Entry point to the page-decoration canvas. Shows a read-only preview of the
-/// saved canvas (if any) — with a one-line overlay of the body text, so the
-/// writer sees their words laid over the decorated page — plus a button to open
-/// the editor. Tapping either the preview or the button opens [PageDecoPlayground].
-class _DecoratePageTile extends StatelessWidget {
-  const _DecoratePageTile(
-      {required this.canvasJson, required this.onEdit, this.content = ''});
-
-  final String? canvasJson;
-  final String content;
-  final VoidCallback onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    final canvas = decodePageCanvas(canvasJson);
-    final decorated = canvas.isDecorated;
-    final summary = pageCanvasSummary(canvas);
-    final previewLines = contentPreviewLines(content);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (decorated) ...[
-          GestureDetector(
-            onTap: onEdit,
-            child: SizedBox(
-              height: 160,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Stack(
-                  children: [
-                    PageCanvasView(canvas, stickerBaseSize: 28),
-                    if (previewLines.isNotEmpty)
-                      Positioned(
-                        left: 8,
-                        right: 8,
-                        bottom: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.45),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(previewLines.join('\n'),
-                              maxLines: previewLines.length,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                  fontSize: 12, color: Colors.white)),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (summary != null) ...[
-            Text('🎨 $summary',
-                style: const TextStyle(fontSize: 12, color: AppColors.textHint)),
-            const SizedBox(height: 6),
-          ],
-        ],
-        OutlinedButton.icon(
-          onPressed: onEdit,
-          icon: const Icon(Icons.brush_outlined, size: 18, color: AppColors.primary),
-          label: Text(decorated ? '페이지 꾸미기 수정' : '페이지 꾸미기',
-              style: const TextStyle(color: AppColors.primary)),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            side: const BorderSide(color: AppColors.primary),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-        ),
-      ],
-    );
   }
 }

@@ -15,8 +15,8 @@ import '../decorate/inline_photo_editor.dart';
 import '../decorate/memo_dialog.dart';
 import '../decorate/page_canvas.dart';
 import '../decorate/page_canvas_view.dart';
-import '../decorate/page_deco_playground.dart';
-import '../decorate/paper_page.dart';
+import '../decorate/page_deco_editor.dart';
+import '../decorate/page_deco_palette.dart';
 import '../decorate/paper_selector.dart';
 import '../decorate/photo_frames.dart';
 import '../decorate/photo_aspects.dart';
@@ -27,6 +27,7 @@ import '../decorate/photo_stickers.dart';
 import '../decorate/photo_tapes.dart';
 import '../decorate/sticker_picker_sheet.dart';
 import '../decorate/tape_picker_sheet.dart';
+import '../decorate/text_layer_dialog.dart';
 import 'emoji_picker.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
@@ -55,6 +56,7 @@ part 'write_widgets.dart';
 part 'write_deco_tile.dart';
 part 'write_photo_row.dart';
 part 'write_photo_deco.dart';
+part 'write_canvas_tabs.dart';
 
 class WriteScreen extends ConsumerStatefulWidget {
   const WriteScreen({
@@ -86,7 +88,7 @@ class WriteScreen extends ConsumerStatefulWidget {
 }
 
 class _WriteScreenState extends ConsumerState<WriteScreen>
-    with _PhotoDecoState, _PageDecoState {
+    with _PhotoDecoState, _PageDecoState, SingleTickerProviderStateMixin {
   final _picker = ImagePicker();
   Mood? _mood;
   Weather? _weather;
@@ -95,6 +97,15 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   List<String> _tags = [];
   DiaryEntry? _editing;
   bool _prefilled = false;
+
+  /// 하단 탭(글쓰기/속지/바탕색/사진/테이프/스티커). 캔버스는 상단에 고정되고,
+  /// 이 탭이 아래 컨트롤 패널과 캔버스의 레이어 편집 활성 여부를 바꾼다.
+  late final TabController _tab =
+      TabController(length: kWriteTabs.length, vsync: this)
+        ..addListener(() {
+          // 탭이 바뀌면 캔버스 상호작용(레이어 드래그) 여부가 달라지므로 다시 그린다.
+          if (mounted) setState(() {});
+        });
 
   /// Selected calendar day (date part only; time-of-day preserved on save).
   DateTime _date = DateTime.now();
@@ -111,6 +122,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   String? _journalId;
 
   bool get _isEditing => widget.editId != null;
+
+  /// 탭 패널(별도 위젯 _WriteCanvasBody)에서 상태를 바꾼 뒤 다시 그리게 하는
+  /// 공개 래퍼. setState가 protected라 외부 클래스에서 직접 못 부르기 때문.
+  void refresh(VoidCallback fn) => setState(fn);
 
   /// Editing keeps the entry's journal; exchange-turn writes are pinned.
   bool get _canSwitchJournal => !_isEditing && !widget.advanceTurn;
@@ -139,7 +154,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
         _tags
           ..clear()
           ..addAll(entry.tags);
-        _pageCanvas = entry.pageCanvas;
+        _deco.load(decodePageCanvas(entry.pageCanvas));
         _flowPhotos = entry.flowPhotos;
         _prefilled = true;
       }
@@ -148,6 +163,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
 
   @override
   void dispose() {
+    _tab.dispose();
+    _deco.dispose();
     _titleCtrl.dispose();
     _contentCtrl.dispose();
     super.dispose();
@@ -234,6 +251,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
     final aspects = encodePhotoAspects(_photoAspects);
     final filters = encodePhotoFilters(_photoFilters);
     final crops = encodePhotoCrops(_photoCrops);
+    final pageCanvas = _pageCanvasJson;
     if (_isEditing && _editing != null) {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
@@ -248,8 +266,8 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           location: _location ?? '',
           mediaUrls: List.of(_photoPaths),
           tags: tidyTags(_tags),
-          pageCanvas: _pageCanvas,
-          clearPageCanvas: _pageCanvas == null,
+          pageCanvas: pageCanvas,
+          clearPageCanvas: pageCanvas == null,
           flowPhotos: _flowPhotos,
           clearFlowPhotos: _flowPhotos == null,
           photoFrames: frames,
@@ -285,7 +303,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           aiStatus: AiStatus.pending, // summary generated async (see TECH_DESIGN.md)
           mediaUrls: List.of(_photoPaths),
           tags: tidyTags(_tags),
-          pageCanvas: _pageCanvas,
+          pageCanvas: pageCanvas,
           flowPhotos: _flowPhotos,
           photoFrames: frames,
           photoStickers: stickers,
@@ -333,205 +351,14 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Shared journals (커플/교환) default to shared; personal stays private-first.
-    final journals =
-        ref.watch(journalsProvider).asData?.value ?? const <Journal>[];
-    final jid = _targetJournalId;
-    final journal = journals.where((j) => j.journalId == jid).firstOrNull;
-    final shared = journal != null && journal.type != JournalType.personal;
-    final canSave = canSaveEntry(content: _contentCtrl.text);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEditing ? '기록 수정' : '새 기록'),
         leading: IconButton(
             icon: const Icon(Icons.close), onPressed: _confirmClose),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          // Shows (and, for new entries, lets you change) the target journal.
-          if (!_isEditing && journal != null) ...[
-            _JournalSelector(
-              journal: journal,
-              canSwitch: _canSwitchJournal,
-              onTap: _canSwitchJournal
-                  ? () => _pickJournal(journals)
-                  : null,
-            ),
-            _NewEntryOrdinal(journalId: jid),
-            const SizedBox(height: 12),
-          ],
-          _TitleField(
-            controller: _titleCtrl,
-            contentText: _contentCtrl.text,
-            onApply: (t) {
-              _titleCtrl.text = t;
-              setState(() {});
-            },
-          ),
-          const Divider(),
-          DateField(date: _date, onTap: _pickDate),
-          if (!_isEditing) _SameDayCount(journalId: jid, date: _date),
-          const SizedBox(height: 8),
-          MoodField(
-            value: _mood,
-            contentText: _contentCtrl.text,
-            onChanged: (m) => setState(() => _mood = m),
-          ),
-          const SizedBox(height: 16),
-          WeatherField(
-            value: _weather,
-            onChanged: (w) => setState(() => _weather = w),
-          ),
-          const SizedBox(height: 20),
-          // 본문을 "종이 페이지" 위에 직접 쓴다(속지 무늬·바탕색을 아래에서 바로 고름).
-          PaperPageBackground(
-            canvas: _canvasModel,
-            child: TextField(
-              controller: _contentCtrl,
-              minLines: 8,
-              maxLines: null,
-              onChanged: (_) => setState(() {}),
-              style: const TextStyle(
-                  fontSize: 15, height: 1.6, color: AppColors.textPrimary),
-              decoration: const InputDecoration(
-                isCollapsed: true,
-                hintText: '오늘 어떤 하루였나요?',
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          PaperSelector(
-            paper: _canvasModel.paper,
-            paperColorValue: _canvasModel.paperColorValue,
-            onPaperChanged: _setPaperStyle,
-            onColorChanged: _setPaperColorValue,
-          ),
-          const SizedBox(height: 6),
-          _ContentMeta(_contentCtrl.text),
-          if (_contentCtrl.text.trim().isEmpty) ...[
-            const SizedBox(height: 12),
-            WritingPromptCard(
-              prompt: ref.watch(writingPromptProvider),
-              onUse: () {
-                final p = ref.read(writingPromptProvider);
-                _contentCtrl.text = '$p\n';
-                _contentCtrl.selection = TextSelection.collapsed(offset: _contentCtrl.text.length);
-                setState(() {});
-              },
-              onRefresh: () =>
-                  ref.read(writingPromptIndexProvider.notifier).next(),
-            ),
-          ],
-          if ((_location ?? '').trim().isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: InputChip(
-                avatar: const Icon(Icons.place, size: 18),
-                label: Text(_location!.trim()),
-                onPressed: _editLocation,
-                onDeleted: () => setState(() => _location = null),
-              ),
-            ),
-          ],
-          if (_photoPaths.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            _PhotoThumbnailsRow(
-              photoPaths: _photoPaths,
-              photoFrames: _photoFrames,
-              photoStickers: _photoStickers,
-              photoTapes: _photoTapes,
-              photoMemos: _photoMemos,
-              photoAspects: _photoAspects,
-              photoFilters: _photoFilters,
-              photoCrops: _photoCrops,
-              onRemove: (i) => setState(() {
-                _photoPaths.removeAt(i);
-                _removePhotoDecoAt(i);
-              }),
-              onFramePicked: (i, frameId) =>
-                  setState(() => _setFrameAt(i, frameId)),
-              onStickerPicked: (i, emoji) =>
-                  setState(() => _setStickerAt(i, emoji)),
-              onTapePicked: (i, tapeId) =>
-                  setState(() => _setTapeAt(i, tapeId)),
-              onMemoPicked: (i, memo) =>
-                  setState(() => _setMemoAt(i, memo)),
-              onAspectPicked: (i, aspectId) =>
-                  setState(() => _setAspectAt(i, aspectId)),
-              onFilterPicked: (i, filterId) =>
-                  setState(() => _setFilterAt(i, filterId)),
-              onCropPicked: (i, cropId) =>
-                  setState(() => _setCropAt(i, cropId)),
-            ),
-          ],
-          _EntryTags(
-            tags: _tags,
-            onRemove: (t) => setState(() => _tags.remove(t)),
-          ),
-          _HashtagSuggestions(
-            suggestions: extractHashtagSuggestions(_contentCtrl.text, _tags),
-            onAdd: _addTagDirect,
-          ),
-          _FrequentTagChips(current: _tags, onAdd: _addTagDirect),
-          const SizedBox(height: 16),
-          _AttachRow(
-            onPhoto: _pickPhotos,
-            onLocation: _editLocation,
-            onTag: _addTag,
-            onEmoji: () => pickAndInsertEmoji(context, _contentCtrl).then((_) => mounted ? setState(() {}) : null),
-          ),
-          const SizedBox(height: 16),
-          _DecoratePageTile(canvasJson: _pageCanvas, content: _contentCtrl.text, onEdit: _editPageCanvas),
-          // "본문 사이 사진"은 신규 진입을 숨김(대신 사진 캐러셀/장식으로 대체 예정).
-          // 이미 사용된 기존 기록은 계속 수정할 수 있도록 데이터가 있을 때만 노출.
-          if (decodeInlinePhotos(_flowPhotos).isNotEmpty) ...[
-            const SizedBox(height: 12),
-            InlinePhotoTile(flowPhotos: _flowPhotos, onEdit: _editInlinePhotos),
-          ],
-          const SizedBox(height: 28),
-          if (_isEditing)
-            ElevatedButton(
-              onPressed: canSave
-                  ? () => _save(
-                        visibility:
-                            _editing?.visibility ?? EntryVisibility.private,
-                      )
-                  : null,
-              child: const Text('수정 저장'),
-            )
-          else if (shared) ...[
-            // 커플/교환 일기장은 멤버와 함께 보는 공동 기록이 기본.
-            ElevatedButton(
-              onPressed:
-                  canSave ? () => _save(visibility: EntryVisibility.link) : null,
-              child: const Text('함께 저장'),
-            ),
-          ] else ...[
-            ElevatedButton(
-              onPressed: canSave
-                  ? () => _save(visibility: EntryVisibility.private)
-                  : null,
-              child: const Text('비공개 저장'),
-            ),
-            const SizedBox(height: 10),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                side: const BorderSide(color: AppColors.primary),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              onPressed:
-                  canSave ? () => _save(visibility: EntryVisibility.link) : null,
-              child: const Text('공유하며 저장',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ],
-      ),
+      // 캔버스(세로 3:4)를 상단에 고정하고, 하단에 탭바 + 탭별 컨트롤 패널을 둔다.
+      body: _WriteCanvasBody(this),
     );
   }
 }

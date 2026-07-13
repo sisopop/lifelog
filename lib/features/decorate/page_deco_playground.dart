@@ -46,7 +46,8 @@ class PageDecoPlayground extends StatefulWidget {
 }
 
 class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
-  final PageDecoEditorController _ctrl = PageDecoEditorController();
+  late final PageDecoEditorController _ctrl =
+      PageDecoEditorController(initial: widget.initial);
 
   @override
   void dispose() {
@@ -101,7 +102,6 @@ class _PageDecoPlaygroundState extends State<PageDecoPlayground> {
         ],
       ),
       body: PageDecoEditor(
-        initial: widget.initial,
         controller: _ctrl,
         titleText: widget.titleText,
         contentText: widget.contentText,

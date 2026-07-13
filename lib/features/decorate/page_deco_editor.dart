@@ -17,130 +17,57 @@ import 'text_layer_dialog.dart';
 part 'page_deco_editor_canvas.dart';
 part 'page_deco_editor_toolbar.dart';
 
-/// 재사용 가능한 페이지 꾸미기 편집기의 상태를 밖(호스트)에서 읽고 조작하는
-/// 컨트롤러. [PageDecoEditor]는 캔버스 상태를 스스로 소유하지만, 이 컨트롤러를
-/// 넘겨 주면 호스트(예: [PageDecoPlayground]의 AppBar, 앞으로는 글쓰기 화면의
-/// 탭바)가 현재 캔버스를 읽거나 "되돌리기/모두 지우기"를 실행할 수 있다.
-/// 레이어가 바뀔 때마다 [notifyListeners]가 불려, 호스트 UI(취소/지우기 버튼
-/// 노출 등)가 자동으로 갱신된다.
-class PageDecoEditorController extends ChangeNotifier {
-  _PageDecoEditorState? _state;
-
-  void _bind(_PageDecoEditorState s) => _state = s;
-  void _unbind(_PageDecoEditorState s) {
-    if (_state == s) _state = null;
-  }
-
-  /// 편집기 상태가 캔버스를 바꿀 때 호스트 UI(AppBar 등)를 갱신하도록 알린다.
-  /// [notifyListeners]는 보호 멤버라 편집기 상태에서 직접 못 부르므로, 이
-  /// 컨트롤러 안(ChangeNotifier 서브클래스)에서 감싸 노출한다.
-  void _notify() => notifyListeners();
-
-  /// 현재 편집 중인 캔버스(아직 붙지 않았으면 기본 빈 캔버스).
-  PageCanvas get canvas => _state?._canvas ?? const PageCanvas();
-
-  /// 저장할 게 없는 빈 캔버스인지(무늬 plain·바탕색 기본·레이어 없음).
-  bool get isBlank => _state?._isBlank ?? true;
-
-  /// 되돌리기/모두 지우기 버튼을 보일지 판단할 때 쓴다.
-  bool get hasLayers => _state?._canvas.layers.isNotEmpty ?? false;
-
-  /// 마지막에 올린 레이어 하나를 되돌린다.
-  void undoLast() => _state?._undoLast();
-
-  /// 모든 레이어를 지운다(속지·바탕색은 유지).
-  void clearLayers() => _state?._clearLayers();
-}
-
-/// 기록 페이지 꾸미기 **편집 캔버스**(스티커/사진/테이프/글자 레이어를 올리고·
-/// 끌고·키우고·돌리는 부분)만 떼어낸 재사용 위젯. 예전엔 이 로직이 전부
-/// [PageDecoPlayground] 안에 있었지만, 글쓰기 화면에 탭으로 통합하려고 캔버스+
-/// 툴바+제스처만 이 위젯으로 추출했다(동작·UI는 이전과 동일).
+/// 페이지 꾸미기 편집기의 **상태를 소유**하는 컨트롤러.
 ///
-/// 화면 상단에 세로 3:4 캔버스를 전체 폭으로 고정하고, 아래에서 위로 끌어 크기를
-/// 조절하는 컨트롤 시트(툴바+속지/바탕색+팔레트)를 겹쳐 띄운다. 앱바 같은 크롬은
-/// 호스트가 제공한다.
-class PageDecoEditor extends StatefulWidget {
-  const PageDecoEditor({
-    super.key,
-    this.initial,
-    this.controller,
-    this.titleText = '',
-    this.contentText = '',
-  });
+/// Phase 1에서는 편집 위젯이 캔버스를 들고 컨트롤러는 호스트에 읽기/알림만
+/// 넘겼지만, Phase 2(글쓰기 탭 통합)에서는 캔버스가 상단에 고정되고 조작 컨트롤은
+/// 하단 탭에 흩어지므로, 둘이 같은 상태를 공유해야 한다. 그래서 컨트롤러가
+/// 캔버스·선택·시퀀스를 직접 들고 모든 변형 메서드를 노출한다. 변형마다
+/// [notifyListeners]가 불려 캔버스([PageDecoCanvas])와 컨트롤(팔레트/툴바)이 함께
+/// 다시 그려진다.
+class PageDecoEditorController extends ChangeNotifier {
+  PageDecoEditorController({PageCanvas? initial})
+      : _canvas = initial ?? const PageCanvas();
 
-  /// 편집을 시작할 캔버스. null이면 빈 캔버스에서 시작.
-  final PageCanvas? initial;
-
-  /// 호스트가 캔버스를 읽거나 되돌리기/지우기를 하려면 넘긴다(선택).
-  final PageDecoEditorController? controller;
-
-  /// 종이 맨 위에 굵게 깔 일기 제목(빈 문자열이면 생략).
-  final String titleText;
-
-  /// 종이 위에 바탕 글로 깔 본문(제목·본문 모두 비면 안내 문구를 보여준다).
-  final String contentText;
-
-  @override
-  State<PageDecoEditor> createState() => _PageDecoEditorState();
-}
-
-class _PageDecoEditorState extends State<PageDecoEditor> {
-  late PageCanvas _canvas = widget.initial ?? const PageCanvas();
+  PageCanvas _canvas;
   String? _selectedId;
   int _seq = 0;
-  int _categoryIndex = 0;
-  final _picker = ImagePicker();
 
-  // 캔버스가 좌우 이 여백만큼 안쪽에 그려진다(전체 폭 계산에도 쓴다).
-  static const double _pagePadding = 16;
+  /// 스티커 팔레트에서 현재 고른 카테고리 인덱스.
+  int categoryIndex = 0;
 
-  // 세로가 극단적으로 짧은 화면에서 Column이 넘치지 않도록 컨트롤에 최소로
-  // 남길 높이(손잡이+한 줄).
-  static const double _minControlsVisible = 96;
+  PageCanvas get canvas => _canvas;
+  String? get selectedId => _selectedId;
 
-  // 컨트롤 시트의 현재 높이. 손잡이를 위아래로 끌어 조절한다. null이면 첫
-  // 빌드에서 화면 높이의 일정 비율로 초기화한다.
-  double? _controlsHeight;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller?._bind(this);
-    // 편집 모드로 기존 캔버스를 열면 첫 프레임엔 컨트롤러가 아직 레이어 유무를
-    // 호스트에 알리지 못하므로(바인딩 직후라 notify 없음), 한 번 알려 AppBar의
-    // 되돌리기/지우기 버튼이 초기부터 올바르게 뜨게 한다.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.controller?._notify();
-    });
-  }
-
-  @override
-  void dispose() {
-    widget.controller?._unbind(this);
-    super.dispose();
-  }
-
-  /// setState + 컨트롤러 알림. 캔버스를 바꾸는 모든 조작은 이걸 거쳐, 호스트의
-  /// AppBar/탭바가 레이어 유무에 맞춰 갱신되게 한다.
-  void _mutate(VoidCallback fn) {
-    setState(fn);
-    widget.controller?._notify();
-  }
-
-  bool get _isBlank =>
+  /// 저장할 게 없는 빈 캔버스인지(무늬 plain·바탕색 기본·레이어 없음).
+  bool get isBlank =>
       _canvas.layers.isEmpty &&
       _canvas.paper == PaperStyle.plain &&
       _canvas.paperColorValue == null;
 
-  DecoLayer? get _selected {
+  bool get hasLayers => _canvas.layers.isNotEmpty;
+
+  DecoLayer? get selected {
     for (final l in _canvas.layers) {
       if (l.id == _selectedId) return l;
     }
     return null;
   }
 
-  void _undoLast() {
+  void _mutate(VoidCallback fn) {
+    fn();
+    notifyListeners();
+  }
+
+  /// 편집할 캔버스를 통째로 갈아끼운다(기존 기록 수정 진입 시 프리필용).
+  void load(PageCanvas canvas) => _mutate(() {
+        _canvas = canvas;
+        _selectedId = null;
+      });
+
+  void setCategory(int i) => _mutate(() => categoryIndex = i);
+
+  void undoLast() {
     if (_canvas.layers.isEmpty) return;
     _mutate(() {
       final last = _canvas.layers.last.id;
@@ -149,17 +76,15 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
     });
   }
 
-  void _clearLayers() {
-    _mutate(() {
-      _canvas = PageCanvas(
-        paper: _canvas.paper,
-        paperColorValue: _canvas.paperColorValue,
-      );
-      _selectedId = null;
-    });
-  }
+  void clearLayers() => _mutate(() {
+        _canvas = PageCanvas(
+          paper: _canvas.paper,
+          paperColorValue: _canvas.paperColorValue,
+        );
+        _selectedId = null;
+      });
 
-  void _addSticker(String emoji) {
+  void addSticker(String emoji) {
     final layer = DecoLayer(
       id: 's${_seq++}',
       kind: DecoKind.sticker,
@@ -174,41 +99,22 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
     });
   }
 
-  /// 갤러리에서 사진을 골라 캔버스에 얹는다. base64 data URL로 인코딩해
-  /// (기록 사진과 같은 방식) 캔버스 JSON에 그대로 영속·모든 플랫폼에서 렌더된다.
-  Future<void> _addPhoto() async {
-    try {
-      final x = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 1200,
+  /// 이미 base64 data URL로 인코딩된 사진을 캔버스에 얹는다(사진 획득은 UI가 담당).
+  void addPhotoData(String data) {
+    final id = 'p${_seq++}';
+    _mutate(() {
+      _canvas = addPhotoLayer(
+        _canvas,
+        id,
+        data,
+        x: 0.5 + (math.Random().nextDouble() - 0.5) * 0.2,
+        y: 0.4 + (math.Random().nextDouble() - 0.5) * 0.2,
       );
-      if (x == null) return;
-      final bytes = await x.readAsBytes();
-      final data = 'data:${imageMimeForName(x.name)};base64,'
-          '${base64Encode(bytes)}';
-      if (!mounted) return;
-      final id = 'p${_seq++}';
-      _mutate(() {
-        _canvas = addPhotoLayer(
-          _canvas,
-          id,
-          data,
-          x: 0.5 + (math.Random().nextDouble() - 0.5) * 0.2,
-          y: 0.4 + (math.Random().nextDouble() - 0.5) * 0.2,
-        );
-        _selectedId = id;
-      });
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('사진을 불러오지 못했어요')),
-        );
-      }
-    }
+      _selectedId = id;
+    });
   }
 
-  /// 마스킹테이프 한 조각을 살짝 어긋난 위치에 얹는다.
-  void _addTape(String styleId) {
+  void addTape(String styleId) {
     final id = 't${_seq++}';
     _mutate(() {
       _canvas = addTapeLayer(_canvas, id, styleId,
@@ -218,10 +124,8 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
     });
   }
 
-  /// 글자(메모) 조각을 올린다. 다이얼로그로 문구·잉크 색·굵기를 골라 얹는다.
-  Future<void> _addText() async {
-    final input = await showTextLayerDialog(context);
-    if (input == null) return;
+  /// 글자 레이어를 올린다(문구·색·굵기는 UI 다이얼로그가 골라 [input]으로 준다).
+  void addTextInput(TextLayerInput input) {
     final id = 'x${_seq++}';
     _mutate(() {
       _canvas = addTextLayer(
@@ -240,57 +144,37 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
     });
   }
 
-  /// 이미 올린 글자 레이어의 문구·색·굵기·형광펜을 다시 골라 고친다.
-  Future<void> _editText(DecoLayer l) async {
-    final input = await showTextLayerDialog(
-      context,
-      initial: TextLayerInput(
-        l.value,
-        l.colorValue ?? kTextInkColors.first.toARGB32(),
-        l.bold,
-        l.bgColorValue,
-        italic: l.italic,
-        underline: l.underline,
-        strike: l.strike,
-        shadow: l.shadow,
-      ),
-    );
-    if (input == null) return;
-    _mutate(() {
-      _canvas = updateTextLayer(
-        _canvas,
-        l.id,
-        input.text,
-        colorValue: input.colorValue,
-        bold: input.bold,
-        italic: input.italic,
-        underline: input.underline,
-        strike: input.strike,
-        shadow: input.shadow,
-        bgColorValue: input.bgColorValue,
-      );
-    });
-  }
+  void updateTextInput(String id, TextLayerInput input) => _mutate(() {
+        _canvas = updateTextLayer(
+          _canvas,
+          id,
+          input.text,
+          colorValue: input.colorValue,
+          bold: input.bold,
+          italic: input.italic,
+          underline: input.underline,
+          strike: input.strike,
+          shadow: input.shadow,
+          bgColorValue: input.bgColorValue,
+        );
+      });
 
-  // 선택된 레이어 id에 캔버스 순수함수를 적용해 상태를 갱신한다. 툴바가 공유.
-  void _applyToSelected(PageCanvas Function(PageCanvas, String) op) {
+  void applyToSelected(PageCanvas Function(PageCanvas, String) op) {
     final id = _selectedId;
     if (id != null) _mutate(() => _canvas = op(_canvas, id));
   }
 
-  // 겹쳐 놓아 탭으로 고르기 힘든 레이어를 z 순서(아래→위)로 순회 선택한다.
-  void _selectNextLayer() {
+  void selectNextLayer() {
     final next = nextLayerId(_canvas, _selectedId);
-    if (next != null) setState(() => _selectedId = next);
+    if (next != null) _mutate(() => _selectedId = next);
   }
 
-  // "다음 레이어"의 역방향. 지나친 레이어로 z 순서를 거슬러 되돌아온다.
-  void _selectPreviousLayer() {
+  void selectPreviousLayer() {
     final prev = previousLayerId(_canvas, _selectedId);
-    if (prev != null) setState(() => _selectedId = prev);
+    if (prev != null) _mutate(() => _selectedId = prev);
   }
 
-  void _deleteSelected() {
+  void deleteSelected() {
     final id = _selectedId;
     if (id == null) return;
     _mutate(() {
@@ -299,9 +183,8 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
     });
   }
 
-  // 선택 레이어와 같은 종류(스티커/사진/테이프/글자)를 한 번에 모두 지운다.
-  void _deleteSameKind() {
-    final sel = _selected;
+  void deleteSameKind() {
+    final sel = selected;
     if (sel == null) return;
     _mutate(() {
       _canvas = removeLayersOfKind(_canvas, sel.kind);
@@ -309,8 +192,7 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
     });
   }
 
-  // 선택 레이어를 복제해 새로 만든 레이어를 선택 상태로 둔다.
-  void _duplicateSelected() {
+  void duplicateSelected() {
     final id = _selectedId;
     if (id == null) return;
     final newId = 'd${_seq++}';
@@ -320,15 +202,14 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
     });
   }
 
-  // ── 캔버스(_DecoCanvas)가 호출하는 제스처 처리 ────────────────────────────
-  void _deselect() => _mutate(() => _selectedId = null);
+  void deselect() => _mutate(() => _selectedId = null);
 
-  void _selectLayer(String id) => _mutate(() {
+  void selectLayer(String id) => _mutate(() {
         _selectedId = id;
         _canvas = bringLayerToFront(_canvas, id);
       });
 
-  void _dragLayer(DecoLayer l, double dx, double dy, double w, double h) =>
+  void dragLayer(DecoLayer l, double dx, double dy, double w, double h) =>
       _mutate(() {
         _selectedId = l.id;
         _canvas = replaceLayer(
@@ -340,12 +221,81 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
         );
       });
 
-  // ── 속지/바탕색 ─────────────────────────────────────────────────────────
-  void _setPaperStyle(PaperStyle style) =>
+  void setPaperStyle(PaperStyle style) =>
       _mutate(() => _canvas = setPaper(_canvas, style));
 
-  void _setPaperColorValue(int? value) =>
+  void setPaperColorValue(int? value) =>
       _mutate(() => _canvas = setPaperColor(_canvas, value));
+}
+
+/// 갤러리에서 사진을 골라 base64 data URL로 인코딩해 돌려준다(취소/실패 시 null).
+/// 캔버스 편집기(놀이터·글쓰기 탭)가 공유하는 사진 획득 헬퍼.
+Future<String?> pickCanvasPhotoData(
+    BuildContext context, ImagePicker picker) async {
+  try {
+    final x = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1200);
+    if (x == null) return null;
+    final bytes = await x.readAsBytes();
+    return 'data:${imageMimeForName(x.name)};base64,${base64Encode(bytes)}';
+  } catch (_) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('사진을 불러오지 못했어요')),
+      );
+    }
+    return null;
+  }
+}
+
+/// 기록 페이지 꾸미기 **편집 화면**(실험용 놀이터 body). 상단에 세로 3:4 캔버스를
+/// 전체 폭으로 고정하고, 아래에서 위로 끌어 크기를 조절하는 컨트롤 시트(툴바+속지/
+/// 바탕색+팔레트)를 겹쳐 띄운다. 앱바 같은 크롬은 호스트가 제공한다. 캔버스 상태는
+/// [controller]가 소유한다.
+class PageDecoEditor extends StatefulWidget {
+  const PageDecoEditor({
+    super.key,
+    required this.controller,
+    this.titleText = '',
+    this.contentText = '',
+  });
+
+  final PageDecoEditorController controller;
+
+  /// 종이 맨 위에 굵게 깔 일기 제목(빈 문자열이면 생략).
+  final String titleText;
+
+  /// 종이 위에 바탕 글로 깔 본문(제목·본문 모두 비면 안내 문구를 보여준다).
+  final String contentText;
+
+  @override
+  State<PageDecoEditor> createState() => _PageDecoEditorState();
+}
+
+class _PageDecoEditorState extends State<PageDecoEditor> {
+  final _picker = ImagePicker();
+
+  // 캔버스가 좌우 이 여백만큼 안쪽에 그려진다(전체 폭 계산에도 쓴다).
+  static const double _pagePadding = 16;
+
+  // 세로가 극단적으로 짧은 화면에서 Column이 넘치지 않도록 컨트롤에 최소로
+  // 남길 높이(손잡이+한 줄).
+  static const double _minControlsVisible = 96;
+
+  // 컨트롤 시트의 현재 높이. 손잡이를 위아래로 끌어 조절한다. null이면 첫
+  // 빌드에서 화면 높이의 일정 비율로 초기화한다.
+  double? _controlsHeight;
+
+  PageDecoEditorController get _ctrl => widget.controller;
+
+  Future<void> _addPhoto() async {
+    final data = await pickCanvasPhotoData(context, _picker);
+    if (data != null) _ctrl.addPhotoData(data);
+  }
+
+  Future<void> _addText() async {
+    final input = await showTextLayerDialog(context);
+    if (input != null) _ctrl.addTextInput(input);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -369,8 +319,6 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
 
         return Stack(
           children: [
-            // 캔버스: 상단에 전체 폭으로 고정(시트에 가려지는 아래쪽은 시트를
-            // 내리면 다시 드러난다).
             Positioned(
               top: 0,
               left: 0,
@@ -381,12 +329,15 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
                   child: SizedBox(
                     width: pageWidth,
                     height: pageHeight,
-                    child: _DecoCanvas(this),
+                    child: PageDecoCanvas(
+                      controller: _ctrl,
+                      titleText: widget.titleText,
+                      contentText: widget.contentText,
+                    ),
                   ),
                 ),
               ),
             ),
-            // 컨트롤 시트: 아래에서 위로 끌어올렸다 내렸다 하는 오버레이.
             Positioned(
               left: 0,
               right: 0,
@@ -408,16 +359,11 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
         color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 12,
-            offset: Offset(0, -2),
-          ),
+          BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, -2)),
         ],
       ),
       child: Column(
         children: [
-          // 끌어서 크기 조절하는 손잡이. 넉넉한 터치 영역(24px)에 작은 그립 바.
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onVerticalDragUpdate: (d) => setState(() {
@@ -440,25 +386,28 @@ class _PageDecoEditorState extends State<PageDecoEditor> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_selected != null) _SelectedToolbar(this),
-                  PaperSelector(
-                    paper: _canvas.paper,
-                    paperColorValue: _canvas.paperColorValue,
-                    onPaperChanged: _setPaperStyle,
-                    onColorChanged: _setPaperColorValue,
-                  ),
-                  DecoPalette(
-                    categoryIndex: _categoryIndex,
-                    onCategory: (i) => setState(() => _categoryIndex = i),
-                    onAddPhoto: _addPhoto,
-                    onAddText: _addText,
-                    onAddTape: _addTape,
-                    onAddSticker: _addSticker,
-                  ),
-                ],
+              child: AnimatedBuilder(
+                animation: _ctrl,
+                builder: (context, _) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_ctrl.selected != null) PageDecoToolbar(controller: _ctrl),
+                    PaperSelector(
+                      paper: _ctrl.canvas.paper,
+                      paperColorValue: _ctrl.canvas.paperColorValue,
+                      onPaperChanged: _ctrl.setPaperStyle,
+                      onColorChanged: _ctrl.setPaperColorValue,
+                    ),
+                    DecoPalette(
+                      categoryIndex: _ctrl.categoryIndex,
+                      onCategory: _ctrl.setCategory,
+                      onAddPhoto: _addPhoto,
+                      onAddText: _addText,
+                      onAddTape: _ctrl.addTape,
+                      onAddSticker: _ctrl.addSticker,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
