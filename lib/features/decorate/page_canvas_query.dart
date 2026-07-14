@@ -37,6 +37,21 @@ String? pageCanvasSummary(PageCanvas canvas) {
   return parts.isEmpty ? null : parts.join(' · ');
 }
 
+/// 사용자가 캔버스에 **직접 입력한 글**(텍스트박스·글자 레이어)의 내용을 공백으로
+/// 이어 붙인다. 본문(content)에는 안 적고 꾸미기 캔버스에만 쓴 글도 검색되게 하려는
+/// 인덱싱용 순수 함수다. 스티커/사진/테이프의 value(이모지·URL·스타일 id)는 사람이
+/// 읽는 글이 아니라 제외한다. 입력된 글이 없으면 빈 문자열을 돌려준다.
+String pageCanvasText(PageCanvas canvas) {
+  final parts = <String>[];
+  for (final l in canvas.layers) {
+    if (l.kind == DecoKind.text || l.kind == DecoKind.textbox) {
+      final t = l.value.trim();
+      if (t.isNotEmpty) parts.add(t);
+    }
+  }
+  return parts.join(' ');
+}
+
 /// 속지 무늬의 한글 라벨(요약 문구용). 무지는 요약에서 생략되므로 호출되지 않지만
 /// switch 완전성을 위해 값을 둔다.
 String _paperStyleLabel(PaperStyle style) {

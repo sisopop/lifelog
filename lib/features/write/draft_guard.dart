@@ -13,17 +13,20 @@ bool hasUnsavedDraft({
   required bool isEditing,
   required String title,
   required String content,
+  bool hasCanvas = false,
 }) {
   if (isEditing) return false;
-  return title.trim().isNotEmpty || content.trim().isNotEmpty;
+  return title.trim().isNotEmpty || content.trim().isNotEmpty || hasCanvas;
 }
 
-/// Whether an entry can be saved: a record needs a non-empty body, since the
-/// title alone is optional and the save path rejects empty content. Lets the
-/// write screen disable the save buttons until there is something to keep,
-/// instead of letting the tap fail with a snackbar. Pure & top-level so it is
-/// unit-testable.
-bool canSaveEntry({required String content}) => content.trim().isNotEmpty;
+/// Whether an entry can be saved. A record is keepable when it has a non-empty
+/// body *or* something on the decorate canvas ([hasCanvas]) — a page whose
+/// words live only in a canvas textbox (empty body) is still worth saving and
+/// is now searchable. Lets the write screen disable the save buttons until
+/// there is something to keep, instead of letting the tap fail with a snackbar.
+/// Pure & top-level so it is unit-testable.
+bool canSaveEntry({required String content, bool hasCanvas = false}) =>
+    content.trim().isNotEmpty || hasCanvas;
 
 /// Asks the user whether to abandon an unsaved draft. Returns true to leave.
 Future<bool> confirmLeaveDraft(BuildContext context) async {

@@ -116,7 +116,8 @@ class _WriteCanvasBody extends ConsumerWidget {
     final jid = s._targetJournalId;
     final journal = journals.where((j) => j.journalId == jid).firstOrNull;
     final shared = journal != null && journal.type != JournalType.personal;
-    final canSave = canSaveEntry(content: s._contentCtrl.text);
+    final canSave = canSaveEntry(
+        content: s._contentCtrl.text, hasCanvas: !s._deco.isBlank);
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       children: [

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifelog/features/decorate/page_canvas.dart';
 import 'package:lifelog/features/search/entry_search.dart';
 import 'package:lifelog/shared/models/diary_entry.dart';
 
@@ -12,6 +13,7 @@ DiaryEntry _entry({
   DateTime? createdAt,
   bool favorite = false,
   String? location,
+  String? pageCanvas,
 }) {
   final now = createdAt ?? DateTime(2026, 1, 1);
   return DiaryEntry(
@@ -27,8 +29,15 @@ DiaryEntry _entry({
     isFavorite: favorite,
     createdAt: now,
     updatedAt: now,
+    pageCanvas: pageCanvas,
   );
 }
+
+/// Encodes a canvas holding a single layer of [kind] with [value] — used to
+/// build entries that carry text only on the decorate page.
+String _canvasWith(DecoKind kind, String value) => encodePageCanvas(
+      PageCanvas(layers: [DecoLayer(id: 'l0', kind: kind, value: value)]),
+    );
 
 void main() {
   group('searchEntries', () {
@@ -94,6 +103,33 @@ void main() {
       // only the top-level entry should be returned.
       final r = searchEntries(entries, '여행');
       expect(r.map((e) => e.entryId), ['1']);
+    });
+
+    test('matches text typed only in a canvas textbox', () {
+      final canvasOnly = [
+        _entry(
+            id: 'c',
+            content: '',
+            pageCanvas: _canvasWith(DecoKind.textbox, '숨은메모입니다')),
+        _entry(id: 'd', content: '평범한 하루'),
+      ];
+      expect(searchEntries(canvasOnly, '숨은메모').map((e) => e.entryId), ['c']);
+    });
+
+    test('matches text on a 글자(text) layer too', () {
+      final canvasOnly = [
+        _entry(
+            id: 'c',
+            pageCanvas: _canvasWith(DecoKind.text, '캔버스글자검색')),
+      ];
+      expect(searchEntries(canvasOnly, '글자검색').map((e) => e.entryId), ['c']);
+    });
+
+    test('ignores non-text layer values (sticker/tape)', () {
+      final canvasOnly = [
+        _entry(id: 'c', pageCanvas: _canvasWith(DecoKind.tape, 'washi_pink')),
+      ];
+      expect(searchEntries(canvasOnly, 'washi'), isEmpty);
     });
 
     test('sorts results newest-first', () {

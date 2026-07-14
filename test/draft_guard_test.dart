@@ -32,6 +32,14 @@ void main() {
         isFalse,
       );
     });
+
+    test('empty body but decorate canvas present is guarded', () {
+      expect(
+        hasUnsavedDraft(
+            isEditing: false, title: '', content: '', hasCanvas: true),
+        isTrue,
+      );
+    });
   });
 
   group('canSaveEntry', () {
@@ -42,6 +50,11 @@ void main() {
     test('empty or whitespace-only content cannot be saved', () {
       expect(canSaveEntry(content: ''), isFalse);
       expect(canSaveEntry(content: '   \n\t '), isFalse);
+    });
+
+    test('empty body can still be saved when the canvas has content', () {
+      expect(canSaveEntry(content: '', hasCanvas: true), isTrue);
+      expect(canSaveEntry(content: '   ', hasCanvas: true), isTrue);
     });
   });
 

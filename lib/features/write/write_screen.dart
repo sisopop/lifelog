@@ -237,9 +237,11 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   }
 
   Future<void> _save({required EntryVisibility visibility}) async {
-    if (_contentCtrl.text.trim().isEmpty) {
+    // 본문이 비어도 꾸미기 캔버스에 내용이 있으면 저장을 허용한다(캔버스
+    // 텍스트박스에만 쓴 글도 기록으로 남고 검색된다). 둘 다 비면 막는다.
+    if (_contentCtrl.text.trim().isEmpty && _deco.isBlank) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('내용을 입력해주세요')),
+        const SnackBar(content: Text('내용을 입력하거나 꾸미기를 추가해주세요')),
       );
       return;
     }
@@ -301,7 +303,10 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           weather: _weather,
           visibility: visibility,
           location: _location,
-          aiStatus: AiStatus.pending, // summary generated async (see TECH_DESIGN.md)
+          // 본문이 있으면 요약 대기, 없으면(캔버스만) 요약할 게 없어 none.
+          aiStatus: _contentCtrl.text.trim().isEmpty
+              ? AiStatus.none
+              : AiStatus.pending, // summary generated async (see TECH_DESIGN.md)
           mediaUrls: List.of(_photoPaths),
           tags: tidyTags(_tags),
           pageCanvas: pageCanvas,
@@ -331,6 +336,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
       isEditing: _isEditing,
       title: _titleCtrl.text,
       content: _contentCtrl.text,
+      hasCanvas: !_deco.isBlank,
     )) {
       context.pop();
       return;

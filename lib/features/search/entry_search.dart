@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
+import '../decorate/page_canvas.dart';
 import '../entries/entries_provider.dart';
 import '../timeline/timeline_filter.dart' show DatePreset, filterByPeriod;
 
@@ -18,8 +19,10 @@ int charTotalOf(List<DiaryEntry> entries) {
 
 /// Pure, case-insensitive search over top-level entries.
 ///
-/// Matches the [query] against the title, content, AI summary, tags and
-/// location.
+/// Matches the [query] against the title, content, AI summary, tags,
+/// location and the text a user typed on the decorate canvas (textbox / 글자
+/// layers). That last one means an entry whose words live only on the
+/// decorate page (nothing in the plain body) is still found.
 /// Replies (entries with a [DiaryEntry.replyToEntryId]) are excluded so the
 /// results mirror the timeline. Results are sorted newest-first.
 /// An empty/blank query returns an empty list.
@@ -33,6 +36,14 @@ List<DiaryEntry> searchEntries(List<DiaryEntry> entries, String query) {
     if ((e.aiSummary ?? '').toLowerCase().contains(q)) return true;
     if (e.tags.any((t) => t.toLowerCase().contains(q))) return true;
     if ((e.location ?? '').toLowerCase().contains(q)) return true;
+    // 마지막에 둔다: 앞 필드가 맞으면 이미 return true 되어, JSON 디코드는
+    // 나머지 필드가 다 빗나간 기록에서만 일어난다(없으면 빈 캔버스라 저렴).
+    if (e.pageCanvas != null &&
+        pageCanvasText(decodePageCanvas(e.pageCanvas))
+            .toLowerCase()
+            .contains(q)) {
+      return true;
+    }
     return false;
   }).toList()
     ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
