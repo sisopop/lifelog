@@ -35,6 +35,10 @@ class _WriteCanvasBody extends ConsumerWidget {
         Expanded(
           child: TabBarView(
             controller: s._tab,
+            // 좌우 스와이프로 탭이 넘어가면 꾸미기 캔버스의 레이어 드래그(이동·
+            // 확대축소·회전) 제스처를 가로채 조작이 방해된다. 스와이프 전환을 끄고
+            // 탭 전환은 상단 탭 라벨 탭으로만 하게 한다.
+            physics: const NeverScrollableScrollPhysics(),
             children: [
               _writeTab(context, ref),
               _decorateTab(context),
