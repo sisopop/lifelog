@@ -79,31 +79,59 @@ void main() {
       addTearDown(c.dispose);
     });
 
-    test('setBoxText and resizeBox mutate the textbox', () {
+    test('setBoxText mutates the textbox text', () {
       final c = PageDecoEditorController();
       c.addTextBox();
       final id = c.canvas.layers.single.id;
       c.setBoxText(id, '직접 입력한 글');
       expect(c.canvas.layers.single.value, '직접 입력한 글');
-      // 좌하 손잡이 기준: 100px 페이지에서 왼쪽(-10)·아래(+10)로 끌면
-      // 폭 2*10/100, 높이 2*10/100 = 0.2씩 커진다.
-      final before = c.canvas.layers.single;
-      c.resizeBox(before, -10, 10, 100, 100);
-      final after = c.canvas.layers.single;
-      expect(after.boxW, closeTo(kDefaultTextBoxW + 0.2, 1e-9));
-      expect(after.boxH, closeTo(kDefaultTextBoxH + 0.2, 1e-9));
       addTearDown(c.dispose);
     });
 
-    test('resizeLayer scales a non-textbox layer by drag delta', () {
+    test('resizeWidth grows a textbox width only (왼쪽 변 손잡이)', () {
+      final c = PageDecoEditorController();
+      c.addTextBox();
+      final l = c.canvas.layers.single;
+      // 왼쪽 변 손잡이: 왼쪽(-10)으로 끌면 폭 2*10/100 = 0.2 커지고 높이는 그대로.
+      c.resizeWidth(l, -10, 100);
+      final after = c.canvas.layers.single;
+      expect(after.boxW, closeTo(kDefaultTextBoxW + 0.2, 1e-9));
+      expect(after.boxH, kDefaultTextBoxH, reason: 'height untouched');
+      addTearDown(c.dispose);
+    });
+
+    test('resizeHeight grows a textbox height only (아래 변 손잡이)', () {
+      final c = PageDecoEditorController();
+      c.addTextBox();
+      final l = c.canvas.layers.single;
+      // 아래 변 손잡이: 아래(+10)로 끌면 높이 2*10/100 = 0.2 커지고 폭은 그대로.
+      c.resizeHeight(l, 10, 100);
+      final after = c.canvas.layers.single;
+      expect(after.boxH, closeTo(kDefaultTextBoxH + 0.2, 1e-9));
+      expect(after.boxW, kDefaultTextBoxW, reason: 'width untouched');
+      addTearDown(c.dispose);
+    });
+
+    test('resizeWidth scales a non-textbox layer (no width-only field)', () {
       final c = PageDecoEditorController();
       c.addSticker('🌸');
       final l = c.canvas.layers.single;
       expect(l.scale, 1.0);
-      // 좌하 손잡이 기준: 아래로 50px → (0/100 + 50/100)*2.0 = 1.0 만큼 배율 증가.
-      c.resizeLayer(l, 0, 50, 100, 100);
+      // 왼쪽 변 손잡이: 왼쪽(-50) → (50/100)*2.0 = 1.0 만큼 배율 증가.
+      c.resizeWidth(l, -50, 100);
       expect(c.canvas.layers.single.scale, closeTo(2.0, 1e-9));
       expect(c.selectedId, l.id);
+      addTearDown(c.dispose);
+    });
+
+    test('resizeHeight scales a non-textbox layer (no height-only field)', () {
+      final c = PageDecoEditorController();
+      c.addSticker('🌸');
+      final l = c.canvas.layers.single;
+      expect(l.scale, 1.0);
+      // 아래 변 손잡이: 아래(+50) → (50/100)*2.0 = 1.0 만큼 배율 증가.
+      c.resizeHeight(l, 50, 100);
+      expect(c.canvas.layers.single.scale, closeTo(2.0, 1e-9));
       addTearDown(c.dispose);
     });
 
@@ -112,21 +140,9 @@ void main() {
       c.addSticker('🌸');
       final l = c.canvas.layers.single;
       expect(l.rotation, 0.0);
-      // 좌하 손잡이 기준: 왼쪽으로 50px → -(-50+0)*0.6 = 30도 회전.
+      // 좌하 회전 손잡이: 왼쪽으로 50px → -(-50+0)*0.6 = 30도 회전.
       c.rotateLayer(l, -50, 0);
       expect(c.canvas.layers.single.rotation, closeTo(30.0, 1e-9));
-      addTearDown(c.dispose);
-    });
-
-    test('resizeLayer on a textbox delegates to box resize', () {
-      final c = PageDecoEditorController();
-      c.addTextBox();
-      final l = c.canvas.layers.single;
-      c.resizeLayer(l, -10, 10, 100, 100);
-      final after = c.canvas.layers.single;
-      expect(after.boxW, closeTo(kDefaultTextBoxW + 0.2, 1e-9));
-      expect(after.boxH, closeTo(kDefaultTextBoxH + 0.2, 1e-9));
-      expect(after.scale, 1.0, reason: 'textbox uses box size, not scale');
       addTearDown(c.dispose);
     });
   });

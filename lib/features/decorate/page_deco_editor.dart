@@ -183,44 +183,43 @@ class PageDecoEditorController extends ChangeNotifier {
     });
   }
 
-  /// 텍스트박스 [l]의 크기를 좌하 손잡이 드래그([dxPx],[dyPx] 픽셀)만큼 바꾼다.
-  /// 상자는 중심 고정(FractionalTranslation)이라, 왼쪽(-dx)·아래(+dy)로 끌수록
-  /// 커지도록 이동량의 2배를 비율로 더한다. [w],[h]는 페이지 픽셀 크기.
-  void resizeBox(DecoLayer l, double dxPx, double dyPx, double w, double h) =>
-      _mutate(() {
-        _selectedId = l.id;
-        _canvas = resizeTextBox(
-          _canvas,
-          l.id,
-          (l.boxW ?? kDefaultTextBoxW) + 2 * (-dxPx) / w,
-          (l.boxH ?? kDefaultTextBoxH) + 2 * dyPx / h,
-        );
-      });
-
   /// 텍스트박스 안의 글을 [text]로 바꾼다(빈 값 허용). 인라인 편집용.
   void setBoxText(String id, String text) =>
       _mutate(() => _canvas = setTextBoxText(_canvas, id, text));
 
-  /// 선택된 레이어 [l]의 크기를 좌하 손잡이의 래디얼(바깥) 드래그([dxPx],[dyPx]
-  /// 픽셀)만큼 조절한다. 손잡이가 좌하라 바깥 방향(왼쪽 -dx + 아래 +dy)으로 끌수록
-  /// 커진다. 텍스트박스는 상자 크기(boxW·boxH)를, 그 외(스티커·사진·테이프·글자)는
-  /// 배율(scale)을 바꿔 모든 레이어가 같은 손잡이로 크기 조절된다. [w],[h]는 페이지
-  /// 픽셀 크기.
-  void resizeLayer(DecoLayer l, double dxPx, double dyPx, double w, double h) {
-    if (l.kind == DecoKind.textbox) {
-      resizeBox(l, dxPx, dyPx, w, h);
-      return;
-    }
-    _mutate(() {
-      _selectedId = l.id;
-      _canvas = stepLayerScale(
-          _canvas, l.id, (-dxPx / w + dyPx / h) * kScaleDragSensitivity);
-    });
-  }
+  /// **왼쪽 변 가운데** 손잡이 드래그([dxPx] 픽셀)만큼 레이어 [l]의 **가로**를 키운다.
+  /// 상자는 중심 고정이라 손잡이가 왼쪽에 있어 왼쪽(-dx)으로 끌수록 커지도록 이동량의
+  /// 2배를 비율로 더한다. 텍스트박스는 가로 폭(boxW)만, 그 외(스티커·사진·테이프·글자)는
+  /// 배율(scale)을 바꾼다(가로 단독 배율이 없어 비례). [w]는 페이지 픽셀 폭.
+  void resizeWidth(DecoLayer l, double dxPx, double w) => _mutate(() {
+        _selectedId = l.id;
+        if (l.kind == DecoKind.textbox) {
+          _canvas = resizeTextBoxWidth(
+              _canvas, l.id, (l.boxW ?? kDefaultTextBoxW) + 2 * (-dxPx) / w);
+        } else {
+          _canvas = stepLayerScale(
+              _canvas, l.id, (-dxPx / w) * kScaleDragSensitivity);
+        }
+      });
 
-  /// 선택된 레이어 [l]를 좌하 손잡이의 접선(회전) 드래그([dxPx],[dyPx] 픽셀)만큼 Z축
-  /// 회전한다. 크기조절과 한 손잡이를 공유하며, 드래그 방향의 접선 성분으로 각도를
-  /// 계산한다. 모든 종류(텍스트박스 포함)에 쓰인다.
+  /// **아래쪽 변 가운데** 손잡이 드래그([dyPx] 픽셀)만큼 레이어 [l]의 **세로**를 키운다.
+  /// 상자는 중심 고정이라 손잡이가 아래에 있어 아래(+dy)로 끌수록 커지도록 이동량의
+  /// 2배를 비율로 더한다. 텍스트박스는 세로 높이(boxH)만, 그 외(스티커·사진·테이프·글자)는
+  /// 배율(scale)을 바꾼다(세로 단독 배율이 없어 비례). [h]는 페이지 픽셀 높이.
+  void resizeHeight(DecoLayer l, double dyPx, double h) => _mutate(() {
+        _selectedId = l.id;
+        if (l.kind == DecoKind.textbox) {
+          _canvas = resizeTextBoxHeight(
+              _canvas, l.id, (l.boxH ?? kDefaultTextBoxH) + 2 * dyPx / h);
+        } else {
+          _canvas =
+              stepLayerScale(_canvas, l.id, (dyPx / h) * kScaleDragSensitivity);
+        }
+      });
+
+  /// 선택된 레이어 [l]를 **좌하 코너 회전 손잡이**의 접선 드래그([dxPx],[dyPx] 픽셀)만큼
+  /// Z축 회전한다. 드래그 방향의 접선 성분으로 각도를 계산한다. 모든 종류(텍스트박스
+  /// 포함)에 쓰인다.
   void rotateLayer(DecoLayer l, double dxPx, double dyPx) => _mutate(() {
         _selectedId = l.id;
         _canvas = stepLayerRotation(

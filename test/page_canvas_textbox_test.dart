@@ -41,25 +41,47 @@ void main() {
     });
   });
 
-  group('resizeTextBox', () {
-    test('updates and clamps the box size', () {
+  group('resizeTextBoxWidth', () {
+    test('updates and clamps the width only (height untouched)', () {
       final c = addTextBoxLayer(const PageCanvas(), 'b0');
-      final r = resizeTextBox(c, 'b0', 0.7, 5.0);
+      final r = resizeTextBoxWidth(c, 'b0', 5.0);
       final l = r.layers.first;
-      expect(l.boxW, 0.7);
-      expect(l.boxH, kMaxTextBoxSize);
+      expect(l.boxW, kMaxTextBoxSize);
+      expect(l.boxH, kDefaultTextBoxH, reason: 'height untouched');
     });
 
     test('ignores non-textbox layers', () {
       final base = PageCanvas(layers: [
         const DecoLayer(id: 't', kind: DecoKind.text, value: 'hi'),
       ]);
-      expect(identical(resizeTextBox(base, 't', 0.5, 0.5), base), isTrue);
+      expect(identical(resizeTextBoxWidth(base, 't', 0.5), base), isTrue);
     });
 
-    test('returns same instance when size unchanged', () {
+    test('returns same instance when width unchanged', () {
       final c = addTextBoxLayer(const PageCanvas(), 'b0', boxW: 0.5, boxH: 0.3);
-      expect(identical(resizeTextBox(c, 'b0', 0.5, 0.3), c), isTrue);
+      expect(identical(resizeTextBoxWidth(c, 'b0', 0.5), c), isTrue);
+    });
+  });
+
+  group('resizeTextBoxHeight', () {
+    test('updates and clamps the height only (width untouched)', () {
+      final c = addTextBoxLayer(const PageCanvas(), 'b0');
+      final r = resizeTextBoxHeight(c, 'b0', 5.0);
+      final l = r.layers.first;
+      expect(l.boxH, kMaxTextBoxSize);
+      expect(l.boxW, kDefaultTextBoxW, reason: 'width untouched');
+    });
+
+    test('ignores non-textbox layers', () {
+      final base = PageCanvas(layers: [
+        const DecoLayer(id: 't', kind: DecoKind.text, value: 'hi'),
+      ]);
+      expect(identical(resizeTextBoxHeight(base, 't', 0.5), base), isTrue);
+    });
+
+    test('returns same instance when height unchanged', () {
+      final c = addTextBoxLayer(const PageCanvas(), 'b0', boxW: 0.5, boxH: 0.3);
+      expect(identical(resizeTextBoxHeight(c, 'b0', 0.3), c), isTrue);
     });
   });
 
