@@ -187,33 +187,22 @@ class PageDecoEditorController extends ChangeNotifier {
   void setBoxText(String id, String text) =>
       _mutate(() => _canvas = setTextBoxText(_canvas, id, text));
 
-  /// **왼쪽 변 가운데** 손잡이 드래그([dxPx] 픽셀)만큼 레이어 [l]의 **가로**를 키운다.
-  /// 상자는 중심 고정이라 손잡이가 왼쪽에 있어 왼쪽(-dx)으로 끌수록 커지도록 이동량의
-  /// 2배를 비율로 더한다. 텍스트박스는 가로 폭(boxW)만, 그 외(스티커·사진·테이프·글자)는
-  /// 배율(scale)을 바꾼다(가로 단독 배율이 없어 비례). [w]는 페이지 픽셀 폭.
-  void resizeWidth(DecoLayer l, double dxPx, double w) => _mutate(() {
+  /// **우하 코너** 확대축소 손잡이 드래그([dxPx],[dyPx] 픽셀)만큼 레이어 [l]의 크기를 키운다.
+  /// 좌상단을 고정한 채 오른쪽(+dx)·아래(+dy)로 끌수록 커진다(두 축 독립, 비율 미유지).
+  /// 텍스트박스는 가로 폭(boxW)에 dx/w, 세로 높이(boxH)에 dy/h를 각각 더하고(좌·상 변을
+  /// 고정하려 순수함수가 중심도 옮김), 그 외(스티커·사진·테이프·글자)는 단독 축 배율이 없어
+  /// 두 델타 합으로 비례 배율을 바꾼다. [w]·[h]는 페이지 픽셀 폭·높이.
+  void resizeBox(DecoLayer l, double dxPx, double dyPx, double w, double h) =>
+      _mutate(() {
         _selectedId = l.id;
         if (l.kind == DecoKind.textbox) {
           _canvas = resizeTextBoxWidth(
-              _canvas, l.id, (l.boxW ?? kDefaultTextBoxW) + 2 * (-dxPx) / w);
+              _canvas, l.id, (l.boxW ?? kDefaultTextBoxW) + dxPx / w);
+          _canvas = resizeTextBoxHeight(
+              _canvas, l.id, (l.boxH ?? kDefaultTextBoxH) + dyPx / h);
         } else {
           _canvas = stepLayerScale(
-              _canvas, l.id, (-dxPx / w) * kScaleDragSensitivity);
-        }
-      });
-
-  /// **아래쪽 변 가운데** 손잡이 드래그([dyPx] 픽셀)만큼 레이어 [l]의 **세로**를 키운다.
-  /// 상자는 중심 고정이라 손잡이가 아래에 있어 아래(+dy)로 끌수록 커지도록 이동량의
-  /// 2배를 비율로 더한다. 텍스트박스는 세로 높이(boxH)만, 그 외(스티커·사진·테이프·글자)는
-  /// 배율(scale)을 바꾼다(세로 단독 배율이 없어 비례). [h]는 페이지 픽셀 높이.
-  void resizeHeight(DecoLayer l, double dyPx, double h) => _mutate(() {
-        _selectedId = l.id;
-        if (l.kind == DecoKind.textbox) {
-          _canvas = resizeTextBoxHeight(
-              _canvas, l.id, (l.boxH ?? kDefaultTextBoxH) + 2 * dyPx / h);
-        } else {
-          _canvas =
-              stepLayerScale(_canvas, l.id, (dyPx / h) * kScaleDragSensitivity);
+              _canvas, l.id, (dxPx / w + dyPx / h) * kScaleDragSensitivity);
         }
       });
 

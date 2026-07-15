@@ -49,30 +49,36 @@ PageCanvas addTextBoxLayer(
       ),
     );
 
-/// id 텍스트박스의 **가로 폭**만 [boxW](페이지 대비 비율)로 바꾼 새 캔버스를 반환한다.
-/// 세로·위치·글·회전·z는 그대로. 값은 [kMinTextBoxSize]~[kMaxTextBoxSize]로 가둔다.
-/// 왼쪽 변 가운데 손잡이(가로 조절)가 이걸 부른다. id가 없거나 텍스트박스가 아니거나
-/// 가둔 뒤 폭이 그대로면 원본 그대로. 원본은 불변.
+/// id 텍스트박스의 **가로 폭**을 [boxW](페이지 대비 비율)로 바꾼 새 캔버스를 반환한다.
+/// **왼쪽 변을 고정**하기 위해 폭이 늘어난 만큼(dw)의 절반만큼 중심 x도 오른쪽으로 옮겨,
+/// 우하 손잡이 드래그 시 왼쪽 변은 그 자리에 두고 오른쪽 변만 손가락을 따라 벌어진다.
+/// 세로·글·회전·z는 그대로. 값은 [kMinTextBoxSize]~[kMaxTextBoxSize]로 가둔다. id가 없거나
+/// 텍스트박스가 아니거나 가둔 뒤 폭이 그대로면 원본 그대로. 원본은 불변.
 PageCanvas resizeTextBoxWidth(PageCanvas canvas, String id, double boxW) {
   final matches = canvas.layers.where((l) => l.id == id);
   if (matches.isEmpty || matches.first.kind != DecoKind.textbox) return canvas;
   final l = matches.first;
   final nw = _clampBox(boxW);
-  if (nw == l.boxW) return canvas;
-  return replaceLayer(canvas, l.copyWith(boxW: nw));
+  final ow = l.boxW ?? kDefaultTextBoxW;
+  if (nw == ow) return canvas;
+  return replaceLayer(
+      canvas, l.copyWith(boxW: nw, x: clampUnit(l.x + (nw - ow) / 2)));
 }
 
-/// id 텍스트박스의 **세로 높이**만 [boxH](페이지 대비 비율)로 바꾼 새 캔버스를 반환한다.
-/// 가로·위치·글·회전·z는 그대로. 값은 [kMinTextBoxSize]~[kMaxTextBoxSize]로 가둔다.
-/// 아래쪽 변 가운데 손잡이(세로 조절)가 이걸 부른다. id가 없거나 텍스트박스가 아니거나
-/// 가둔 뒤 높이가 그대로면 원본 그대로. 원본은 불변.
+/// id 텍스트박스의 **세로 높이**를 [boxH](페이지 대비 비율)로 바꾼 새 캔버스를 반환한다.
+/// **위쪽 변을 고정**하기 위해 높이가 늘어난 만큼(dh)의 절반만큼 중심 y도 아래로 옮겨,
+/// 우하 손잡이 드래그 시 위쪽 변은 그 자리에 두고 아래쪽 변만 손가락을 따라 내려간다.
+/// 가로·글·회전·z는 그대로. 값은 [kMinTextBoxSize]~[kMaxTextBoxSize]로 가둔다. id가 없거나
+/// 텍스트박스가 아니거나 가둔 뒤 높이가 그대로면 원본 그대로. 원본은 불변.
 PageCanvas resizeTextBoxHeight(PageCanvas canvas, String id, double boxH) {
   final matches = canvas.layers.where((l) => l.id == id);
   if (matches.isEmpty || matches.first.kind != DecoKind.textbox) return canvas;
   final l = matches.first;
   final nh = _clampBox(boxH);
-  if (nh == l.boxH) return canvas;
-  return replaceLayer(canvas, l.copyWith(boxH: nh));
+  final oh = l.boxH ?? kDefaultTextBoxH;
+  if (nh == oh) return canvas;
+  return replaceLayer(
+      canvas, l.copyWith(boxH: nh, y: clampUnit(l.y + (nh - oh) / 2)));
 }
 
 /// id 텍스트박스 안의 글을 [text]로 바꾼 새 캔버스를 반환한다. 글자 넣기(updateTextLayer)

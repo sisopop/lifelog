@@ -178,9 +178,9 @@ class PageDecoCanvas extends StatelessWidget {
                   ),
                 ),
               ),
-              // 손잡이 4개는 Transform.rotate 안에 있어 레이어와 함께 회전한다.
-              // 드래그 델타(d.delta)는 항상 화면(글로벌) 좌표라 회전 여부와 무관하게
-              // 크기조절·회전 계산은 그대로 동작한다.
+              // 손잡이 3개(우상 삭제·좌하 회전·우하 확대축소)는 Transform.rotate 안에 있어
+              // 레이어와 함께 회전한다. 드래그 델타(d.delta)는 항상 화면(글로벌) 좌표라 회전
+              // 여부와 무관하게 크기조절·회전 계산은 그대로 동작한다.
               if (selected) ...[
                 // 우상단: 삭제 배지.
                 Positioned(
@@ -217,28 +217,14 @@ class PageDecoCanvas extends StatelessWidget {
                         controller.rotateLayer(l, d.delta.dx, d.delta.dy),
                   ),
                 ),
-                // 왼쪽 변 가운데: 가로 크기조절(왼쪽으로 끌면 넓어진다).
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: _CornerHandle(
-                      icon: Icons.swap_horiz,
-                      onDrag: (d) => controller.resizeWidth(l, d.delta.dx, w),
-                    ),
-                  ),
-                ),
-                // 아래쪽 변 가운데: 세로 크기조절(아래로 끌면 높아진다).
+                // 우하단 코너: 확대축소(좌상단 고정, 오른쪽·아래로 끌면 커진다. 비율 미유지).
                 Positioned(
                   bottom: 0,
-                  left: 0,
                   right: 0,
-                  child: Center(
-                    child: _CornerHandle(
-                      icon: Icons.swap_vert,
-                      onDrag: (d) => controller.resizeHeight(l, d.delta.dy, h),
-                    ),
+                  child: _CornerHandle(
+                    icon: Icons.open_in_full,
+                    onDrag: (d) =>
+                        controller.resizeBox(l, d.delta.dx, d.delta.dy, w, h),
                   ),
                 ),
               ],

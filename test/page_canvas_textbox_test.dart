@@ -42,12 +42,16 @@ void main() {
   });
 
   group('resizeTextBoxWidth', () {
-    test('updates and clamps the width only (height untouched)', () {
+    test('updates+clamps width and shifts x to keep the left edge fixed', () {
+      // 기본 폭 0.5, 중심 x 0.5. 폭을 1.0(최대)으로 키우면 dw=0.5, 왼쪽 변을 고정하려면
+      // 중심 x가 dw/2=0.25 오른쪽으로 옮겨 0.75가 된다(높이·y는 그대로).
       final c = addTextBoxLayer(const PageCanvas(), 'b0');
       final r = resizeTextBoxWidth(c, 'b0', 5.0);
       final l = r.layers.first;
       expect(l.boxW, kMaxTextBoxSize);
       expect(l.boxH, kDefaultTextBoxH, reason: 'height untouched');
+      expect(l.x, closeTo(0.75, 1e-9), reason: 'center shifts to pin left edge');
+      expect(l.y, 0.5, reason: 'y untouched');
     });
 
     test('ignores non-textbox layers', () {
@@ -64,12 +68,16 @@ void main() {
   });
 
   group('resizeTextBoxHeight', () {
-    test('updates and clamps the height only (width untouched)', () {
+    test('updates+clamps height and shifts y to keep the top edge fixed', () {
+      // 기본 높이 0.18, 중심 y 0.5. 높이를 1.0(최대)으로 키우면 dh=0.82, 위쪽 변을
+      // 고정하려면 중심 y가 dh/2=0.41 아래로 옮겨 0.91이 된다(폭·x는 그대로).
       final c = addTextBoxLayer(const PageCanvas(), 'b0');
       final r = resizeTextBoxHeight(c, 'b0', 5.0);
       final l = r.layers.first;
       expect(l.boxH, kMaxTextBoxSize);
       expect(l.boxW, kDefaultTextBoxW, reason: 'width untouched');
+      expect(l.y, closeTo(0.91, 1e-9), reason: 'center shifts to pin top edge');
+      expect(l.x, 0.5, reason: 'x untouched');
     });
 
     test('ignores non-textbox layers', () {
