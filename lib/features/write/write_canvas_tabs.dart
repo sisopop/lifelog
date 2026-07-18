@@ -300,11 +300,21 @@ class _WriteCanvasBody extends ConsumerWidget {
               left: 16,
               right: 16,
               height: canvasH,
-              child: PageDecoCanvas(
-                controller: s._deco,
-                titleText: s._titleCtrl.text,
-                contentText: s._contentCtrl.text,
-                interactive: true,
+              // 읽기(PageCanvasView·DecoratedPageView)와 똑같은 3:4로 강제한다.
+              // PageDecoCanvas는 스스로 비율을 안 잡고 주어진 상자를 꽉 채우는데,
+              // 세로 공간이 모자라 canvasH가 3:4 높이(ideal)보다 작으면 캔버스가
+              // 납작(가로형)해져 편집 좌표가 상세/카드(엄격한 3:4)와 어긋났다.
+              // AspectRatio로 감싸 세로가 부족하면 폭을 줄여 비율을 유지 → WYSIWYG.
+              child: Center(
+                child: AspectRatio(
+                  aspectRatio: kPageAspectRatio,
+                  child: PageDecoCanvas(
+                    controller: s._deco,
+                    titleText: s._titleCtrl.text,
+                    contentText: s._contentCtrl.text,
+                    interactive: true,
+                  ),
+                ),
               ),
             ),
             // 드래그로 높이 조절되는 하단 컨트롤 시트. 텍스트박스를 인라인 편집하느라
