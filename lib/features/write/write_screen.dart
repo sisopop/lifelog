@@ -104,8 +104,15 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   late final TabController _tab =
       TabController(length: kWriteTabs.length, vsync: this)
         ..addListener(() {
+          if (!mounted) return;
+          // 탭이 실제로 바뀔 때 자판을 내린다. 안 그러면 글쓰기 본문 TextField가
+          // 포커스를 쥔 채 꾸미기로 넘어와, 자판 입력이 계속 본문을 편집해
+          // 꾸미기에서 글이 추가·삭제되는 것처럼 보이는 버그가 생긴다.
+          if (_tab.indexIsChanging) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          }
           // 탭이 바뀌면 다시 그린다(꾸미기 탭 캔버스가 최신 본문을 반영하도록).
-          if (mounted) setState(() {});
+          setState(() {});
         });
 
   /// Selected calendar day (date part only; time-of-day preserved on save).
