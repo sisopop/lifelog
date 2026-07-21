@@ -150,6 +150,7 @@ class PageDecoEditorController extends ChangeNotifier {
         shadow: input.shadow,
         bgColorValue: input.bgColorValue,
         fontId: input.fontId,
+        scale: input.scale,
       );
       _selectedId = id;
     });
@@ -168,6 +169,7 @@ class PageDecoEditorController extends ChangeNotifier {
           shadow: input.shadow,
           bgColorValue: input.bgColorValue,
           fontId: input.fontId,
+          scale: input.scale,
         );
       });
 

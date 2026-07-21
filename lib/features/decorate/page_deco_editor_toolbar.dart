@@ -21,6 +21,7 @@ class PageDecoToolbar extends StatelessWidget {
         strike: l.strike,
         shadow: l.shadow,
         fontId: l.fontId,
+        scale: l.scale,
       ),
     );
     if (input != null) controller.updateTextInput(l.id, input);

@@ -16,6 +16,7 @@ class TextLayerInput {
     this.strike = false,
     this.shadow = false,
     this.fontId = kDefaultCoverFont,
+    this.scale = 1.0,
   });
 
   /// 앞뒤 공백을 다듬은 글 내용(빈 문구면 다이얼로그가 null을 돌려주므로 항상 비지 않음).
@@ -44,6 +45,27 @@ class TextLayerInput {
 
   /// 고른 글꼴 id(cover_font.dart). 기본 [kDefaultCoverFont].
   final String fontId;
+
+  /// 글자 크기 배율(DecoLayer.scale). 기본 1.0. 프리셋: 작게 0.8·보통 1.0·크게 1.4.
+  final double scale;
+}
+
+/// "글자 크기" 프리셋 3단계(라벨·배율). 드래그로 잡은 임의 배율은 편집 시 가장 가까운
+/// 프리셋이 선택돼 보이지만, 프리셋을 누르기 전까지 원래 배율은 유지된다.
+const List<({String label, double value})> kTextSizePresets = [
+  (label: '작게', value: 0.8),
+  (label: '보통', value: 1.0),
+  (label: '크게', value: 1.4),
+];
+
+/// [scale]에 가장 가까운 프리셋 배율을 돌려준다(동률이면 앞선 프리셋=더 작은 값).
+/// 다이얼로그에서 어느 크기 칩을 강조할지 정할 때 쓴다.
+double nearestTextSizePreset(double scale) {
+  var best = kTextSizePresets.first.value;
+  for (final p in kTextSizePresets) {
+    if ((scale - p.value).abs() < (scale - best).abs()) best = p.value;
+  }
+  return best;
 }
 
 /// 문구·잉크 색·굵기를 고르는 "글자 넣기" 다이얼로그를 띄운다. 취소하거나 문구가
@@ -63,6 +85,7 @@ Future<TextLayerInput?> showTextLayerDialog(
   var strike = initial?.strike ?? false;
   var shadow = initial?.shadow ?? false;
   var fontId = normalizeCoverFont(initial?.fontId ?? kDefaultCoverFont);
+  var scale = initial?.scale ?? 1.0;
   int? bg = initial?.bgColorValue; // 형광펜 배경(null=없음)
   final ok = await showDialog<bool>(
     context: context,
@@ -79,6 +102,7 @@ Future<TextLayerInput?> showTextLayerDialog(
               maxLength: 40,
               style: TextStyle(
                 fontFamily: coverFontFamily(fontId),
+                fontSize: 22 * scale,
                 color: color,
                 fontWeight: bold ? FontWeight.w700 : null,
                 fontStyle: italic ? FontStyle.italic : null,
@@ -136,6 +160,23 @@ Future<TextLayerInput?> showTextLayerDialog(
                     ),
                     selected: fontId == f.id,
                     onSelected: (_) => setDialog(() => fontId = f.id),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text('글자 크기', style: TextStyle(fontSize: 12)),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final p in kTextSizePresets)
+                  ChoiceChip(
+                    label: Text(p.label),
+                    selected: nearestTextSizePreset(scale) == p.value,
+                    onSelected: (_) => setDialog(() => scale = p.value),
                   ),
               ],
             ),
@@ -258,5 +299,6 @@ Future<TextLayerInput?> showTextLayerDialog(
       underline: underline,
       strike: strike,
       shadow: shadow,
-      fontId: fontId);
+      fontId: fontId,
+      scale: scale);
 }

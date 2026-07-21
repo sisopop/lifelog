@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lifelog/features/decorate/cover_font.dart';
 import 'package:lifelog/features/decorate/page_canvas.dart';
+import 'package:lifelog/features/decorate/text_layer_dialog.dart';
 
 DecoLayer _layer(String id, {DecoKind kind = DecoKind.sticker, int z = 0}) =>
     DecoLayer(id: id, kind: kind, value: '🌸', z: z);
@@ -269,6 +270,28 @@ void main() {
       expect(jua.layers.single.fontId, 'jua');
       final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
       expect(plain.layers.single.fontId, kDefaultCoverFont);
+    });
+
+    test('carries the scale when given, defaults to 1.0', () {
+      final big = addTextLayer(const PageCanvas(), 'x0', 'hi', scale: 1.4);
+      expect(big.layers.single.scale, 1.4);
+      final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
+      expect(plain.layers.single.scale, 1.0);
+    });
+  });
+
+  group('nearestTextSizePreset', () {
+    test('snaps to the closest preset value', () {
+      expect(nearestTextSizePreset(0.8), 0.8);
+      expect(nearestTextSizePreset(1.0), 1.0);
+      expect(nearestTextSizePreset(1.4), 1.4);
+      expect(nearestTextSizePreset(0.85), 0.8); // 작게에 더 가까움
+      expect(nearestTextSizePreset(1.3), 1.4); // 크게에 더 가까움
+      expect(nearestTextSizePreset(2.0), 1.4); // 범위 밖 → 최대 프리셋
+    });
+
+    test('ties resolve to the smaller (earlier) preset', () {
+      expect(nearestTextSizePreset(0.9), 0.8); // 0.8·1.0 동률 → 앞선 0.8
     });
   });
 
@@ -632,6 +655,15 @@ void main() {
           'gaegu');
       expect(updateTextLayer(base, 't', '고침').layers.single.fontId,
           kDefaultCoverFont);
+    });
+
+    test('overrides scale when given, keeps existing when omitted', () {
+      final base =
+          addTextLayer(const PageCanvas(), 't', '오타', scale: 1.4);
+      expect(updateTextLayer(base, 't', '고침', scale: 0.8).layers.single.scale,
+          0.8);
+      // scale 생략 시 기존 배율(1.4) 유지
+      expect(updateTextLayer(base, 't', '고침').layers.single.scale, 1.4);
     });
 
     test('trims text and ignores blank edits', () {
