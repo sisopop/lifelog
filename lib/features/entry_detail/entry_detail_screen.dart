@@ -118,26 +118,24 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       body: Column(
         children: [
           Expanded(
-            // 배경 속지를 스크롤 콘텐츠 안쪽에 전체 높이로 그려, 글과 함께
-            // 스크롤되게 한다(무늬가 뷰포트에 고정돼 "배경과 내용이 따로 노는"
-            // 느낌을 없앤다). 짧은 글은 minHeight로 화면을 채우고, 길면 종이가
-            // 그만큼 늘어난다.
-            child: LayoutBuilder(
-              builder: (context, viewport) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: viewport.maxHeight),
-                  child: _paperWrap(
+            // 읽기 "내용"(제목·사진·본문·꾸밈)만 속지 배경 카드로 감싼다.
+            // 메타·기분·AI요약·태그·관련·공유·이동·답장은 카드 밖 기본 배경에 둔다.
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _paperCard(
                     canvas: pageCanvas,
                     compositePage: compositePage,
                     journalPaper: paper,
                     journalPaperColor: paperColor,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                  _header(context, entry, date, authorName),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _header(context, entry, date, authorName),
                 const SizedBox(height: 20),
                 if (entry.mediaUrls.isNotEmpty) ...[
                   EntryGallery(
@@ -157,10 +155,9 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                     canvas: pageCanvas,
                     content: entry.content,
                     textStyle: TextStyle(fontSize: 16 * scale, height: 1.6),
-                    // 배경 속지는 _paperWrap이 화면 전체에 한 번만 깐다.
+                    // 배경 속지는 카드(_paperCard)가 내용 뒤에 한 번만 깐다.
                     showPaper: false,
                   ),
-                  const SizedBox(height: 20),
                 ] else ...[
                   if (pageCanvas.isDecorated) ...[
                     PageCanvasView(pageCanvas),
@@ -175,7 +172,11 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                   else
                     Text(entry.content,
                         style: TextStyle(fontSize: 16 * scale, height: 1.6)),
-                ],
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                 Builder(builder: (_) {
                   final meta = readingMetaLabel(entry.content);
                   final ord = entryOrdinal(entries, widget.entryId);
@@ -236,11 +237,7 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                         locale: locale,
                         journalId: entry.journalId,
                       )),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                ],
               ),
             ),
           ),
@@ -250,33 +247,55 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
     );
   }
 
-  /// 이 기록의 배경 속지를 정한다. 꾸민 기록이 자기 속지(무늬·바탕색)를 가지면
-  /// 그 종이를 제목·사진·본문·꾸밈 전체에 하나로 깔아, 글 위에 또 한 겹 종이
-  /// 카드가 얹히던 "이중 속지"를 없앤다. 그렇지 않으면 일기장 기본 속지를 쓴다.
-  Widget _paperWrap({
+  /// 읽기 "내용"(제목·사진·본문·꾸밈)만 감싸는 속지 배경 카드. 예전엔 배경 속지를
+  /// 화면 전체(메타·답장 등 포함)에 깔았지만, 이제 내용 블록만 배경(꾸민 기록은
+  /// 자기 속지, 아니면 일기장 속지)이 있는 둥근 카드로 두고 나머지는 기본 배경에
+  /// 둔다. 무늬는 카드 안쪽에만 그려지고, 카드 밖은 앱 기본 배경 그대로다.
+  Widget _paperCard({
     required PageCanvas canvas,
     required bool compositePage,
     required String journalPaper,
     required String journalPaperColor,
     required Widget child,
   }) {
+    final padded = Padding(padding: const EdgeInsets.all(16), child: child);
     final hasOwnPaper = compositePage &&
         (canvas.paper != PaperStyle.plain || canvas.paperColorValue != null);
-    if (!hasOwnPaper) {
-      return PaperBackground(
-          paper: journalPaper, paperColor: journalPaperColor, child: child);
+    final Color bg;
+    final Widget inner;
+    if (hasOwnPaper) {
+      bg = canvas.paperColorValue != null
+          ? Color(canvas.paperColorValue!)
+          : kCanvasPaperCream;
+      inner = canvas.paper == PaperStyle.plain
+          ? padded
+          : CustomPaint(
+              painter: PageCanvasPaperPainter(canvas.paper), child: padded);
+    } else {
+      final normPaper = normalizeCoverPaper(journalPaper);
+      final normColor = normalizePaperColor(journalPaperColor);
+      bg = paperColorOf(normColor);
+      inner = normPaper == kDefaultCoverPaper
+          ? padded
+          : CustomPaint(
+              painter: PaperPainter(normPaper, spacing: 30), child: padded);
     }
-    final color = canvas.paperColorValue != null
-        ? Color(canvas.paperColorValue!)
-        : kCanvasPaperCream;
-    if (canvas.paper == PaperStyle.plain) {
-      return DecoratedBox(decoration: BoxDecoration(color: color), child: child);
-    }
-    return DecoratedBox(
-      decoration: BoxDecoration(color: color),
-      child: CustomPaint(
-        painter: PageCanvasPaperPainter(canvas.paper),
-        child: child,
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kCanvasGridLine.withValues(alpha: 0.6)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: inner,
       ),
     );
   }
