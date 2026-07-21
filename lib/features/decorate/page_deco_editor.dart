@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/photo.dart';
-import 'cover_font.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
 import 'page_deco_palette.dart';
@@ -14,6 +13,7 @@ import 'paper_page.dart';
 import 'paper_selector.dart';
 import 'text_color_catalog.dart';
 import 'text_layer_dialog.dart';
+import 'textbox_rich_editor.dart';
 
 part 'page_deco_editor_canvas.dart';
 part 'page_deco_editor_toolbar.dart';
@@ -193,6 +193,12 @@ class PageDecoEditorController extends ChangeNotifier {
   /// 텍스트박스 안의 글을 [text]로 바꾼다(빈 값 허용). 인라인 편집용.
   void setBoxText(String id, String text) =>
       _mutate(() => _canvas = setTextBoxText(_canvas, id, text));
+
+  /// 텍스트박스의 **부분 서식(리치텍스트)**를 [richJson](Quill Delta JSON)으로,
+  /// 검색·통계·미리보기용 평문을 [plain]으로 함께 반영한다. 리치 편집기가 입력할
+  /// 때마다 부른다(값이 그대로면 순수함수가 같은 캔버스를 돌려줘 알림이 안 뜬다).
+  void setBoxRich(String id, String plain, String richJson) =>
+      _mutate(() => _canvas = setTextBoxRich(_canvas, id, plain, richJson));
 
   /// **우하 코너** 확대축소 손잡이 드래그([dxPx],[dyPx] 픽셀)만큼 레이어 [l]의 크기를 키운다.
   /// 좌상단을 고정한 채 오른쪽(+dx)·아래(+dy)로 끌수록 커진다(두 축 독립, 비율 미유지).

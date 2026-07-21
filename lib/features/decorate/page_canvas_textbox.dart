@@ -91,3 +91,16 @@ PageCanvas setTextBoxText(PageCanvas canvas, String id, String text) {
   if (text == l.value) return canvas;
   return replaceLayer(canvas, l.copyWith(value: text));
 }
+
+/// id 텍스트박스의 **부분 서식(리치텍스트)**를 [richValue](Quill Delta JSON)로 바꾸고,
+/// 검색·통계·미리보기용 서식 없는 평문 [plain]을 함께 저장한 새 캔버스를 반환한다.
+/// 리치텍스트 편집기가 글을 바꿀 때마다 부른다. 값이 둘 다 그대로면 원본 그대로.
+/// id가 없거나 텍스트박스가 아니어도 원본 그대로. 원본은 불변.
+PageCanvas setTextBoxRich(
+    PageCanvas canvas, String id, String plain, String richValue) {
+  final matches = canvas.layers.where((l) => l.id == id);
+  if (matches.isEmpty || matches.first.kind != DecoKind.textbox) return canvas;
+  final l = matches.first;
+  if (plain == l.value && richValue == l.richValue) return canvas;
+  return replaceLayer(canvas, l.copyWith(value: plain, richValue: richValue));
+}

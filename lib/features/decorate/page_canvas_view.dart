@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../shared/widgets/photo.dart';
 import 'cover_font.dart';
 import 'page_canvas.dart';
+import 'textbox_rich.dart';
 import 'washi_tape_catalog.dart';
 
 // 캔버스 색 토큰 — 디자인 가이드 v1.0 캔버스(아날로그 질감) 팔레트.
@@ -142,19 +143,22 @@ Widget _decoLayerBody(
     final bw = boxWidth ?? stickerSize * 3.4;
     final bh = boxHeight ?? stickerSize * 1.4;
     final fontSize = stickerSize * 0.4;
+    // 리치텍스트(부분 서식)가 있으면 Delta를 그대로 스타일된 글로 그린다. 없으면
+    // 평문(value)을 상자 기본 글꼴·색으로 그린다(옛 저장본 호환). 편집기(QuillEditor)
+    // 와 같은 기본 크기·상대 배율을 써서 어느 화면에서든 같은 모습이 된다(WYSIWYG).
     return Container(
       width: bw,
       height: bh,
-      padding: EdgeInsets.all(stickerSize * 0.14),
-      child: Text(
-        l.value,
-        style: TextStyle(
-          fontFamily: coverFontFamily(l.fontId),
-          fontSize: fontSize,
-          height: 1.35,
-          color: l.colorValue == null ? null : Color(l.colorValue!),
-          fontWeight: l.bold ? FontWeight.w700 : null,
-          fontStyle: l.italic ? FontStyle.italic : null,
+      padding: EdgeInsets.all(fontSize * 0.35),
+      child: Text.rich(
+        richTextSpan(
+          richValue: l.richValue,
+          plainFallback: l.value,
+          baseFontSize: fontSize,
+          fontId: l.fontId,
+          baseColor: l.colorValue == null
+              ? const Color(0xFF3A3A3A)
+              : Color(l.colorValue!),
         ),
       ),
     );

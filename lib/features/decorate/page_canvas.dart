@@ -65,6 +65,7 @@ class DecoLayer {
     this.boxW,
     this.boxH,
     this.fontId = kDefaultCoverFont,
+    this.richValue,
   });
 
   final String id;
@@ -141,6 +142,12 @@ class DecoLayer {
   /// 기본값이라 종전과 동일). 렌더는 [coverFontFamily]로 fontFamily를 얻는다.
   final String fontId;
 
+  /// 텍스트박스의 **부분 서식(리치텍스트)** 내용을 담는 Quill Delta JSON 문자열.
+  /// null이면 리치텍스트가 없어 평문 [value]로 렌더한다(옛 저장본·다른 종류 호환).
+  /// textbox 레이어에만 쓰인다. [value]에는 항상 서식 없는 평문이 함께 유지돼
+  /// 검색·통계·타임라인 미리보기가 종전처럼 동작한다.
+  final String? richValue;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -163,6 +170,7 @@ class DecoLayer {
     double? boxW,
     double? boxH,
     String? fontId,
+    String? richValue,
   }) =>
       DecoLayer(
         id: id,
@@ -187,6 +195,7 @@ class DecoLayer {
         boxW: boxW ?? this.boxW,
         boxH: boxH ?? this.boxH,
         fontId: fontId ?? this.fontId,
+        richValue: richValue ?? this.richValue,
       );
 
   Map<String, dynamic> toJson() => {
@@ -225,6 +234,9 @@ class DecoLayer {
         if (boxH != null) 'bh': boxH,
         // 기본 글꼴이면 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
         if (fontId != kDefaultCoverFont) 'font': fontId,
+        // 리치텍스트가 없으면(평문 텍스트박스/다른 종류) 키를 빼서 옛 저장본과
+        // 바이트가 같게 유지한다.
+        if (richValue != null) 'rich': richValue,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -251,6 +263,7 @@ class DecoLayer {
         boxW: (json['bw'] as num?)?.toDouble(),
         boxH: (json['bh'] as num?)?.toDouble(),
         fontId: normalizeCoverFont((json['font'] as String?) ?? kDefaultCoverFont),
+        richValue: json['rich'] as String?,
       );
 }
 

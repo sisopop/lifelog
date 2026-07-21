@@ -115,7 +115,47 @@ void main() {
     });
   });
 
+  group('setTextBoxRich', () {
+    test('stores plain value + rich Delta together', () {
+      final c = addTextBoxLayer(const PageCanvas(), 'b0', text: '옛');
+      final r = setTextBoxRich(c, 'b0', '새 글', '[{"insert":"새 글\\n"}]');
+      final l = r.layers.first;
+      expect(l.value, '새 글', reason: '검색·통계용 평문');
+      expect(l.richValue, '[{"insert":"새 글\\n"}]');
+    });
+
+    test('ignores non-textbox layers', () {
+      final base = PageCanvas(layers: [
+        const DecoLayer(id: 't', kind: DecoKind.text, value: 'hi'),
+      ]);
+      expect(identical(setTextBoxRich(base, 't', 'x', '[]'), base), isTrue);
+    });
+
+    test('returns same instance when both values unchanged', () {
+      final c = addTextBoxLayer(const PageCanvas(), 'b0', text: '같음');
+      final r = setTextBoxRich(c, 'b0', '같음', '[{"insert":"같음"}]');
+      expect(identical(setTextBoxRich(r, 'b0', '같음', '[{"insert":"같음"}]'), r),
+          isTrue);
+    });
+  });
+
   group('textbox serialization round-trip', () {
+    test('richValue survives encode → decode', () {
+      final c = addTextBoxLayer(const PageCanvas(), 'b0', text: '평문');
+      final r = setTextBoxRich(
+          c, 'b0', '평문', '[{"insert":"평문","attributes":{"bold":true}}]');
+      final restored = decodePageCanvas(encodePageCanvas(r));
+      final l = restored.layers.single;
+      expect(l.value, '평문');
+      expect(l.richValue, '[{"insert":"평문","attributes":{"bold":true}}]');
+    });
+
+    test('a layer without richValue keeps null (byte-compatible)', () {
+      final c = addTextBoxLayer(const PageCanvas(), 'b0', text: '평문만');
+      final restored = decodePageCanvas(encodePageCanvas(c));
+      expect(restored.layers.single.richValue, isNull);
+    });
+
     test('boxW/boxH survive encode → decode', () {
       final c = addTextBoxLayer(const PageCanvas(), 'b0',
           text: '저장', boxW: 0.6, boxH: 0.25);
