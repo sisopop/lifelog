@@ -17,6 +17,7 @@ class TextLayerInput {
     this.shadow = false,
     this.fontId = kDefaultCoverFont,
     this.scale = 1.0,
+    this.letterSpacing = 0.0,
   });
 
   /// 앞뒤 공백을 다듬은 글 내용(빈 문구면 다이얼로그가 null을 돌려주므로 항상 비지 않음).
@@ -48,6 +49,9 @@ class TextLayerInput {
 
   /// 글자 크기 배율(DecoLayer.scale). 기본 1.0. 프리셋: 작게 0.8·보통 1.0·크게 1.4.
   final double scale;
+
+  /// 글자 자간(DecoLayer.letterSpacing). 기본 0.0. 프리셋: 좁게 -1.0·기본 0.0·넓게 2.0.
+  final double letterSpacing;
 }
 
 /// "글자 크기" 프리셋 3단계(라벨·배율). 드래그로 잡은 임의 배율은 편집 시 가장 가까운
@@ -64,6 +68,23 @@ double nearestTextSizePreset(double scale) {
   var best = kTextSizePresets.first.value;
   for (final p in kTextSizePresets) {
     if ((scale - p.value).abs() < (scale - best).abs()) best = p.value;
+  }
+  return best;
+}
+
+/// "자간" 프리셋 3단계(라벨·간격). 드래그로 잡은 임의 자간은 편집 시 가장 가까운
+/// 프리셋이 선택돼 보이지만, 프리셋을 누르기 전까지 원래 값은 유지된다.
+const List<({String label, double value})> kTextSpacingPresets = [
+  (label: '좁게', value: -1.0),
+  (label: '기본', value: 0.0),
+  (label: '넓게', value: 2.0),
+];
+
+/// [spacing]에 가장 가까운 자간 프리셋 값을 돌려준다(동률이면 앞선 프리셋=더 좁은 값).
+double nearestTextSpacingPreset(double spacing) {
+  var best = kTextSpacingPresets.first.value;
+  for (final p in kTextSpacingPresets) {
+    if ((spacing - p.value).abs() < (spacing - best).abs()) best = p.value;
   }
   return best;
 }
@@ -86,6 +107,7 @@ Future<TextLayerInput?> showTextLayerDialog(
   var shadow = initial?.shadow ?? false;
   var fontId = normalizeCoverFont(initial?.fontId ?? kDefaultCoverFont);
   var scale = initial?.scale ?? 1.0;
+  var letterSpacing = initial?.letterSpacing ?? 0.0;
   int? bg = initial?.bgColorValue; // 형광펜 배경(null=없음)
   final ok = await showDialog<bool>(
     context: context,
@@ -103,6 +125,8 @@ Future<TextLayerInput?> showTextLayerDialog(
               style: TextStyle(
                 fontFamily: coverFontFamily(fontId),
                 fontSize: 22 * scale,
+                letterSpacing:
+                    letterSpacing == 0.0 ? null : 22 * scale * letterSpacing * 0.06,
                 color: color,
                 fontWeight: bold ? FontWeight.w700 : null,
                 fontStyle: italic ? FontStyle.italic : null,
@@ -177,6 +201,23 @@ Future<TextLayerInput?> showTextLayerDialog(
                     label: Text(p.label),
                     selected: nearestTextSizePreset(scale) == p.value,
                     onSelected: (_) => setDialog(() => scale = p.value),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text('자간', style: TextStyle(fontSize: 12)),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final p in kTextSpacingPresets)
+                  ChoiceChip(
+                    label: Text(p.label),
+                    selected: nearestTextSpacingPreset(letterSpacing) == p.value,
+                    onSelected: (_) => setDialog(() => letterSpacing = p.value),
                   ),
               ],
             ),
@@ -300,5 +341,6 @@ Future<TextLayerInput?> showTextLayerDialog(
       strike: strike,
       shadow: shadow,
       fontId: fontId,
-      scale: scale);
+      scale: scale,
+      letterSpacing: letterSpacing);
 }

@@ -278,6 +278,29 @@ void main() {
       final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
       expect(plain.layers.single.scale, 1.0);
     });
+
+    test('carries the letterSpacing when given, defaults to 0.0', () {
+      final wide =
+          addTextLayer(const PageCanvas(), 'x0', 'hi', letterSpacing: 2.0);
+      expect(wide.layers.single.letterSpacing, 2.0);
+      final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
+      expect(plain.layers.single.letterSpacing, 0.0);
+    });
+  });
+
+  group('nearestTextSpacingPreset', () {
+    test('snaps to the closest preset value', () {
+      expect(nearestTextSpacingPreset(-1.0), -1.0);
+      expect(nearestTextSpacingPreset(0.0), 0.0);
+      expect(nearestTextSpacingPreset(2.0), 2.0);
+      expect(nearestTextSpacingPreset(-0.7), -1.0); // 좁게에 더 가까움
+      expect(nearestTextSpacingPreset(1.5), 2.0); // 넓게에 더 가까움
+      expect(nearestTextSpacingPreset(10.0), 2.0); // 범위 밖 → 최대 프리셋
+    });
+
+    test('ties resolve to the smaller (earlier) preset', () {
+      expect(nearestTextSpacingPreset(-0.5), -1.0); // -1.0·0.0 동률 → 앞선 -1.0
+    });
   });
 
   group('nearestTextSizePreset', () {
@@ -664,6 +687,19 @@ void main() {
           0.8);
       // scale 생략 시 기존 배율(1.4) 유지
       expect(updateTextLayer(base, 't', '고침').layers.single.scale, 1.4);
+    });
+
+    test('overrides letterSpacing when given, keeps existing when omitted', () {
+      final base =
+          addTextLayer(const PageCanvas(), 't', '오타', letterSpacing: 2.0);
+      expect(
+          updateTextLayer(base, 't', '고침', letterSpacing: -1.0)
+              .layers
+              .single
+              .letterSpacing,
+          -1.0);
+      // letterSpacing 생략 시 기존 자간(2.0) 유지
+      expect(updateTextLayer(base, 't', '고침').layers.single.letterSpacing, 2.0);
     });
 
     test('trims text and ignores blank edits', () {

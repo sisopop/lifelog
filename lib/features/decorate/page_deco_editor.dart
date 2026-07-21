@@ -151,6 +151,7 @@ class PageDecoEditorController extends ChangeNotifier {
         bgColorValue: input.bgColorValue,
         fontId: input.fontId,
         scale: input.scale,
+        letterSpacing: input.letterSpacing,
       );
       _selectedId = id;
     });
@@ -170,6 +171,7 @@ class PageDecoEditorController extends ChangeNotifier {
           bgColorValue: input.bgColorValue,
           fontId: input.fontId,
           scale: input.scale,
+          letterSpacing: input.letterSpacing,
         );
       });
 
