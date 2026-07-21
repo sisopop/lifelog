@@ -284,9 +284,12 @@ class _WriteCanvasBody extends ConsumerWidget {
         final kb = MediaQueryData.fromView(View.of(context)).viewInsets.bottom;
         final stableH = box.maxHeight + kb; // 키보드와 무관한 안정 높이
         final fullWidth = box.maxWidth - 32; // 좌우 16 여백
-        final ideal = fullWidth / kPageAspectRatio; // 세로 3:4 기준 높이
-        final canvasMax = stableH * 0.5;
-        final canvasH = ideal < canvasMax ? ideal : canvasMax;
+        // 캔버스는 항상 가로 100%(폭 고정). 읽기(PageCanvasView·DecoratedPageView)
+        // 와 같은 3:4 세로 높이(폭/0.75)를 그대로 준다 → 상자가 정확히 3:4라
+        // WYSIWYG 유지. 세로 공간이 모자라도 **폭을 줄이지 않는다**(예전에 여기서
+        // 폭을 줄여 캔버스가 작아지는 문제가 반복됨). 화면이 짧아 아래가 넘치면
+        // 그 부분은 하단 드래그 시트가 덮고, 시트를 내리면 캔버스가 드러난다.
+        final canvasH = fullWidth / kPageAspectRatio;
         final sheetMax = (stableH - 24).clamp(120.0, stableH).toDouble();
         const sheetMin = 96.0;
         final sheetInit =
@@ -300,21 +303,14 @@ class _WriteCanvasBody extends ConsumerWidget {
               left: 16,
               right: 16,
               height: canvasH,
-              // 읽기(PageCanvasView·DecoratedPageView)와 똑같은 3:4로 강제한다.
-              // PageDecoCanvas는 스스로 비율을 안 잡고 주어진 상자를 꽉 채우는데,
-              // 세로 공간이 모자라 canvasH가 3:4 높이(ideal)보다 작으면 캔버스가
-              // 납작(가로형)해져 편집 좌표가 상세/카드(엄격한 3:4)와 어긋났다.
-              // AspectRatio로 감싸 세로가 부족하면 폭을 줄여 비율을 유지 → WYSIWYG.
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: kPageAspectRatio,
-                  child: PageDecoCanvas(
-                    controller: s._deco,
-                    titleText: s._titleCtrl.text,
-                    contentText: s._contentCtrl.text,
-                    interactive: true,
-                  ),
-                ),
+              // 폭 고정(fullWidth) + 3:4 세로 높이(canvasH=폭/0.75)라 이 상자는
+              // 이미 정확히 3:4 → PageDecoCanvas가 그대로 꽉 채우면 읽기(상세/카드)
+              // 와 동일 좌표계가 된다(WYSIWYG). 비율 재강제(AspectRatio) 불필요.
+              child: PageDecoCanvas(
+                controller: s._deco,
+                titleText: s._titleCtrl.text,
+                contentText: s._contentCtrl.text,
+                interactive: true,
               ),
             ),
             // 드래그로 높이 조절되는 하단 컨트롤 시트. 텍스트박스를 인라인 편집하느라
