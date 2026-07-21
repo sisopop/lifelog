@@ -118,14 +118,17 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
       body: Column(
         children: [
           Expanded(
-            // 읽기 "내용"(제목·사진·본문·꾸밈)만 속지 배경 카드로 감싼다.
-            // 메타·기분·AI요약·태그·관련·공유·이동·답장은 카드 밖 기본 배경에 둔다.
+            // 꾸미기 캔버스와 동일하게, 속지 배경 카드에는 "페이지 내용"(사진·본문
+            // ·꾸밈)만 담는다. 제목·날짜(헤더)와 메타·기분·AI요약·태그·관련·공유·
+            // 이동·답장은 카드 밖 기본 배경에 둔다.
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  _header(context, entry, date, authorName),
+                  const SizedBox(height: 16),
                   _paperCard(
                     canvas: pageCanvas,
                     compositePage: compositePage,
@@ -135,8 +138,6 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _header(context, entry, date, authorName),
-                const SizedBox(height: 20),
                 if (entry.mediaUrls.isNotEmpty) ...[
                   EntryGallery(
                     entry.mediaUrls,
