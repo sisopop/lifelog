@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'cover_font.dart';
 import 'text_color_catalog.dart';
 import 'text_highlight_catalog.dart';
 
@@ -14,6 +15,7 @@ class TextLayerInput {
     this.underline = false,
     this.strike = false,
     this.shadow = false,
+    this.fontId = kDefaultCoverFont,
   });
 
   /// 앞뒤 공백을 다듬은 글 내용(빈 문구면 다이얼로그가 null을 돌려주므로 항상 비지 않음).
@@ -39,6 +41,9 @@ class TextLayerInput {
 
   /// 형광펜(배경) 색(ARGB 정수). null이면 배경 없음.
   final int? bgColorValue;
+
+  /// 고른 글꼴 id(cover_font.dart). 기본 [kDefaultCoverFont].
+  final String fontId;
 }
 
 /// 문구·잉크 색·굵기를 고르는 "글자 넣기" 다이얼로그를 띄운다. 취소하거나 문구가
@@ -57,13 +62,15 @@ Future<TextLayerInput?> showTextLayerDialog(
   var underline = initial?.underline ?? false;
   var strike = initial?.strike ?? false;
   var shadow = initial?.shadow ?? false;
+  var fontId = normalizeCoverFont(initial?.fontId ?? kDefaultCoverFont);
   int? bg = initial?.bgColorValue; // 형광펜 배경(null=없음)
   final ok = await showDialog<bool>(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setDialog) => AlertDialog(
         title: Text(editing ? '글자 편집' : '글자 넣기'),
-        content: Column(
+        content: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
@@ -71,6 +78,7 @@ Future<TextLayerInput?> showTextLayerDialog(
               autofocus: true,
               maxLength: 40,
               style: TextStyle(
+                fontFamily: coverFontFamily(fontId),
                 color: color,
                 fontWeight: bold ? FontWeight.w700 : null,
                 fontStyle: italic ? FontStyle.italic : null,
@@ -108,6 +116,26 @@ Future<TextLayerInput?> showTextLayerDialog(
                           ? const Icon(Icons.check, size: 16, color: Colors.white)
                           : null,
                     ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text('글꼴', style: TextStyle(fontSize: 12)),
+            ),
+            const SizedBox(height: 4),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final f in coverFontPalette)
+                  ChoiceChip(
+                    label: Text(
+                      f.label,
+                      style: TextStyle(fontFamily: f.family),
+                    ),
+                    selected: fontId == f.id,
+                    onSelected: (_) => setDialog(() => fontId = f.id),
                   ),
               ],
             ),
@@ -207,6 +235,7 @@ Future<TextLayerInput?> showTextLayerDialog(
               ],
             ),
           ],
+          ),
         ),
         actions: [
           TextButton(
@@ -225,5 +254,9 @@ Future<TextLayerInput?> showTextLayerDialog(
   final text = controller.text.trim();
   if (text.isEmpty) return null;
   return TextLayerInput(text, color.toARGB32(), bold, bg,
-      italic: italic, underline: underline, strike: strike, shadow: shadow);
+      italic: italic,
+      underline: underline,
+      strike: strike,
+      shadow: shadow,
+      fontId: fontId);
 }

@@ -47,6 +47,7 @@ PageCanvas addTextLayer(
   bool strike = false,
   bool shadow = false,
   int? bgColorValue,
+  String fontId = kDefaultCoverFont,
 }) {
   final trimmed = text.trim();
   if (trimmed.isEmpty) return canvas;
@@ -65,6 +66,7 @@ PageCanvas addTextLayer(
       strike: strike,
       shadow: shadow,
       bgColorValue: bgColorValue,
+      fontId: fontId,
     ),
   );
 }
@@ -424,6 +426,7 @@ PageCanvas updateTextLayer(
   bool strike = false,
   bool shadow = false,
   int? bgColorValue,
+  String fontId = kDefaultCoverFont,
 }) {
   final trimmed = text.trim();
   if (trimmed.isEmpty) return canvas;
@@ -448,6 +451,7 @@ PageCanvas updateTextLayer(
       strike: strike,
       shadow: shadow,
       bgColorValue: bgColorValue,
+      fontId: fontId,
     ),
   );
 }

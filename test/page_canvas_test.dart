@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lifelog/features/decorate/cover_font.dart';
 import 'package:lifelog/features/decorate/page_canvas.dart';
 
 DecoLayer _layer(String id, {DecoKind kind = DecoKind.sticker, int z = 0}) =>
@@ -261,6 +262,39 @@ void main() {
       expect(hl.layers.single.bgColorValue, 0xFFFFF1A8);
       final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
       expect(plain.layers.single.bgColorValue, isNull);
+    });
+
+    test('carries the fontId when given, default otherwise', () {
+      final jua = addTextLayer(const PageCanvas(), 'x0', 'hi', fontId: 'jua');
+      expect(jua.layers.single.fontId, 'jua');
+      final plain = addTextLayer(const PageCanvas(), 'x1', 'hi');
+      expect(plain.layers.single.fontId, kDefaultCoverFont);
+    });
+  });
+
+  group('DecoLayer fontId serialization', () {
+    test('omits font key when default, round-trips a custom font', () {
+      const plain = DecoLayer(id: 'x', kind: DecoKind.text, value: 'hi');
+      expect(plain.toJson().containsKey('font'), isFalse);
+      const jua =
+          DecoLayer(id: 'y', kind: DecoKind.text, value: 'hi', fontId: 'jua');
+      expect(jua.toJson()['font'], 'jua');
+      expect(DecoLayer.fromJson(jua.toJson()).fontId, 'jua');
+    });
+
+    test('fromJson falls back to default for missing/unknown font', () {
+      expect(
+          DecoLayer.fromJson(
+                  const {'id': 'x', 'kind': 'text', 'value': 'hi'}).fontId,
+          kDefaultCoverFont);
+      expect(
+          DecoLayer.fromJson(const {
+            'id': 'x',
+            'kind': 'text',
+            'value': 'hi',
+            'font': 'nope',
+          }).fontId,
+          kDefaultCoverFont);
     });
   });
 
@@ -589,6 +623,15 @@ void main() {
       expect(l.scale, 1.8);
       expect(l.rotation, 30);
       expect(l.z, 5);
+    });
+
+    test('updates the fontId (default when omitted)', () {
+      final base = canvasWithText();
+      expect(
+          updateTextLayer(base, 't', '고침', fontId: 'gaegu').layers.single.fontId,
+          'gaegu');
+      expect(updateTextLayer(base, 't', '고침').layers.single.fontId,
+          kDefaultCoverFont);
     });
 
     test('trims text and ignores blank edits', () {

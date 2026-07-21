@@ -321,6 +321,7 @@ class _TextBoxEditorState extends State<_TextBoxEditor> {
         textAlignVertical: TextAlignVertical.top,
         cursorColor: AppColors.primary,
         style: TextStyle(
+          fontFamily: coverFontFamily(widget.layer.fontId),
           fontSize: fontSize,
           height: 1.35,
           color: widget.layer.colorValue == null

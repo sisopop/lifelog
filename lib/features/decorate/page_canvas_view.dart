@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../shared/widgets/photo.dart';
+import 'cover_font.dart';
 import 'page_canvas.dart';
 import 'washi_tape_catalog.dart';
 
@@ -148,6 +149,7 @@ Widget _decoLayerBody(
       child: Text(
         l.value,
         style: TextStyle(
+          fontFamily: coverFontFamily(l.fontId),
           fontSize: fontSize,
           height: 1.35,
           color: l.colorValue == null ? null : Color(l.colorValue!),
@@ -185,6 +187,7 @@ Widget _decoLayerBody(
   final text = Text(
     l.value,
     style: TextStyle(
+      fontFamily: coverFontFamily(l.fontId),
       fontSize: stickerSize,
       color: l.colorValue == null ? null : Color(l.colorValue!),
       fontWeight: l.bold ? FontWeight.w700 : null,

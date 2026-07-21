@@ -10,6 +10,8 @@
 
 import 'dart:convert';
 
+import 'cover_font.dart';
+
 part 'page_canvas_ops.dart';
 part 'page_canvas_arrange.dart';
 part 'page_canvas_query.dart';
@@ -62,6 +64,7 @@ class DecoLayer {
     this.letterSpacing = 0.0,
     this.boxW,
     this.boxH,
+    this.fontId = kDefaultCoverFont,
   });
 
   final String id;
@@ -133,6 +136,11 @@ class DecoLayer {
   /// 아니거나 크기 미지정. textbox 레이어에만 쓰인다.
   final double? boxH;
 
+  /// 글꼴 id(cover_font.dart의 [coverFontPalette]). 기본 [kDefaultCoverFont]
+  /// (=Pretendard, family null). text·textbox 레이어에 쓰인다(옛 저장본은
+  /// 기본값이라 종전과 동일). 렌더는 [coverFontFamily]로 fontFamily를 얻는다.
+  final String fontId;
+
   DecoLayer copyWith({
     DecoKind? kind,
     String? value,
@@ -154,6 +162,7 @@ class DecoLayer {
     double? letterSpacing,
     double? boxW,
     double? boxH,
+    String? fontId,
   }) =>
       DecoLayer(
         id: id,
@@ -177,6 +186,7 @@ class DecoLayer {
         letterSpacing: letterSpacing ?? this.letterSpacing,
         boxW: boxW ?? this.boxW,
         boxH: boxH ?? this.boxH,
+        fontId: fontId ?? this.fontId,
       );
 
   Map<String, dynamic> toJson() => {
@@ -213,6 +223,8 @@ class DecoLayer {
         // 같게 유지한다.
         if (boxW != null) 'bw': boxW,
         if (boxH != null) 'bh': boxH,
+        // 기본 글꼴이면 키를 빼서 옛 저장본과 바이트가 같게 유지한다.
+        if (fontId != kDefaultCoverFont) 'font': fontId,
       };
 
   /// 관대한 파서: 누락/타입오류 필드는 기본값으로 채운다(저장본 깨짐 방지).
@@ -238,6 +250,7 @@ class DecoLayer {
         letterSpacing: _toDouble(json['ls'], 0.0),
         boxW: (json['bw'] as num?)?.toDouble(),
         boxH: (json['bh'] as num?)?.toDouble(),
+        fontId: normalizeCoverFont((json['font'] as String?) ?? kDefaultCoverFont),
       );
 }
 

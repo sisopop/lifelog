@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../shared/widgets/photo.dart';
+import 'cover_font.dart';
 import 'page_canvas.dart';
 import 'page_canvas_view.dart';
 import 'page_deco_palette.dart';
@@ -148,6 +149,7 @@ class PageDecoEditorController extends ChangeNotifier {
         strike: input.strike,
         shadow: input.shadow,
         bgColorValue: input.bgColorValue,
+        fontId: input.fontId,
       );
       _selectedId = id;
     });
@@ -165,6 +167,7 @@ class PageDecoEditorController extends ChangeNotifier {
           strike: input.strike,
           shadow: input.shadow,
           bgColorValue: input.bgColorValue,
+          fontId: input.fontId,
         );
       });
 
