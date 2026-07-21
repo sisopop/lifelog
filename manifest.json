@@ -1,11 +1,11 @@
 {
-    "name": "lifelog",
-    "short_name": "lifelog",
+    "name": "라이프로그 · AI 기록장",
+    "short_name": "라이프로그",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F6F5FB",
+    "theme_color": "#8B7CF6",
+    "description": "매일의 순간을 기록하고 꾸미는 AI 다이어리",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
