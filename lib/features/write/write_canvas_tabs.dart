@@ -123,19 +123,15 @@ class _WriteCanvasBody extends ConsumerWidget {
       children: [
         // 상단 메타(저널/제목/날짜/감정/날씨).
         _metaHeader(context, ref),
-        // 본문: 꾸미기 탭 캔버스에 실시간으로 비친다(WYSIWYG).
-        TextField(
-          controller: s._contentCtrl,
-          minLines: 6,
-          maxLines: null,
-          onChanged: (_) => s.refresh(() {}),
-          style: const TextStyle(
-              fontSize: 15, height: 1.6, color: AppColors.textPrimary),
-          decoration: const InputDecoration(
-            hintText: '오늘 어떤 하루였나요?',
-            border: OutlineInputBorder(),
+        // 본문: 리치텍스트 인라인 편집기(글 선택 시 키보드 위 서식바). 평문은
+        // _contentCtrl에 미러링돼 꾸미기 탭 캔버스에 실시간으로 비친다(WYSIWYG).
+        if (s._bodyQuill != null)
+          BodyRichEditor(controller: s._bodyQuill!)
+        else
+          const SizedBox(
+            height: 156,
+            child: Center(child: CircularProgressIndicator()),
           ),
-        ),
         const SizedBox(height: 6),
         _ContentMeta(s._contentCtrl.text),
         if (s._contentCtrl.text.trim().isEmpty) ...[
@@ -143,10 +139,7 @@ class _WriteCanvasBody extends ConsumerWidget {
           WritingPromptCard(
             prompt: ref.watch(writingPromptProvider),
             onUse: () {
-              final p = ref.read(writingPromptProvider);
-              s._contentCtrl.text = '$p\n';
-              s._contentCtrl.selection =
-                  TextSelection.collapsed(offset: s._contentCtrl.text.length);
+              s.applyBodyPrompt(ref.read(writingPromptProvider));
               s.refresh(() {});
             },
             onRefresh: () =>
@@ -210,7 +203,8 @@ class _WriteCanvasBody extends ConsumerWidget {
           onPhoto: s._pickPhotos,
           onLocation: s._editLocation,
           onTag: s._addTag,
-          onEmoji: () => pickAndInsertEmoji(context, s._contentCtrl)
+          onEmoji: () => s
+              .insertBodyEmoji(context)
               .then((_) => s.mounted ? s.refresh(() {}) : null),
         ),
         // "본문 사이 사진"은 신규 진입을 숨김. 기존 기록에 데이터가 있을 때만 노출.

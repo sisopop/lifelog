@@ -103,6 +103,9 @@ class DiaryEntries extends Table {
   TextColumn get weather => textEnum<Weather>().nullable()();
   TextColumn get visibility => textEnum<EntryVisibility>()();
   TextColumn get location => text().nullable()();
+  // 본문의 부분 서식(리치텍스트) Quill Delta JSON. null = 서식 없는 순수 텍스트
+  // 기록(종전과 동일). 평문은 content에 그대로 유지되어 검색·통계·AI가 계속 동작.
+  TextColumn get contentRich => text().nullable()();
   TextColumn get tags => text().map(const StringListConverter())();
   TextColumn get mediaUrls => text().map(const StringListConverter())();
   // 페이지(내지) 꾸미기 캔버스 — 스티커/속지 등 자유 배치 문서의 JSON 직렬화.
@@ -158,7 +161,7 @@ class AppDatabase extends _$AppDatabase {
             ));
 
   @override
-  int get schemaVersion => 28;
+  int get schemaVersion => 29;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -287,6 +290,11 @@ class AppDatabase extends _$AppDatabase {
             // (크롭 위치를 고른 사진 없음 = 중앙 크롭, 종전과 동일).
             await m.addColumn(diaryEntries, diaryEntries.photoCrops);
           }
+          if (from < 29) {
+            // 본문 리치텍스트(Quill Delta JSON) — existing entries default to
+            // null (서식 없는 순수 텍스트, 종전과 동일). 평문 content는 그대로.
+            await m.addColumn(diaryEntries, diaryEntries.contentRich);
+          }
         },
         // Self-heal: on the web (drift WASM) an addColumn that failed mid-upgrade
         // can leave the stored schema version bumped while the column is still
@@ -350,6 +358,7 @@ class AppDatabase extends _$AppDatabase {
     final m = createMigrator();
     final expected = <String, GeneratedColumn<Object>>{
       'deleted_at': diaryEntries.deletedAt,
+      'content_rich': diaryEntries.contentRich,
       'page_canvas': diaryEntries.pageCanvas,
       'flow_photos': diaryEntries.flowPhotos,
       'weather': diaryEntries.weather,

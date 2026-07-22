@@ -66,6 +66,50 @@ void main() {
     expect((await repo.getAll()).where((e) => e.entryId == 'x2').length, 1);
   });
 
+  test('contentRich round-trips through the db', () async {
+    const rich = '[{"insert":"굵게","attributes":{"bold":true}},{"insert":"\\n"}]';
+    await repo.insert(DiaryEntry(
+      entryId: 'rich1',
+      userId: 'me',
+      journalId: 'jr_default',
+      content: '굵게',
+      contentRich: rich,
+      createdAt: DateTime(2026, 6, 14),
+      updatedAt: DateTime(2026, 6, 14),
+    ));
+    final loaded = (await repo.getAll()).firstWhere((e) => e.entryId == 'rich1');
+    expect(loaded.contentRich, rich);
+    expect(loaded.content, '굵게');
+  });
+
+  test('contentRich null (plain entry) round-trips as null', () async {
+    await repo.insert(DiaryEntry(
+      entryId: 'plain1',
+      userId: 'me',
+      journalId: 'jr_default',
+      content: '서식없는 본문',
+      createdAt: DateTime(2026, 6, 14),
+      updatedAt: DateTime(2026, 6, 14),
+    ));
+    final loaded =
+        (await repo.getAll()).firstWhere((e) => e.entryId == 'plain1');
+    expect(loaded.contentRich, isNull);
+  });
+
+  test('copyWith clearContentRich drops rich formatting', () {
+    final e = DiaryEntry(
+      entryId: 'c1',
+      userId: 'me',
+      journalId: 'jr_default',
+      content: '본문',
+      contentRich: '[{"insert":"본문\\n"}]',
+      createdAt: DateTime(2026, 6, 14),
+      updatedAt: DateTime(2026, 6, 14),
+    );
+    expect(e.copyWith().contentRich, isNotNull); // 기본은 유지
+    expect(e.copyWith(clearContentRich: true).contentRich, isNull);
+  });
+
   test('getAll orders newest first', () async {
     await repo.insert(DiaryEntry(
       entryId: 'old',

@@ -140,6 +140,17 @@ class $DiaryEntriesTable extends DiaryEntries
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _contentRichMeta = const VerificationMeta(
+    'contentRich',
+  );
+  @override
+  late final GeneratedColumn<String> contentRich = GeneratedColumn<String>(
+    'content_rich',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   late final GeneratedColumnWithTypeConverter<List<String>, String> tags =
       GeneratedColumn<String>(
@@ -329,6 +340,7 @@ class $DiaryEntriesTable extends DiaryEntries
     weather,
     visibility,
     location,
+    contentRich,
     tags,
     mediaUrls,
     pageCanvas,
@@ -419,6 +431,15 @@ class $DiaryEntriesTable extends DiaryEntries
       context.handle(
         _locationMeta,
         location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    }
+    if (data.containsKey('content_rich')) {
+      context.handle(
+        _contentRichMeta,
+        contentRich.isAcceptableOrUnknown(
+          data['content_rich']!,
+          _contentRichMeta,
+        ),
       );
     }
     if (data.containsKey('page_canvas')) {
@@ -584,6 +605,10 @@ class $DiaryEntriesTable extends DiaryEntries
         DriftSqlType.string,
         data['${effectivePrefix}location'],
       ),
+      contentRich: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_rich'],
+      ),
       tags: $DiaryEntriesTable.$convertertags.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -698,6 +723,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
   final Weather? weather;
   final EntryVisibility visibility;
   final String? location;
+  final String? contentRich;
   final List<String> tags;
   final List<String> mediaUrls;
   final String? pageCanvas;
@@ -728,6 +754,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     this.weather,
     required this.visibility,
     this.location,
+    this.contentRich,
     required this.tags,
     required this.mediaUrls,
     this.pageCanvas,
@@ -784,6 +811,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     }
     if (!nullToAbsent || location != null) {
       map['location'] = Variable<String>(location);
+    }
+    if (!nullToAbsent || contentRich != null) {
+      map['content_rich'] = Variable<String>(contentRich);
     }
     {
       map['tags'] = Variable<String>(
@@ -861,6 +891,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
       location: location == null && nullToAbsent
           ? const Value.absent()
           : Value(location),
+      contentRich: contentRich == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contentRich),
       tags: Value(tags),
       mediaUrls: Value(mediaUrls),
       pageCanvas: pageCanvas == null && nullToAbsent
@@ -927,6 +960,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
         serializer.fromJson<String>(json['visibility']),
       ),
       location: serializer.fromJson<String?>(json['location']),
+      contentRich: serializer.fromJson<String?>(json['contentRich']),
       tags: serializer.fromJson<List<String>>(json['tags']),
       mediaUrls: serializer.fromJson<List<String>>(json['mediaUrls']),
       pageCanvas: serializer.fromJson<String?>(json['pageCanvas']),
@@ -972,6 +1006,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
         $DiaryEntriesTable.$convertervisibility.toJson(visibility),
       ),
       'location': serializer.toJson<String?>(location),
+      'contentRich': serializer.toJson<String?>(contentRich),
       'tags': serializer.toJson<List<String>>(tags),
       'mediaUrls': serializer.toJson<List<String>>(mediaUrls),
       'pageCanvas': serializer.toJson<String?>(pageCanvas),
@@ -1007,6 +1042,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     Value<Weather?> weather = const Value.absent(),
     EntryVisibility? visibility,
     Value<String?> location = const Value.absent(),
+    Value<String?> contentRich = const Value.absent(),
     List<String>? tags,
     List<String>? mediaUrls,
     Value<String?> pageCanvas = const Value.absent(),
@@ -1039,6 +1075,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     weather: weather.present ? weather.value : this.weather,
     visibility: visibility ?? this.visibility,
     location: location.present ? location.value : this.location,
+    contentRich: contentRich.present ? contentRich.value : this.contentRich,
     tags: tags ?? this.tags,
     mediaUrls: mediaUrls ?? this.mediaUrls,
     pageCanvas: pageCanvas.present ? pageCanvas.value : this.pageCanvas,
@@ -1077,6 +1114,9 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           ? data.visibility.value
           : this.visibility,
       location: data.location.present ? data.location.value : this.location,
+      contentRich: data.contentRich.present
+          ? data.contentRich.value
+          : this.contentRich,
       tags: data.tags.present ? data.tags.value : this.tags,
       mediaUrls: data.mediaUrls.present ? data.mediaUrls.value : this.mediaUrls,
       pageCanvas: data.pageCanvas.present
@@ -1134,6 +1174,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           ..write('weather: $weather, ')
           ..write('visibility: $visibility, ')
           ..write('location: $location, ')
+          ..write('contentRich: $contentRich, ')
           ..write('tags: $tags, ')
           ..write('mediaUrls: $mediaUrls, ')
           ..write('pageCanvas: $pageCanvas, ')
@@ -1169,6 +1210,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
     weather,
     visibility,
     location,
+    contentRich,
     tags,
     mediaUrls,
     pageCanvas,
@@ -1203,6 +1245,7 @@ class DiaryEntryRow extends DataClass implements Insertable<DiaryEntryRow> {
           other.weather == this.weather &&
           other.visibility == this.visibility &&
           other.location == this.location &&
+          other.contentRich == this.contentRich &&
           other.tags == this.tags &&
           other.mediaUrls == this.mediaUrls &&
           other.pageCanvas == this.pageCanvas &&
@@ -1235,6 +1278,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
   final Value<Weather?> weather;
   final Value<EntryVisibility> visibility;
   final Value<String?> location;
+  final Value<String?> contentRich;
   final Value<List<String>> tags;
   final Value<List<String>> mediaUrls;
   final Value<String?> pageCanvas;
@@ -1266,6 +1310,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.weather = const Value.absent(),
     this.visibility = const Value.absent(),
     this.location = const Value.absent(),
+    this.contentRich = const Value.absent(),
     this.tags = const Value.absent(),
     this.mediaUrls = const Value.absent(),
     this.pageCanvas = const Value.absent(),
@@ -1298,6 +1343,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     this.weather = const Value.absent(),
     required EntryVisibility visibility,
     this.location = const Value.absent(),
+    this.contentRich = const Value.absent(),
     required List<String> tags,
     required List<String> mediaUrls,
     this.pageCanvas = const Value.absent(),
@@ -1339,6 +1385,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Expression<String>? weather,
     Expression<String>? visibility,
     Expression<String>? location,
+    Expression<String>? contentRich,
     Expression<String>? tags,
     Expression<String>? mediaUrls,
     Expression<String>? pageCanvas,
@@ -1371,6 +1418,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       if (weather != null) 'weather': weather,
       if (visibility != null) 'visibility': visibility,
       if (location != null) 'location': location,
+      if (contentRich != null) 'content_rich': contentRich,
       if (tags != null) 'tags': tags,
       if (mediaUrls != null) 'media_urls': mediaUrls,
       if (pageCanvas != null) 'page_canvas': pageCanvas,
@@ -1405,6 +1453,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     Value<Weather?>? weather,
     Value<EntryVisibility>? visibility,
     Value<String?>? location,
+    Value<String?>? contentRich,
     Value<List<String>>? tags,
     Value<List<String>>? mediaUrls,
     Value<String?>? pageCanvas,
@@ -1437,6 +1486,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
       weather: weather ?? this.weather,
       visibility: visibility ?? this.visibility,
       location: location ?? this.location,
+      contentRich: contentRich ?? this.contentRich,
       tags: tags ?? this.tags,
       mediaUrls: mediaUrls ?? this.mediaUrls,
       pageCanvas: pageCanvas ?? this.pageCanvas,
@@ -1506,6 +1556,9 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
     }
     if (location.present) {
       map['location'] = Variable<String>(location.value);
+    }
+    if (contentRich.present) {
+      map['content_rich'] = Variable<String>(contentRich.value);
     }
     if (tags.present) {
       map['tags'] = Variable<String>(
@@ -1583,6 +1636,7 @@ class DiaryEntriesCompanion extends UpdateCompanion<DiaryEntryRow> {
           ..write('weather: $weather, ')
           ..write('visibility: $visibility, ')
           ..write('location: $location, ')
+          ..write('contentRich: $contentRich, ')
           ..write('tags: $tags, ')
           ..write('mediaUrls: $mediaUrls, ')
           ..write('pageCanvas: $pageCanvas, ')
@@ -3357,6 +3411,7 @@ typedef $$DiaryEntriesTableCreateCompanionBuilder =
       Value<Weather?> weather,
       required EntryVisibility visibility,
       Value<String?> location,
+      Value<String?> contentRich,
       required List<String> tags,
       required List<String> mediaUrls,
       Value<String?> pageCanvas,
@@ -3390,6 +3445,7 @@ typedef $$DiaryEntriesTableUpdateCompanionBuilder =
       Value<Weather?> weather,
       Value<EntryVisibility> visibility,
       Value<String?> location,
+      Value<String?> contentRich,
       Value<List<String>> tags,
       Value<List<String>> mediaUrls,
       Value<String?> pageCanvas,
@@ -3484,6 +3540,11 @@ class $$DiaryEntriesTableFilterComposer
 
   ColumnFilters<String> get location => $composableBuilder(
     column: $table.location,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentRich => $composableBuilder(
+    column: $table.contentRich,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3645,6 +3706,11 @@ class $$DiaryEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get contentRich => $composableBuilder(
+    column: $table.contentRich,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get tags => $composableBuilder(
     column: $table.tags,
     builder: (column) => ColumnOrderings(column),
@@ -3779,6 +3845,11 @@ class $$DiaryEntriesTableAnnotationComposer
   GeneratedColumn<String> get location =>
       $composableBuilder(column: $table.location, builder: (column) => column);
 
+  GeneratedColumn<String> get contentRich => $composableBuilder(
+    column: $table.contentRich,
+    builder: (column) => column,
+  );
+
   GeneratedColumnWithTypeConverter<List<String>, String> get tags =>
       $composableBuilder(column: $table.tags, builder: (column) => column);
 
@@ -3895,6 +3966,7 @@ class $$DiaryEntriesTableTableManager
                 Value<Weather?> weather = const Value.absent(),
                 Value<EntryVisibility> visibility = const Value.absent(),
                 Value<String?> location = const Value.absent(),
+                Value<String?> contentRich = const Value.absent(),
                 Value<List<String>> tags = const Value.absent(),
                 Value<List<String>> mediaUrls = const Value.absent(),
                 Value<String?> pageCanvas = const Value.absent(),
@@ -3926,6 +3998,7 @@ class $$DiaryEntriesTableTableManager
                 weather: weather,
                 visibility: visibility,
                 location: location,
+                contentRich: contentRich,
                 tags: tags,
                 mediaUrls: mediaUrls,
                 pageCanvas: pageCanvas,
@@ -3959,6 +4032,7 @@ class $$DiaryEntriesTableTableManager
                 Value<Weather?> weather = const Value.absent(),
                 required EntryVisibility visibility,
                 Value<String?> location = const Value.absent(),
+                Value<String?> contentRich = const Value.absent(),
                 required List<String> tags,
                 required List<String> mediaUrls,
                 Value<String?> pageCanvas = const Value.absent(),
@@ -3990,6 +4064,7 @@ class $$DiaryEntriesTableTableManager
                 weather: weather,
                 visibility: visibility,
                 location: location,
+                contentRich: contentRich,
                 tags: tags,
                 mediaUrls: mediaUrls,
                 pageCanvas: pageCanvas,

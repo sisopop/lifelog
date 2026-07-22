@@ -11,6 +11,7 @@ class DiaryEntry {
     this.lang = 'ko',
     this.title,
     required this.content,
+    this.contentRich,
     this.aiSummary,
     this.aiStatus = AiStatus.none,
     this.mood,
@@ -49,6 +50,11 @@ class DiaryEntry {
   final String lang;
   final String? title;
   final String content;
+
+  /// 본문의 **부분 서식(리치텍스트)** Quill Delta JSON. null이면 서식 없는
+  /// 순수 텍스트 기록(종전과 동일). 검색·통계·AI·미리보기는 평문 [content]를,
+  /// 상세 읽기 렌더는 이 값이 있으면 서식대로 그린다(WYSIWYG).
+  final String? contentRich;
   final String? aiSummary;
   final AiStatus aiStatus;
   final Mood? mood;
@@ -119,6 +125,7 @@ class DiaryEntry {
     String? lang,
     String? title,
     String? content,
+    String? contentRich,
     String? aiSummary,
     AiStatus? aiStatus,
     Mood? mood,
@@ -143,6 +150,7 @@ class DiaryEntry {
     SyncStatus? syncStatus,
     bool clearMood = false,
     bool clearWeather = false,
+    bool clearContentRich = false,
     bool clearDeletedAt = false,
     bool clearPageCanvas = false,
     bool clearFlowPhotos = false,
@@ -162,6 +170,8 @@ class DiaryEntry {
       lang: lang ?? this.lang,
       title: title ?? this.title,
       content: content ?? this.content,
+      contentRich:
+          clearContentRich ? null : (contentRich ?? this.contentRich),
       aiSummary: aiSummary ?? this.aiSummary,
       aiStatus: aiStatus ?? this.aiStatus,
       mood: clearMood ? null : (mood ?? this.mood),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -28,7 +29,9 @@ import '../decorate/photo_tapes.dart';
 import '../decorate/sticker_picker_sheet.dart';
 import '../decorate/tape_picker_sheet.dart';
 import '../decorate/text_layer_dialog.dart';
+import 'body_rich_editor.dart';
 import 'emoji_picker.dart';
+import '../decorate/textbox_rich_editor.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../../shared/widgets/photo.dart';
@@ -99,6 +102,12 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   DiaryEntry? _editing;
   bool _prefilled = false;
 
+  /// 본문 리치텍스트 편집기(flutter_quill)의 컨트롤러. 프리필·저장·이모지/프롬프트
+  /// 삽입을 위해 화면이 직접 들고, [BodyRichEditor]가 이를 구독해 그린다. 값이 바뀌면
+  /// [_onBodyChanged]가 평문을 [_contentCtrl]에 미러링해 검색·통계·미리보기가 계속
+  /// 동작한다. didChangeDependencies에서 한 번만 만든다.
+  QuillController? _bodyQuill;
+
   /// 상단 2개 탭(글쓰기/꾸미기). 글쓰기 탭은 메타+본문, 꾸미기 탭은 미리보기
   /// 캔버스 + 하위 5탭(속지/바탕색/사진/테이프/스티커)을 담는다.
   late final TabController _tab =
@@ -144,35 +153,83 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_isEditing && !_prefilled) {
+    if (_prefilled) return;
+    var plain = '';
+    String? rich;
+    if (_isEditing) {
       final entries = ref.read(entriesProvider).asData?.value ?? const [];
       final entry = entries.where((e) => e.entryId == widget.editId).firstOrNull;
-      if (entry != null) {
-        _editing = entry;
-        _date = entry.createdAt;
-        _titleCtrl.text = entry.title ?? '';
-        _contentCtrl.text = entry.content;
-        _mood = entry.mood;
-        _weather = entry.weather;
-        _location = entry.location;
-        _photoPaths
-          ..clear()
-          ..addAll(entry.mediaUrls);
-        _prefillPhotoDeco(entry);
-        _tags
-          ..clear()
-          ..addAll(entry.tags);
-        _deco.load(decodePageCanvas(entry.pageCanvas));
-        _flowPhotos = entry.flowPhotos;
-        _prefilled = true;
-      }
+      // 아직 목록 로드 전이면 컨트롤러를 만들지 말고 다음 프레임에 재시도한다.
+      if (entry == null) return;
+      _editing = entry;
+      _date = entry.createdAt;
+      _titleCtrl.text = entry.title ?? '';
+      plain = entry.content;
+      rich = entry.contentRich;
+      _mood = entry.mood;
+      _weather = entry.weather;
+      _location = entry.location;
+      _photoPaths
+        ..clear()
+        ..addAll(entry.mediaUrls);
+      _prefillPhotoDeco(entry);
+      _tags
+        ..clear()
+        ..addAll(entry.tags);
+      _deco.load(decodePageCanvas(entry.pageCanvas));
+      _flowPhotos = entry.flowPhotos;
     }
+    _contentCtrl.text = plain; // 검색·통계·미리보기용 평문 미러
+    _bodyQuill = QuillController(
+      document: buildTextBoxQuillDocument(rich, plain),
+      selection: const TextSelection.collapsed(offset: 0),
+    )..addListener(_onBodyChanged);
+    _prefilled = true;
+  }
+
+  /// 본문 편집기가 바뀔 때마다 평문을 [_contentCtrl]에 미러링하고 화면을 갱신한다.
+  void _onBodyChanged() {
+    final q = _bodyQuill;
+    if (q == null) return;
+    final plain = q.document.toPlainText().replaceAll(RegExp(r'\n$'), '');
+    if (plain != _contentCtrl.text) _contentCtrl.text = plain;
+    if (mounted) setState(() {});
+  }
+
+  /// 저장할 본문 리치텍스트(Quill Delta JSON). 본문이 비면 null(서식도 없음).
+  String? get _bodyRichJson {
+    final q = _bodyQuill;
+    if (q == null) return null;
+    if (q.document.toPlainText().trim().isEmpty) return null;
+    return jsonEncode(q.document.toDelta().toJson());
+  }
+
+  /// 이모지 픽커를 열고 고른 이모지를 본문 편집기의 현재 커서 위치에 끼운다.
+  Future<void> insertBodyEmoji(BuildContext context) async {
+    final emoji = await pickEmoji(context);
+    final q = _bodyQuill;
+    if (emoji == null || q == null) return;
+    final sel = q.selection;
+    final at = sel.isValid ? sel.baseOffset : (q.document.length - 1);
+    q.replaceText(at, sel.isValid ? (sel.extentOffset - sel.baseOffset).abs() : 0,
+        emoji, TextSelection.collapsed(offset: at + emoji.length));
+  }
+
+  /// 글쓰기 프롬프트 문구로 본문을 채운다(본문이 비었을 때만 노출되는 카드).
+  void applyBodyPrompt(String prompt) {
+    final q = _bodyQuill;
+    if (q == null) return;
+    final text = '$prompt\n';
+    q.replaceText(0, q.document.length - 1, text,
+        TextSelection.collapsed(offset: text.length));
   }
 
   @override
   void dispose() {
     _tab.dispose();
     _deco.dispose();
+    _bodyQuill?.removeListener(_onBodyChanged);
+    _bodyQuill?.dispose();
     _titleCtrl.dispose();
     _contentCtrl.dispose();
     super.dispose();
@@ -262,12 +319,15 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
     final filters = encodePhotoFilters(_photoFilters);
     final crops = encodePhotoCrops(_photoCrops);
     final pageCanvas = _pageCanvasJson;
+    final contentRich = _bodyRichJson;
     if (_isEditing && _editing != null) {
       // Edit: keep id/createdAt; editEntry regenerates the AI summary.
       await notifier.editEntry(
         _editing!.copyWith(
           title: tidyEntryTitle(_titleCtrl.text),
           content: tidyEntryContent(_contentCtrl.text),
+          contentRich: contentRich,
+          clearContentRich: contentRich == null,
           mood: _mood,
           weather: _weather,
           clearWeather: _weather == null,
@@ -306,6 +366,7 @@ class _WriteScreenState extends ConsumerState<WriteScreen>
           journalId: journalId,
           title: tidyEntryTitle(_titleCtrl.text),
           content: tidyEntryContent(_contentCtrl.text),
+          contentRich: contentRich,
           mood: _mood,
           weather: _weather,
           visibility: visibility,

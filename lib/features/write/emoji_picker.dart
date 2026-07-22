@@ -28,16 +28,22 @@ const List<String> kDiaryEmojis = [
   return (next, start + insert.length);
 }
 
-/// 이모지 픽커 바텀시트를 열고, 고른 이모지를 [controller]의 현재 커서 위치에
-/// 끼워 넣는다(순수 [insertIntoText] 사용). 아무것도 고르지 않으면 그대로 둔다.
-Future<void> pickAndInsertEmoji(
-    BuildContext context, TextEditingController controller) async {
-  final emoji = await showModalBottomSheet<String>(
+/// 이모지 픽커 바텀시트를 열고 고른 이모지를 돌려준다(취소하면 null). 삽입 대상이
+/// TextEditingController가 아닌 곳(리치 본문 Quill 등)에서도 재사용한다.
+Future<String?> pickEmoji(BuildContext context) {
+  return showModalBottomSheet<String>(
     context: context,
     showDragHandle: true,
     isScrollControlled: true,
     builder: (_) => const _EmojiPickerSheet(),
   );
+}
+
+/// 이모지 픽커 바텀시트를 열고, 고른 이모지를 [controller]의 현재 커서 위치에
+/// 끼워 넣는다(순수 [insertIntoText] 사용). 아무것도 고르지 않으면 그대로 둔다.
+Future<void> pickAndInsertEmoji(
+    BuildContext context, TextEditingController controller) async {
+  final emoji = await pickEmoji(context);
   if (emoji == null) return;
   final r = insertIntoText(controller.text, controller.selection, emoji);
   controller.value = TextEditingValue(

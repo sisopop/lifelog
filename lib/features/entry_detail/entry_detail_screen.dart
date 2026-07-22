@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../core/theme/app_colors.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/journal.dart';
+import '../decorate/cover_font.dart';
 import '../decorate/cover_paper.dart';
 import '../decorate/cover_paper_color.dart';
 import '../decorate/cover_paper_painter.dart';
@@ -22,6 +23,7 @@ import '../decorate/photo_frames.dart';
 import '../decorate/photo_memos.dart';
 import '../decorate/photo_stickers.dart';
 import '../decorate/photo_tapes.dart';
+import '../decorate/textbox_rich.dart';
 import 'entry_gallery.dart';
 import '../journals/journals_provider.dart';
 import 'entry_clipboard.dart';
@@ -170,6 +172,14 @@ class _EntryDetailScreenState extends ConsumerState<EntryDetailScreen> {
                       photos: decodeInlinePhotos(entry.flowPhotos),
                       textStyle: TextStyle(fontSize: 16 * scale, height: 1.6),
                     )
+                  else if (entry.contentRich != null)
+                    Text.rich(richTextSpan(
+                      richValue: entry.contentRich,
+                      plainFallback: entry.content,
+                      baseFontSize: 16 * scale,
+                      fontId: kDefaultCoverFont,
+                      baseColor: AppColors.textPrimary,
+                    ))
                   else
                     Text(entry.content,
                         style: TextStyle(fontSize: 16 * scale, height: 1.6)),
