@@ -71,7 +71,11 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
   final _scroll = ScrollController();
   String _lastPlain = '';
   String _lastJson = '';
-  bool _hasSelection = false;
+
+  // 편집바는 캔버스의 ClipRRect(둥근 모서리)에 잘리지 않도록 최상위 Overlay로 띄운다.
+  // LayerLink로 상자 위치를 따라가고, 텍스트박스에 포커스가 있는 동안 계속 보인다.
+  final LayerLink _link = LayerLink();
+  OverlayEntry? _bar;
 
   @override
   void initState() {
@@ -83,13 +87,27 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
     _lastPlain = widget.plain;
     _lastJson = widget.richValue ?? '';
     _quill.addListener(_onQuillChanged);
+    _focus.addListener(_syncBar);
+    // autoFocus로 첫 프레임 뒤 포커스가 잡히므로, 그 시점에 편집바를 띄운다.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncBar());
+  }
+
+  // 포커스 상태에 맞춰 편집바 Overlay를 삽입/제거한다.
+  void _syncBar() {
+    if (!mounted) return;
+    final show = _focus.hasFocus;
+    if (show && _bar == null) {
+      _bar = OverlayEntry(builder: (_) => _barFollower());
+      Overlay.of(context, rootOverlay: true).insert(_bar!);
+    } else if (!show && _bar != null) {
+      _bar!.remove();
+      _bar = null;
+    }
   }
 
   void _onQuillChanged() {
-    final sel = !_quill.selection.isCollapsed;
-    if (sel != _hasSelection && mounted) {
-      setState(() => _hasSelection = sel);
-    }
+    // 서식 버튼 활성 상태·색 표시가 커서/선택 이동을 따라가도록 편집바만 다시 그린다.
+    _bar?.markNeedsBuild();
     // toPlainText는 끝에 개행을 붙이므로 검색·통계용 평문에서 마지막 개행만 다듬는다.
     final plain = _quill.document.toPlainText().replaceAll(RegExp(r'\n$'), '');
     final json = jsonEncode(_quill.document.toDelta().toJson());
@@ -102,6 +120,9 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
 
   @override
   void dispose() {
+    _bar?.remove();
+    _bar = null;
+    _focus.removeListener(_syncBar);
     _quill.removeListener(_onQuillChanged);
     _quill.dispose();
     _focus.dispose();
@@ -198,36 +219,42 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final editor = SizedBox(
-      width: widget.width,
-      height: widget.height,
-      child: QuillEditor(
-        focusNode: _focus,
-        scrollController: _scroll,
-        controller: _quill,
-        config: QuillEditorConfig(
-          scrollable: true,
-          autoFocus: true,
-          expands: true,
-          padding: EdgeInsets.all(widget.fontSize * 0.35),
-          placeholder: '여기에 입력',
-          customStyles: _styles(context),
+    // 편집바 Overlay가 상자를 따라가도록 CompositedTransformTarget으로 상자를 앵커링.
+    return CompositedTransformTarget(
+      link: _link,
+      child: SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: QuillEditor(
+          focusNode: _focus,
+          scrollController: _scroll,
+          controller: _quill,
+          config: QuillEditorConfig(
+            scrollable: true,
+            autoFocus: true,
+            expands: true,
+            padding: EdgeInsets.all(widget.fontSize * 0.35),
+            placeholder: '여기에 입력',
+            customStyles: _styles(context),
+          ),
         ),
       ),
     );
-    // 편집바는 상자 위에 떠 있고(선택이 있을 때만), 클립을 벗어나도 보이게 Stack
-    // clipBehavior none. 상자가 화면 맨 위면 살짝 가려질 수 있으나 대개 문제없다.
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        editor,
-        if (_hasSelection)
-          Positioned(
-            left: -widget.width * 0.05,
-            bottom: widget.height + 6,
-            child: _toolbar(),
-          ),
-      ],
+  }
+
+  // 최상위 Overlay에 그려지는 편집바. LayerLink로 상자 왼쪽 위 위에 붙는다.
+  Widget _barFollower() {
+    return Positioned(
+      left: 0,
+      top: 0,
+      child: CompositedTransformFollower(
+        link: _link,
+        showWhenUnlinked: false,
+        targetAnchor: Alignment.topLeft,
+        followerAnchor: Alignment.bottomLeft,
+        offset: const Offset(0, -6),
+        child: _toolbar(),
+      ),
     );
   }
 
@@ -240,17 +267,20 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
       final v = _quill.getSelectionStyle().attributes['background']?.value;
       return richParseColor(v);
     }();
-    return Material(
-      elevation: 4,
-      borderRadius: BorderRadius.circular(10),
-      color: Colors.white,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 320),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+    // TextFieldTapRegion: 이 영역 탭은 "텍스트필드 안"으로 취급돼 에디터가
+    // 포커스를 잃지 않는다(버튼 눌러도 선택·키보드 유지, 편집바도 안 사라짐).
+    return TextFieldTapRegion(
+      child: Material(
+        elevation: 4,
+        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 320),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
             children: [
               _btn(Icons.format_bold, () => _toggle(Attribute.bold),
                   active: _active('bold')),
@@ -268,6 +298,7 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
               _btn(Icons.border_color, _cycleHighlight,
                   active: _active('background'), tint: curHi),
             ],
+            ),
           ),
         ),
       ),
@@ -279,7 +310,7 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
     return InkWell(
       onTap: () {
         onTap();
-        setState(() {}); // 활성 상태 표시 갱신
+        _bar?.markNeedsBuild(); // 활성 상태 표시 갱신(Overlay 재빌드)
       },
       borderRadius: BorderRadius.circular(6),
       child: Container(
