@@ -53,4 +53,27 @@ void main() {
     expect(best!.key, DayPart.morning);
     expect(best.value, 1);
   });
+
+  group('dayPartOf (per-entry badge)', () {
+    DayPart at(int hour, [int minute = 0]) =>
+        dayPartOf(DateTime(2026, 6, 17, hour, minute));
+
+    test('buckets a single timestamp by its hour', () {
+      expect(at(3), DayPart.dawn);
+      expect(at(9), DayPart.morning);
+      expect(at(14), DayPart.afternoon);
+      expect(at(21), DayPart.evening);
+    });
+
+    test('bucket boundaries are inclusive at the start of each part', () {
+      expect(at(0), DayPart.dawn);
+      expect(at(5, 59), DayPart.dawn);
+      expect(at(6), DayPart.morning);
+      expect(at(11, 59), DayPart.morning);
+      expect(at(12), DayPart.afternoon);
+      expect(at(17, 59), DayPart.afternoon);
+      expect(at(18), DayPart.evening);
+      expect(at(23, 59), DayPart.evening);
+    });
+  });
 }

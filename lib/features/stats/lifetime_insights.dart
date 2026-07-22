@@ -24,6 +24,12 @@ DayPart _partOfHour(int hour) {
   return DayPart.evening;
 }
 
+/// Pure: the [DayPart] bucket a single timestamp falls into (by its local
+/// hour). Exposed so per-entry UI — e.g. the list card's 작성 시간대 배지 — can
+/// label one record's time of day using the exact same buckets as the
+/// aggregate "주로 기록하는 시간대" insight, keeping labels/emojis consistent.
+DayPart dayPartOf(DateTime t) => _partOfHour(t.hour);
+
 /// Pure: the day-part the user records in most often, with its count. Returns
 /// null when there are no top-level entries. Ties resolve to the earlier part.
 MapEntry<DayPart, int>? busiestDayPart(List<DiaryEntry> entries) {
