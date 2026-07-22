@@ -72,9 +72,9 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
   String _lastPlain = '';
   String _lastJson = '';
 
-  // 편집바는 캔버스의 ClipRRect(둥근 모서리)에 잘리지 않도록 최상위 Overlay로 띄운다.
-  // LayerLink로 상자 위치를 따라가고, 텍스트박스에 포커스가 있는 동안 계속 보인다.
-  final LayerLink _link = LayerLink();
+  // 편집바는 캔버스의 ClipRRect·상자 위치와 무관하게 항상 잘 보이도록 최상위
+  // Overlay의 **화면 하단(키보드 바로 위) 고정 위치**에 띄운다. 텍스트박스를 편집
+  // 중(포커스)인 동안 계속 표시되고, 서식은 현재 선택 영역/커서에 적용된다.
   OverlayEntry? _bar;
 
   @override
@@ -97,7 +97,7 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
     if (!mounted) return;
     final show = _focus.hasFocus;
     if (show && _bar == null) {
-      _bar = OverlayEntry(builder: (_) => _barFollower());
+      _bar = OverlayEntry(builder: (ctx) => _barOverlay(ctx));
       Overlay.of(context, rootOverlay: true).insert(_bar!);
     } else if (!show && _bar != null) {
       _bar!.remove();
@@ -219,41 +219,39 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
 
   @override
   Widget build(BuildContext context) {
-    // 편집바 Overlay가 상자를 따라가도록 CompositedTransformTarget으로 상자를 앵커링.
-    return CompositedTransformTarget(
-      link: _link,
-      child: SizedBox(
-        width: widget.width,
-        height: widget.height,
-        child: QuillEditor(
-          focusNode: _focus,
-          scrollController: _scroll,
-          controller: _quill,
-          config: QuillEditorConfig(
-            scrollable: true,
-            autoFocus: true,
-            expands: true,
-            padding: EdgeInsets.all(widget.fontSize * 0.35),
-            placeholder: '여기에 입력',
-            customStyles: _styles(context),
-          ),
+    return SizedBox(
+      width: widget.width,
+      height: widget.height,
+      child: QuillEditor(
+        focusNode: _focus,
+        scrollController: _scroll,
+        controller: _quill,
+        config: QuillEditorConfig(
+          scrollable: true,
+          autoFocus: true,
+          expands: true,
+          padding: EdgeInsets.all(widget.fontSize * 0.35),
+          placeholder: '여기에 입력',
+          customStyles: _styles(context),
         ),
       ),
     );
   }
 
-  // 최상위 Overlay에 그려지는 편집바. LayerLink로 상자 왼쪽 위 위에 붙는다.
-  Widget _barFollower() {
+  // 최상위 Overlay의 화면 하단(키보드 바로 위)에 가로 전체로 깔리는 편집바.
+  // [ctx]는 rootOverlay 컨텍스트라 Scaffold가 삼키지 않은 실제 키보드 높이를 준다.
+  Widget _barOverlay(BuildContext ctx) {
+    final kb = MediaQuery.of(ctx).viewInsets.bottom;
     return Positioned(
       left: 0,
-      top: 0,
-      child: CompositedTransformFollower(
-        link: _link,
-        showWhenUnlinked: false,
-        targetAnchor: Alignment.topLeft,
-        followerAnchor: Alignment.bottomLeft,
-        offset: const Offset(0, -6),
-        child: _toolbar(),
+      right: 0,
+      bottom: kb, // 키보드가 열리면 그 바로 위, 닫히면 화면 맨 아래
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Center(child: _toolbar()),
+        ),
       ),
     );
   }
