@@ -72,11 +72,22 @@ class _BodyRichEditorState extends State<BodyRichEditor> {
   }
 
   // 선택 범위에 [attr]이 이미 있으면 지우고, 없으면 적용한다(토글).
+  // 적용 범위는 _format 규칙(선택 있으면 그 부분, 없으면 글 전체)을 따른다.
   void _toggle(Attribute attr) {
     final cur = _quill.getSelectionStyle().attributes;
-    if (cur.containsKey(attr.key)) {
-      _quill.formatSelection(Attribute.clone(attr, null));
+    _format(cur.containsKey(attr.key) ? Attribute.clone(attr, null) : attr);
+  }
+
+  // 드래그로 선택한 범위가 있으면 그 부분만, 없으면(커서만) **글 전체**에 [attr]을
+  // 적용한다(= 전체 기본값 지정). 전체 적용 시 이후 입력도 그 값을 잇도록 커서
+  // 토글 스타일도 함께 건다. 인라인 서식이라 마지막 개행은 제외한다.
+  void _format(Attribute attr) {
+    final sel = _quill.selection;
+    if (sel.isValid && !sel.isCollapsed) {
+      _quill.formatSelection(attr);
     } else {
+      final n = _quill.document.length - 1;
+      if (n > 0) _quill.formatText(0, n, attr);
       _quill.formatSelection(attr);
     }
   }
@@ -88,7 +99,7 @@ class _BodyRichEditorState extends State<BodyRichEditor> {
     if (res == null || !mounted) return;
     _focus.requestFocus();
     if (sel.isValid) _quill.updateSelection(sel, ChangeSource.local);
-    _quill.formatSelection(build(res.value));
+    _format(build(res.value));
     _bar?.markNeedsBuild();
   }
 
