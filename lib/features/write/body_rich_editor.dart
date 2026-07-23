@@ -12,9 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../decorate/cover_font.dart';
-import '../decorate/text_color_catalog.dart';
-import '../decorate/text_highlight_catalog.dart';
+import '../decorate/rich_format_pickers.dart';
 import '../decorate/textbox_rich.dart';
 
 class BodyRichEditor extends StatefulWidget {
@@ -83,47 +81,61 @@ class _BodyRichEditorState extends State<BodyRichEditor> {
     }
   }
 
-  void _cycleSize() {
+  // 피커에서 고른 값을 현재 선택 범위에 적용한다. 바텀시트가 뜨는 동안 에디터가
+  // 포커스를 잃으므로, 열기 전 선택 범위([sel])를 복원한 뒤 서식을 적용한다.
+  void _apply(TextSelection sel, RichPick<String?>? res,
+      Attribute Function(String? v) build) {
+    if (res == null || !mounted) return;
+    _focus.requestFocus();
+    if (sel.isValid) _quill.updateSelection(sel, ChangeSource.local);
+    _quill.formatSelection(build(res.value));
+    _bar?.markNeedsBuild();
+  }
+
+  Future<void> _pickSize() async {
+    final sel = _quill.selection;
     final cur = _quill.getSelectionStyle().attributes['size']?.value;
-    final i = kRichSizeCycle.indexOf(cur is String ? cur : null);
-    final next = kRichSizeCycle[(i < 0 ? 0 : i + 1) % kRichSizeCycle.length];
-    _quill.formatSelection(SizeAttribute(next));
+    final res = await showRichSizePicker(context, cur is String ? cur : null);
+    _apply(sel, res, (v) => SizeAttribute(v));
   }
 
-  void _cycleFont() {
+  Future<void> _pickFont() async {
+    final sel = _quill.selection;
     final cur = _quill.getSelectionStyle().attributes['font']?.value;
-    var i = coverFontPalette.indexWhere((f) => f.family == cur);
-    if (i < 0) i = 0;
-    final next = coverFontPalette[(i + 1) % coverFontPalette.length];
-    _quill.formatSelection(FontAttribute(next.family));
+    final res = await showRichFontPicker(context, cur is String ? cur : null);
+    _apply(sel, res, (v) => FontAttribute(v));
   }
 
-  void _cycleColor() {
+  Future<void> _pickColor() async {
+    final sel = _quill.selection;
     final cur = _quill.getSelectionStyle().attributes['color']?.value;
-    final curHex = cur is String ? cur.toLowerCase() : null;
-    final i = kTextInkColors
-        .indexWhere((c) => richColorHex(c).toLowerCase() == curHex);
-    final nextIdx = curHex == null ? 0 : i + 1;
-    if (nextIdx >= kTextInkColors.length) {
-      _quill.formatSelection(Attribute.clone(ColorAttribute(''), null));
-    } else {
-      _quill
-          .formatSelection(ColorAttribute(richColorHex(kTextInkColors[nextIdx])));
-    }
+    final res = await showRichColorPicker(context,
+        palette: kRichInkChart,
+        current: cur is String ? cur : null,
+        title: '글자색',
+        clearLabel: '기본색으로');
+    _apply(
+        sel,
+        res,
+        (v) => v == null
+            ? Attribute.clone(ColorAttribute(''), null)
+            : ColorAttribute(v));
   }
 
-  void _cycleHighlight() {
+  Future<void> _pickHighlight() async {
+    final sel = _quill.selection;
     final cur = _quill.getSelectionStyle().attributes['background']?.value;
-    final curHex = cur is String ? cur.toLowerCase() : null;
-    final i = kTextHighlightColors
-        .indexWhere((c) => richColorHex(c).toLowerCase() == curHex);
-    final nextIdx = curHex == null ? 0 : i + 1;
-    if (nextIdx >= kTextHighlightColors.length) {
-      _quill.formatSelection(Attribute.clone(BackgroundAttribute(''), null));
-    } else {
-      _quill.formatSelection(
-          BackgroundAttribute(richColorHex(kTextHighlightColors[nextIdx])));
-    }
+    final res = await showRichColorPicker(context,
+        palette: kRichHighlightChart,
+        current: cur is String ? cur : null,
+        title: '형광펜',
+        clearLabel: '형광펜 지우기');
+    _apply(
+        sel,
+        res,
+        (v) => v == null
+            ? Attribute.clone(BackgroundAttribute(''), null)
+            : BackgroundAttribute(v));
   }
 
   bool _active(String key) =>
@@ -231,11 +243,11 @@ class _BodyRichEditorState extends State<BodyRichEditor> {
                     () => _toggle(Attribute.strikeThrough),
                     active: _active('strike')),
                 const SizedBox(width: 2),
-                _btn(Icons.format_size, _cycleSize, active: _active('size')),
-                _btn(Icons.font_download, _cycleFont, active: _active('font')),
-                _btn(Icons.format_color_text, _cycleColor,
+                _btn(Icons.format_size, _pickSize, active: _active('size')),
+                _btn(Icons.font_download, _pickFont, active: _active('font')),
+                _btn(Icons.format_color_text, _pickColor,
                     active: _active('color'), tint: curColor),
-                _btn(Icons.border_color, _cycleHighlight,
+                _btn(Icons.border_color, _pickHighlight,
                     active: _active('background'), tint: curHi),
               ],
             ),
