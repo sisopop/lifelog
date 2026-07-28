@@ -22,6 +22,27 @@ void main() {
     });
   });
 
+  group('isWebMobileViewport', () {
+    test('웹 + 창이 짧으면 true(자판이 창을 줄인 모바일 브라우저)', () {
+      expect(isWebMobileViewport(isWeb: true, viewportHeight: 400), isTrue);
+    });
+
+    test('웹이지만 창이 크면(PC 브라우저) false', () {
+      expect(isWebMobileViewport(isWeb: true, viewportHeight: 1000), isFalse);
+      expect(
+        isWebMobileViewport(
+          isWeb: true,
+          viewportHeight: kWebMobileMaxHeight,
+        ),
+        isFalse,
+      );
+    });
+
+    test('웹이 아니면 항상 false(자판 높이로 판단)', () {
+      expect(isWebMobileViewport(isWeb: false, viewportHeight: 400), isFalse);
+    });
+  });
+
   group('decorCanvasBoxHidden', () {
     test('보이는 영역(뷰포트-편집바) 아래면 true', () {
       // 상자 중심 y = 8 + 0.9*500 = 458 > 300-56 = 244

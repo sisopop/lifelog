@@ -18,3 +18,16 @@ bool isKeyboardEditing({
   bool isWeb = false,
 }) =>
     hasFocus && (isWeb || keyboardHeight > 0);
+
+/// 이 높이보다 창이 짧으면 "모바일 브라우저"로 본다(자판이 창을 줄인 상태 포함).
+const double kWebMobileMaxHeight = 720.0;
+
+/// 웹인데 창이 짧아(모바일 브라우저 = 자판이 창을 줄임) 커서 보정이 필요한 상태.
+///
+/// PC 브라우저(창이 큼)에서는 자판이 없으니 스크롤 보정을 하지 않는다(글 쓸 때
+/// 화면이 튀지 않게). 서식 편집바는 이와 별개로 웹에서 항상 띄운다.
+bool isWebMobileViewport({
+  required bool isWeb,
+  required double viewportHeight,
+}) =>
+    isWeb && viewportHeight < kWebMobileMaxHeight;

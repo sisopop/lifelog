@@ -105,10 +105,25 @@ class _BodyRichEditorState extends State<BodyRichEditor>
   double get _kb =>
       MediaQueryData.fromView(View.of(context)).viewInsets.bottom;
 
-  // "편집 중"은 포커스가 있고 **자판이 실제로 떠 있을 때**만이다. (안드로이드
-  // 뒤로가기는 포커스를 그대로 두고 자판만 내리므로 포커스만으로는 판단 못 한다.)
-  // 단, 웹은 자판 높이를 보고하지 않아(항상 0) 포커스만 본다 → isKeyboardEditing.
+  // 웹은 자판 높이를 보고하지 않는다(항상 0). 대신 모바일 브라우저는 자판이 뜨면
+  // 창을 줄이므로, **창이 짧을 때만** 웹을 "자판 뜬 상태"로 취급한다(PC 브라우저에서
+  // 글 쓸 때 화면이 튀지 않게).
+  bool get _webMobile => isWebMobileViewport(
+        isWeb: kIsWeb,
+        viewportHeight: MediaQueryData.fromView(View.of(context)).size.height,
+      );
+
+  // 커서 가운데 맞추기·아래 여백을 켜는 "편집 중" 판정: 포커스 + 자판이 실제로
+  // 떠 있을 때(안드로이드 뒤로가기는 포커스를 두고 자판만 내리므로 포커스만으론
+  // 판단 못 한다). 웹은 창이 짧을 때(_webMobile)만 해당.
   bool get _editing => isKeyboardEditing(
+        hasFocus: _focus.hasFocus,
+        keyboardHeight: _kb,
+        isWeb: _webMobile,
+      );
+
+  // 서식 편집바는 웹(PC 포함)에서는 포커스만 있으면 띄운다(자판 정보가 없으므로).
+  bool get _barVisible => isKeyboardEditing(
         hasFocus: _focus.hasFocus,
         keyboardHeight: _kb,
         isWeb: kIsWeb,
@@ -153,9 +168,10 @@ class _BodyRichEditorState extends State<BodyRichEditor>
   }
 
   // 편집바는 자판이 떠 있을 때만 띄운다(자판을 내리면 원래 글쓰기 화면으로 복귀).
+  // 웹은 자판 정보가 없어 포커스만 있으면 띄운다(_barVisible).
   void _syncBar() {
     if (!mounted) return;
-    final show = _editing;
+    final show = _barVisible;
     if (show && _bar == null) {
       _bar = OverlayEntry(builder: (ctx) => _barOverlay(ctx));
       Overlay.of(context, rootOverlay: true).insert(_bar!);
@@ -292,7 +308,7 @@ class _BodyRichEditorState extends State<BodyRichEditor>
     final editing = isKeyboardEditing(
       hasFocus: _focus.hasFocus,
       keyboardHeight: kb,
-      isWeb: kIsWeb,
+      isWeb: isWebMobileViewport(isWeb: kIsWeb, viewportHeight: mq.size.height),
     );
     // 에디터는 항상 scrollable:false로 **내용만큼 자란다**(중첩 스크롤 금지).
     // 스크롤·커서 가운데 맞추기는 바깥 ListView가 담당한다(_centerCaret).
