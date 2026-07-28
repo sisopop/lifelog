@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/keyboard_edit.dart';
 import '../decorate/aspect_picker_sheet.dart';
 import '../decorate/content_flow.dart';
 import '../decorate/crop_picker_sheet.dart';

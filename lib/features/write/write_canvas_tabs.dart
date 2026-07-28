@@ -309,11 +309,16 @@ class _WriteCanvasBody extends ConsumerWidget {
                 builder: (context, _) {
                   final sel = s._deco.selected;
                   // 웹은 kb가 항상 0이라(자판 높이 미보고) 대신 브라우저가 창을
-                  // 줄인다 → 상자가 보이는 영역 밖으로 내려갔을 때만 민다.
+                  // 줄인다. 모바일 브라우저(창이 짧음)면 네이티브와 똑같이 가운데로
+                  // 맞추고, PC 브라우저는 상자가 보이는 영역 밖일 때만 민다.
                   final editingBox =
                       sel != null && sel.kind == DecoKind.textbox;
                   final active = editingBox &&
                       (kb > 0 ||
+                          isWebMobileViewport(
+                            isWeb: kIsWeb,
+                            viewportHeight: box.maxHeight,
+                          ) ||
                           (kIsWeb &&
                               decorCanvasBoxHidden(
                                 canvasTop: 8,
