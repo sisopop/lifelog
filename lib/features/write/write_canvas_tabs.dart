@@ -300,11 +300,33 @@ class _WriteCanvasBody extends ConsumerWidget {
               // 폭 고정(fullWidth) + 3:4 세로 높이(canvasH=폭/0.75)라 이 상자는
               // 이미 정확히 3:4 → PageDecoCanvas가 그대로 꽉 채우면 읽기(상세/카드)
               // 와 동일 좌표계가 된다(WYSIWYG). 비율 재강제(AspectRatio) 불필요.
-              child: PageDecoCanvas(
-                controller: s._deco,
-                titleText: s._titleCtrl.text,
-                contentText: s._contentCtrl.text,
-                interactive: true,
+              //
+              // 텍스트박스를 인라인 편집해 자판이 떠 있으면(kb>0), 캔버스를 위로
+              // 밀어 편집 중인 상자를 자판 위 남은 공간 가운데로 올린다(상자가
+              // 자판에 가려 글이 안 보이는 문제). 자판을 내리면 밀기 0 → 원래 캔버스.
+              child: AnimatedBuilder(
+                animation: s._deco,
+                builder: (context, _) {
+                  final sel = s._deco.selected;
+                  final shift =
+                      (kb > 0 && sel != null && sel.kind == DecoKind.textbox)
+                          ? decorCanvasEditShift(
+                              canvasTop: 8,
+                              canvasHeight: canvasH,
+                              boxCenterY: sel.y,
+                              viewportHeight: box.maxHeight,
+                            )
+                          : 0.0;
+                  return Transform.translate(
+                    offset: Offset(0, -shift),
+                    child: PageDecoCanvas(
+                      controller: s._deco,
+                      titleText: s._titleCtrl.text,
+                      contentText: s._contentCtrl.text,
+                      interactive: true,
+                    ),
+                  );
+                },
               ),
             ),
             // 드래그로 높이 조절되는 하단 컨트롤 시트. 텍스트박스를 인라인 편집하느라

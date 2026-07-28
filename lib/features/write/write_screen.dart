@@ -9,6 +9,7 @@ import '../../core/theme/app_colors.dart';
 import '../decorate/aspect_picker_sheet.dart';
 import '../decorate/content_flow.dart';
 import '../decorate/crop_picker_sheet.dart';
+import '../decorate/decor_canvas_shift.dart';
 import '../decorate/filter_picker_sheet.dart';
 import '../decorate/frame_picker_sheet.dart';
 import '../decorate/framed_photo.dart';

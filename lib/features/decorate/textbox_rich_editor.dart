@@ -64,7 +64,8 @@ class TextBoxRichEditor extends StatefulWidget {
   State<TextBoxRichEditor> createState() => _TextBoxRichEditorState();
 }
 
-class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
+class _TextBoxRichEditorState extends State<TextBoxRichEditor>
+    with WidgetsBindingObserver {
   late final QuillController _quill;
   final _focus = FocusNode();
   final _scroll = ScrollController();
@@ -87,14 +88,22 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
     _lastJson = widget.richValue ?? '';
     _quill.addListener(_onQuillChanged);
     _focus.addListener(_syncBar);
+    WidgetsBinding.instance.addObserver(this);
     // autoFocus로 첫 프레임 뒤 포커스가 잡히므로, 그 시점에 편집바를 띄운다.
     WidgetsBinding.instance.addPostFrameCallback((_) => _syncBar());
   }
 
-  // 포커스 상태에 맞춰 편집바 Overlay를 삽입/제거한다.
+  // 자판이 오르내리면 편집바 표시 여부를 다시 판단한다(자판을 내리면 편집바도
+  // 감춰 원래 꾸미기 화면으로 복귀).
+  @override
+  void didChangeMetrics() => _syncBar();
+
+  // 포커스 + **자판이 실제로 떠 있을 때만** 편집바 Overlay를 띄운다. (안드로이드
+  // 뒤로가기는 포커스를 그대로 두고 자판만 내리므로 포커스만으로는 판단 못 한다.)
   void _syncBar() {
     if (!mounted) return;
-    final show = _focus.hasFocus;
+    final kb = MediaQueryData.fromView(View.of(context)).viewInsets.bottom;
+    final show = _focus.hasFocus && kb > 0;
     if (show && _bar == null) {
       _bar = OverlayEntry(builder: (ctx) => _barOverlay(ctx));
       Overlay.of(context, rootOverlay: true).insert(_bar!);
@@ -121,6 +130,7 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor> {
   void dispose() {
     _bar?.remove();
     _bar = null;
+    WidgetsBinding.instance.removeObserver(this);
     _focus.removeListener(_syncBar);
     _quill.removeListener(_onQuillChanged);
     _quill.dispose();
