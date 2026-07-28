@@ -151655,17 +151655,19 @@ p=B.e.cX(r-24,120,r)
 o=B.e.cX(r*0.4,96,p)
 n=this.a
 m=t.p
-l=A.b([A.jb(i,A.k7(n.e.mJ$,new A.brb(n,s,q,b),i),q,i,16,16,8,i)],m)
+l=A.b([A.jb(i,A.k7(n.e.mJ$,new A.brb(n,s,b,q),i),q,i,16,16,8,i)],m)
 if(s===0){k=A.b([],m)
 for(j=0;j<6;++j)k.push(new A.SL(B.as9[j],i))
 l.push(A.jb(0,new A.MX(96,p,o,new A.N_(6,A.ax(A.b([A.bOS(i,!0,B.ajs,B.a5G,k),B.oZ,A.ct(A.bOU(A.b([n.zj(new A.brc(n)),n.zj(new A.brd(n)),n.zj(new A.bre(n,a)),n.zj(new A.brf(n,a)),n.zj(new A.brg(n,a)),n.zj(new A.brh(n,a))],m),i,i),1)],m),B.q,B.i,B.m),i),i),i,i,0,0,i,i))}return A.hg(B.bQ,l,B.B,B.c5,i)},
 $S:126}
 A.brb.prototype={
 $2(a,b){var s,r,q,p=this,o=p.a.e,n=o.mJ$,m=n.gyI()
-if(m!=null&&m.b===B.eX)if(!(p.b>0)){s=8+m.e*p.c>p.d.d-56
-r=s}else r=!0
-else r=!1
-q=r?A.cfq(m.e,p.c,8,p.d.d):0
+if(m!=null&&m.b===B.eX){s=!0
+if(!(p.b>0)){r=p.c.d
+if(!(r<720))r=8+m.e*p.d>r-56
+else r=s
+s=r}}else s=!1
+q=s?A.cfq(m.e,p.d,8,p.c.d):0
 return A.b6F(new A.Qi(n,o.vh$.a.a,o.t2$.a.a,!0,null),new A.n(0,-q))},
 $S:321}
 A.brc.prototype={
