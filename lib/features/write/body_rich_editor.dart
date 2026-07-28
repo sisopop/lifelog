@@ -29,9 +29,38 @@ class BodyRichEditor extends StatefulWidget {
   State<BodyRichEditor> createState() => _BodyRichEditorState();
 }
 
-class _BodyRichEditorState extends State<BodyRichEditor> {
+// 편집바(키보드 위 서식바)가 가리는 높이. 커서를 "자판 위 남은 공간"의 가운데에
+// 둘 때 이 높이를 빼고 계산한다.
+const double kBodyFormatBarHeight = 56.0;
+
+// 타자기식(typewriter) 스크롤 목표치. 커서([caretY], 화면 좌표)를 스크롤 뷰포트
+// (상단 [viewportTop], 높이 [viewportHeight])에서 편집바([barHeight])를 뺀 영역의
+// **가운데**에 두려면 스크롤 위치를 얼마로 해야 하는지 돌려준다.
+//
+// 현재 위치([pixels])와 2px 미만 차이면(=이미 가운데) null을 돌려 불필요한 스크롤을
+// 막는다. 결과는 [minExtent]~[maxExtent]로 클램프되므로 문서 처음·끝에서는
+// 가운데보다 덜 움직인다.
+double? typewriterScrollTarget({
+  required double caretY,
+  required double viewportTop,
+  required double viewportHeight,
+  required double barHeight,
+  required double pixels,
+  required double minExtent,
+  required double maxExtent,
+}) {
+  final wantY = viewportTop + (viewportHeight - barHeight) / 2;
+  final target = (pixels + (caretY - wantY)).clamp(minExtent, maxExtent);
+  if ((target - pixels).abs() < 2) return null;
+  return target;
+}
+
+class _BodyRichEditorState extends State<BodyRichEditor>
+    with WidgetsBindingObserver {
   final _focus = FocusNode();
   final _scroll = ScrollController();
+  // 커서 위치(캐럿 사각형)를 물어보기 위한 flutter_quill 내부 에디터 키.
+  final GlobalKey<EditorState> _editorKey = GlobalKey<EditorState>();
 
   // 편집바는 최상위 Overlay의 화면 하단(키보드 바로 위) 고정 위치에 띄운다.
   OverlayEntry? _bar;
@@ -41,16 +70,85 @@ class _BodyRichEditorState extends State<BodyRichEditor> {
   @override
   void initState() {
     super.initState();
-    _focus.addListener(_syncBar);
+    WidgetsBinding.instance.addObserver(this);
+    _focus.addListener(_onFocusChange);
     _quill.addListener(_onChanged);
   }
 
-  // 커서/선택 이동에 따라 서식 버튼 활성 상태를 갱신한다.
-  void _onChanged() => _bar?.markNeedsBuild();
+  // 커서/선택/내용이 바뀌면 서식 버튼 상태를 갱신하고, 편집 중이면 커서를 다시
+  // 가운데로 맞춘다(줄이 늘면 윗줄이 위로 밀려 올라가고 커서는 계속 가운데).
+  void _onChanged() {
+    _bar?.markNeedsBuild();
+    _centerCaret();
+  }
 
+  // 포커스가 바뀌면 편집바를 동기화하고 build를 다시 돌린다(편집 레이아웃 전환).
+  void _onFocusChange() {
+    _syncBar();
+    _centerCaret();
+    if (mounted) setState(() {});
+  }
+
+  // 자판이 오르내리는 동안 아래 여백을 다시 계산하고(자판 위 공간에 맞춤),
+  // 커서를 다시 가운데로 맞춘다.
+  @override
+  void didChangeMetrics() {
+    if (mounted && _focus.hasFocus) setState(() {});
+    _syncBar();
+    _centerCaret();
+  }
+
+  // 자판 실제 높이(논리 px). Scaffold(resizeToAvoidBottomInset)가 body의
+  // MediaQuery.viewInsets를 이미 소비해 0으로 보이므로 FlutterView에서 직접 읽는다.
+  double get _kb =>
+      MediaQueryData.fromView(View.of(context)).viewInsets.bottom;
+
+  // "편집 중"은 포커스가 있고 **자판이 실제로 떠 있을 때**만이다. (안드로이드
+  // 뒤로가기는 포커스를 그대로 두고 자판만 내리므로 포커스만으로는 판단 못 한다.)
+  bool get _editing => _focus.hasFocus && _kb > 0;
+
+  // 편집 중(포커스+자판 위)이면 **바깥 리스트**를 스크롤해 커서를 자판 위 남은
+  // 공간(뷰포트에서 편집바 높이를 뺀 영역)의 가운데에 둔다.
+  //
+  // 에디터 자체는 scrollable:false로 내용만큼 자라므로, 스크롤은 전부 바깥
+  // ListView가 담당한다(중첩 스크롤 회피). flutter_quill의 내부 커서 자동
+  // 스크롤은 이 배치에서 동작하지 않아 직접 계산한다.
+  void _centerCaret() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_editing) return;
+      final ro = _editorKey.currentState?.renderEditor;
+      final sp = Scrollable.maybeOf(context);
+      if (ro == null || sp == null || !ro.attached || !ro.hasSize) return;
+      final vp = sp.context.findRenderObject();
+      if (vp is! RenderBox || !vp.hasSize) return;
+      final pos = _quill.selection.extentOffset
+          .clamp(0, _quill.document.length - 1)
+          .toInt();
+      final Rect caret;
+      try {
+        caret = ro.getLocalRectForCaret(TextPosition(offset: pos));
+      } catch (_) {
+        return;
+      }
+      final target = typewriterScrollTarget(
+        caretY: ro.localToGlobal(caret.center).dy,
+        viewportTop: vp.localToGlobal(Offset.zero).dy,
+        viewportHeight: vp.size.height,
+        barHeight: kBodyFormatBarHeight,
+        pixels: sp.position.pixels,
+        minExtent: sp.position.minScrollExtent,
+        maxExtent: sp.position.maxScrollExtent,
+      );
+      // 애니메이션 없이 즉시 맞춘다(자판 애니메이션·연속 타이핑과 충돌 방지).
+      if (target != null) sp.position.jumpTo(target);
+    });
+  }
+
+  // 편집바는 자판이 떠 있을 때만 띄운다(자판을 내리면 원래 글쓰기 화면으로 복귀).
   void _syncBar() {
     if (!mounted) return;
-    final show = _focus.hasFocus;
+    final show = _editing;
     if (show && _bar == null) {
       _bar = OverlayEntry(builder: (ctx) => _barOverlay(ctx));
       Overlay.of(context, rootOverlay: true).insert(_bar!);
@@ -64,7 +162,8 @@ class _BodyRichEditorState extends State<BodyRichEditor> {
   void dispose() {
     _bar?.remove();
     _bar = null;
-    _focus.removeListener(_syncBar);
+    WidgetsBinding.instance.removeObserver(this);
+    _focus.removeListener(_onFocusChange);
     _quill.removeListener(_onChanged);
     _focus.dispose();
     _scroll.dispose();
@@ -181,27 +280,42 @@ class _BodyRichEditorState extends State<BodyRichEditor> {
 
   @override
   Widget build(BuildContext context) {
-    // 바깥 ListView가 스크롤을 담당하도록 에디터는 스크롤하지 않고 내용만큼 커진다
-    // (옛 TextField의 minLines:6/maxLines:null과 같은 "내용 따라 늘어남").
-    return Container(
-      constraints: const BoxConstraints(minHeight: 156),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.divider),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: QuillEditor(
-        focusNode: _focus,
-        scrollController: _scroll,
-        controller: _quill,
-        config: QuillEditorConfig(
-          scrollable: false,
-          expands: false,
-          autoFocus: false,
-          placeholder: '오늘 어떤 하루였나요?',
-          customStyles: _styles(context),
+    final mq = MediaQueryData.fromView(View.of(context));
+    final kb = mq.viewInsets.bottom;
+    final editing = _focus.hasFocus && kb > 0;
+    // 에디터는 항상 scrollable:false로 **내용만큼 자란다**(중첩 스크롤 금지).
+    // 스크롤·커서 가운데 맞추기는 바깥 ListView가 담당한다(_centerCaret).
+    //
+    // 편집 중에는 에디터 아래에 여백(스페이서)을 하나 둔다. 문서 끝 줄에서도
+    // 아래로 더 스크롤할 여지가 있어야 커서를 가운데까지 끌어올릴 수 있기 때문이다.
+    // 자판을 내리면 여백이 사라져 원래 글쓰기 화면으로 복귀한다.
+    final gap = editing ? (mq.size.height - kb) * 0.45 : 0.0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          constraints: const BoxConstraints(minHeight: 156),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.divider),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: QuillEditor(
+            focusNode: _focus,
+            scrollController: _scroll,
+            controller: _quill,
+            config: QuillEditorConfig(
+              editorKey: _editorKey,
+              scrollable: false,
+              expands: false,
+              autoFocus: false,
+              placeholder: '오늘 어떤 하루였나요?',
+              customStyles: _styles(context),
+            ),
+          ),
         ),
-      ),
+        SizedBox(height: gap),
+      ],
     );
   }
 
