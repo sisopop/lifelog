@@ -308,15 +308,27 @@ class _WriteCanvasBody extends ConsumerWidget {
                 animation: s._deco,
                 builder: (context, _) {
                   final sel = s._deco.selected;
-                  final shift =
-                      (kb > 0 && sel != null && sel.kind == DecoKind.textbox)
-                          ? decorCanvasEditShift(
-                              canvasTop: 8,
-                              canvasHeight: canvasH,
-                              boxCenterY: sel.y,
-                              viewportHeight: box.maxHeight,
-                            )
-                          : 0.0;
+                  // 웹은 kb가 항상 0이라(자판 높이 미보고) 대신 브라우저가 창을
+                  // 줄인다 → 상자가 보이는 영역 밖으로 내려갔을 때만 민다.
+                  final editingBox =
+                      sel != null && sel.kind == DecoKind.textbox;
+                  final active = editingBox &&
+                      (kb > 0 ||
+                          (kIsWeb &&
+                              decorCanvasBoxHidden(
+                                canvasTop: 8,
+                                canvasHeight: canvasH,
+                                boxCenterY: sel.y,
+                                viewportHeight: box.maxHeight,
+                              )));
+                  final shift = active
+                      ? decorCanvasEditShift(
+                          canvasTop: 8,
+                          canvasHeight: canvasH,
+                          boxCenterY: sel.y,
+                          viewportHeight: box.maxHeight,
+                        )
+                      : 0.0;
                   return Transform.translate(
                     offset: Offset(0, -shift),
                     child: PageDecoCanvas(

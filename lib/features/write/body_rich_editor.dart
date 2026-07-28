@@ -8,10 +8,12 @@
 // [controller]는 글쓰기 화면(_WriteScreenState)이 소유한다(프리필·저장·이모지/프롬프트
 // 삽입에 함께 쓰이므로). 이 위젯은 controller를 dispose하지 않고 포커스·편집바만 관리한다.
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/keyboard_edit.dart';
 import '../decorate/rich_format_pickers.dart';
 import '../decorate/textbox_rich.dart';
 
@@ -105,7 +107,12 @@ class _BodyRichEditorState extends State<BodyRichEditor>
 
   // "편집 중"은 포커스가 있고 **자판이 실제로 떠 있을 때**만이다. (안드로이드
   // 뒤로가기는 포커스를 그대로 두고 자판만 내리므로 포커스만으로는 판단 못 한다.)
-  bool get _editing => _focus.hasFocus && _kb > 0;
+  // 단, 웹은 자판 높이를 보고하지 않아(항상 0) 포커스만 본다 → isKeyboardEditing.
+  bool get _editing => isKeyboardEditing(
+        hasFocus: _focus.hasFocus,
+        keyboardHeight: _kb,
+        isWeb: kIsWeb,
+      );
 
   // 편집 중(포커스+자판 위)이면 **바깥 리스트**를 스크롤해 커서를 자판 위 남은
   // 공간(뷰포트에서 편집바 높이를 뺀 영역)의 가운데에 둔다.
@@ -282,7 +289,11 @@ class _BodyRichEditorState extends State<BodyRichEditor>
   Widget build(BuildContext context) {
     final mq = MediaQueryData.fromView(View.of(context));
     final kb = mq.viewInsets.bottom;
-    final editing = _focus.hasFocus && kb > 0;
+    final editing = isKeyboardEditing(
+      hasFocus: _focus.hasFocus,
+      keyboardHeight: kb,
+      isWeb: kIsWeb,
+    );
     // 에디터는 항상 scrollable:false로 **내용만큼 자란다**(중첩 스크롤 금지).
     // 스크롤·커서 가운데 맞추기는 바깥 ListView가 담당한다(_centerCaret).
     //

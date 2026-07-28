@@ -7,10 +7,12 @@
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/keyboard_edit.dart';
 import 'cover_font.dart';
 import 'rich_format_pickers.dart';
 import 'textbox_rich.dart';
@@ -103,7 +105,12 @@ class _TextBoxRichEditorState extends State<TextBoxRichEditor>
   void _syncBar() {
     if (!mounted) return;
     final kb = MediaQueryData.fromView(View.of(context)).viewInsets.bottom;
-    final show = _focus.hasFocus && kb > 0;
+    // 웹은 자판 높이를 보고하지 않아(항상 0) 포커스만으로 판단한다.
+    final show = isKeyboardEditing(
+      hasFocus: _focus.hasFocus,
+      keyboardHeight: kb,
+      isWeb: kIsWeb,
+    );
     if (show && _bar == null) {
       _bar = OverlayEntry(builder: (ctx) => _barOverlay(ctx));
       Overlay.of(context, rootOverlay: true).insert(_bar!);

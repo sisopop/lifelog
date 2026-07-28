@@ -29,3 +29,17 @@ double decorCanvasEditShift({
   if (shift <= 0) return 0;
   return shift > canvasHeight ? canvasHeight : shift;
 }
+
+/// 편집 중인 상자가 **보이는 영역 밖(아래)** 인지 여부.
+///
+/// 웹은 자판 높이를 보고하지 않는 대신 브라우저가 창을 줄이므로, "자판이 떴다"를
+/// 알 수 없다. 그래서 웹에서는 상자가 실제로 보이는 영역(뷰포트에서 편집바 높이를
+/// 뺀 아래끝) 밑으로 내려갔을 때만 캔버스를 민다(불필요한 튐 방지).
+bool decorCanvasBoxHidden({
+  required double canvasTop,
+  required double canvasHeight,
+  required double boxCenterY,
+  required double viewportHeight,
+  double barHeight = kDecorFormatBarHeight,
+}) =>
+    canvasTop + boxCenterY * canvasHeight > viewportHeight - barHeight;
