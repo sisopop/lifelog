@@ -146,15 +146,21 @@ class EntriesNotifier extends AsyncNotifier<List<DiaryEntry>> {
 
   /// Generates the AI summary via Gemini (or the local mock fallback) and
   /// persists it (pending -> done).
+  ///
+  /// F4 수정: 요약 필드만 조건부로 patch한다(entry 전체를 upsert하지 않음).
+  /// 요청 이후 본문 수정/휴지통 이동/영구삭제가 있었다면 patchAiSummary가
+  /// 거부하므로, 늦게 도착한 응답이 그 결과를 덮어쓰지 않는다.
   Future<void> _generateSummary(DiaryEntry entry) async {
     if (entry.aiStatus != AiStatus.pending) return;
     final summary = await ref.read(geminiServiceProvider).summarize(entry);
-    final summarized = entry.copyWith(
-      aiSummary: summary,
-      aiStatus: AiStatus.done,
+    final applied = await _repo.patchAiSummary(
+      entryId: entry.entryId,
+      snapshotUpdatedAt: entry.updatedAt,
+      summary: summary,
     );
-    await _repo.save(summarized);
-    state = AsyncData(await _repo.getAll());
+    if (applied) {
+      state = AsyncData(await _repo.getAll());
+    }
   }
 }
 

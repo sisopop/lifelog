@@ -296,8 +296,16 @@ class _BackupJsonTile extends ConsumerWidget {
         subtitle: const Text('모든 기록을 그대로 복원 가능한 형태로 클립보드에 복사'),
         trailing: const Icon(Icons.chevron_right, color: AppColors.textHint),
         onTap: () async {
-          final journals = ref.read(journalsProvider).asData?.value ?? const [];
-          final entries = ref.read(entriesProvider).asData?.value ?? const [];
+          final liveJournals =
+              ref.read(journalsProvider).asData?.value ?? const [];
+          final liveEntries =
+              ref.read(entriesProvider).asData?.value ?? const [];
+          // ARCHITECTURE_RISK_REVIEW J2 수정: 휴지통(소프트삭제) 기록도 포함해야
+          // 새 기기로 복원했을 때 30일 이내 휴지통이 그대로 살아있다.
+          final trash = await ref.read(trashProvider.future);
+          final journals = [...liveJournals, ...trash.journals];
+          final entries = [...liveEntries, ...trash.entries];
+          if (!context.mounted) return;
           final messenger = ScaffoldMessenger.of(context);
           if (entries.isEmpty && journals.isEmpty) {
             messenger.showSnackBar(

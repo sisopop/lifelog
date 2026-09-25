@@ -110,6 +110,102 @@ void main() {
     expect(e.copyWith(clearContentRich: true).contentRich, isNull);
   });
 
+  test('getById returns the entry, null when it never existed', () async {
+    await repo.insert(DiaryEntry(
+      entryId: 'gid1',
+      userId: 'me',
+      journalId: 'jr_default',
+      content: '본문',
+      createdAt: DateTime(2026, 6, 14),
+      updatedAt: DateTime(2026, 6, 14),
+    ));
+    expect((await repo.getById('gid1'))?.content, '본문');
+    expect(await repo.getById('missing'), isNull);
+  });
+
+  group('patchAiSummary (F4)', () {
+    test('applies and keeps updatedAt untouched when nothing changed since', () async {
+      final at = DateTime(2026, 6, 14, 9, 0);
+      await repo.insert(DiaryEntry(
+        entryId: 'ai1',
+        userId: 'me',
+        journalId: 'jr_default',
+        content: '본문',
+        aiStatus: AiStatus.pending,
+        createdAt: at,
+        updatedAt: at,
+      ));
+
+      final applied = await repo.patchAiSummary(
+        entryId: 'ai1',
+        snapshotUpdatedAt: at,
+        summary: '요약됨',
+      );
+      expect(applied, isTrue);
+
+      final loaded = await repo.getById('ai1');
+      expect(loaded!.aiSummary, '요약됨');
+      expect(loaded.aiStatus, AiStatus.done);
+      expect(loaded.updatedAt, at); // 본문 updatedAt은 그대로
+    });
+
+    test('skips when the entry was edited while summarizing', () async {
+      final at = DateTime(2026, 6, 14, 9, 0);
+      await repo.insert(DiaryEntry(
+        entryId: 'ai2',
+        userId: 'me',
+        journalId: 'jr_default',
+        content: '본문',
+        aiStatus: AiStatus.pending,
+        createdAt: at,
+        updatedAt: at,
+      ));
+      // 사용자가 그 사이 본문을 수정함 (updatedAt 갱신).
+      await repo.save(DiaryEntry(
+        entryId: 'ai2',
+        userId: 'me',
+        journalId: 'jr_default',
+        content: '수정된 본문',
+        aiStatus: AiStatus.pending,
+        createdAt: at,
+        updatedAt: at.add(const Duration(minutes: 2)),
+      ));
+
+      final applied = await repo.patchAiSummary(
+        entryId: 'ai2',
+        snapshotUpdatedAt: at, // 옛 스냅샷
+        summary: '옛 요약',
+      );
+      expect(applied, isFalse);
+
+      final loaded = await repo.getById('ai2');
+      expect(loaded!.aiSummary, isNull); // 덮어써지지 않음
+      expect(loaded.content, '수정된 본문');
+    });
+
+    test('skips when the entry was permanently deleted while summarizing', () async {
+      final at = DateTime(2026, 6, 14, 9, 0);
+      await repo.insert(DiaryEntry(
+        entryId: 'ai3',
+        userId: 'me',
+        journalId: 'jr_default',
+        content: '본문',
+        aiStatus: AiStatus.pending,
+        createdAt: at,
+        updatedAt: at,
+      ));
+      await repo.deleteForever('ai3');
+
+      final applied = await repo.patchAiSummary(
+        entryId: 'ai3',
+        snapshotUpdatedAt: at,
+        summary: '요약',
+      );
+      expect(applied, isFalse);
+      expect(await repo.getById('ai3'), isNull);
+    });
+  });
+
   test('getAll orders newest first', () async {
     await repo.insert(DiaryEntry(
       entryId: 'old',

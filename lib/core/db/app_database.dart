@@ -386,6 +386,23 @@ class AppDatabase extends _$AppDatabase {
         .get();
   }
 
+  /// 단건 조회(휴지통 포함). 존재하지 않으면(=영구삭제됨) null.
+  Future<DiaryEntryRow?> getEntryById(String entryId) {
+    return (select(diaryEntries)..where((t) => t.entryId.equals(entryId)))
+        .getSingleOrNull();
+  }
+
+  /// F4 수정: AI 요약 필드만 patch — 본문 `updatedAt`은 건드리지 않아 다른
+  /// 필드의 동시 수정을 덮어쓰지 않는다. 호출 전 조건(canApplyAiSummary)은
+  /// DiaryRepository.patchAiSummary가 검사한다.
+  Future<void> updateAiSummary(String entryId, String summary) {
+    return (update(diaryEntries)..where((t) => t.entryId.equals(entryId)))
+        .write(DiaryEntriesCompanion(
+      aiSummary: Value(summary),
+      aiStatus: Value(AiStatus.done),
+    ));
+  }
+
   Future<List<DiaryEntryRow>> getEntriesByJournal(String journalId) {
     return (select(diaryEntries)
           ..where((t) => t.journalId.equals(journalId) & t.deletedAt.isNull())

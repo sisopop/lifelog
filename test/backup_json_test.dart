@@ -44,6 +44,7 @@ DiaryEntry _entry({
   DateTime? deletedAt,
   String? pageCanvas,
   String? flowPhotos,
+  String? contentRich,
 }) =>
     DiaryEntry(
       entryId: id,
@@ -52,6 +53,7 @@ DiaryEntry _entry({
       replyToEntryId: replyTo,
       title: title,
       content: content,
+      contentRich: contentRich,
       aiSummary: aiSummary,
       aiStatus: aiSummary != null ? AiStatus.done : AiStatus.none,
       mood: mood,
@@ -139,6 +141,19 @@ void main() {
       final data = parseBackupJson(exportBackupJson(
           [_journal()], [_entry(pageCanvas: canvas)], DateTime(2026, 6, 29)));
       expect(data.entries.first.pageCanvas, canvas);
+    });
+
+    test('contentRich (Quill Delta JSON) survives export → parse', () {
+      const rich = '[{"insert":"굵게","attributes":{"bold":true}},{"insert":"\\n"}]';
+      final data = parseBackupJson(exportBackupJson(
+          [_journal()], [_entry(contentRich: rich)], DateTime(2026, 6, 29)));
+      expect(data.entries.first.contentRich, rich);
+    });
+
+    test('contentRich null (plain entry) round-trips as null', () {
+      final data = parseBackupJson(
+          exportBackupJson([_journal()], [_entry()], DateTime(2026, 6, 29)));
+      expect(data.entries.first.contentRich, isNull);
     });
 
     test('flowPhotos JSON survives export → parse (null stays null)', () {
@@ -256,6 +271,27 @@ void main() {
       });
       expect(() => parseBackupJson(broken),
           throwsA(isA<BackupParseException>()));
+    });
+
+    test('rejects a backup from a future (unsupported) format version', () {
+      final future = jsonEncode({
+        'app': 'lifelog',
+        'version': kBackupFormatVersion + 1,
+        'journals': [],
+        'entries': [],
+      });
+      expect(() => parseBackupJson(future),
+          throwsA(isA<BackupParseException>()));
+    });
+
+    test('accepts the current format version', () {
+      final current = jsonEncode({
+        'app': 'lifelog',
+        'version': kBackupFormatVersion,
+        'journals': [],
+        'entries': [],
+      });
+      expect(() => parseBackupJson(current), returnsNormally);
     });
 
     test('unknown enum names fall back instead of throwing', () {

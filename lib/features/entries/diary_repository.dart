@@ -4,6 +4,7 @@ import '../../core/db/app_database.dart';
 import '../../shared/models/diary_entry.dart';
 import '../../shared/models/enums.dart';
 import '../journals/journal_repository.dart';
+import 'summary_guard.dart';
 
 /// Bridges the domain model (`DiaryEntry`) and the Drift cache (`DiaryEntryRow`).
 /// Later this is where REST sync logic will live (see TECH_DESIGN.md).
@@ -15,6 +16,31 @@ class DiaryRepository {
   Future<List<DiaryEntry>> getAll() async {
     final rows = await _db.getAllEntries();
     return rows.map(_toDomain).toList();
+  }
+
+  /// 단건 조회(휴지통 포함). 영구삭제됐으면 null.
+  Future<DiaryEntry?> getById(String entryId) async {
+    final row = await _db.getEntryById(entryId);
+    return row == null ? null : _toDomain(row);
+  }
+
+  /// F4 수정: AI 요약을 필드 단위로 조건부 patch한다. [snapshotUpdatedAt]은
+  /// 요약을 요청한 시점의 `updatedAt` — 그 사이 수정/휴지통 이동/영구삭제가
+  /// 있었다면 적용하지 않는다(canApplyAiSummary). 반환값은 실제 적용 여부.
+  Future<bool> patchAiSummary({
+    required String entryId,
+    required DateTime snapshotUpdatedAt,
+    required String summary,
+  }) async {
+    final current = await _db.getEntryById(entryId);
+    final ok = canApplyAiSummary(
+      snapshotUpdatedAt: snapshotUpdatedAt,
+      currentUpdatedAt: current?.updatedAt,
+      currentDeletedAt: current?.deletedAt,
+    );
+    if (!ok) return false;
+    await _db.updateAiSummary(entryId, summary);
+    return true;
   }
 
   Future<void> insert(DiaryEntry entry) {

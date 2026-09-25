@@ -68,6 +68,11 @@ BackupData parseBackupJson(String raw) {
     throw const BackupParseException('lifelog 백업 파일이 아니에요');
   }
   final version = (decoded['version'] as num?)?.toInt() ?? 0;
+  if (version > kBackupFormatVersion) {
+    throw const BackupParseException(
+      '이 백업은 더 최신 버전의 앱에서 만들어졌어요. 앱을 업데이트한 뒤 다시 시도해 주세요',
+    );
+  }
 
   final journalsRaw = decoded['journals'];
   final entriesRaw = decoded['entries'];
@@ -162,6 +167,7 @@ Map<String, dynamic> _entryToJson(DiaryEntry e) => {
       'lang': e.lang,
       if (e.title != null) 'title': e.title,
       'content': e.content,
+      if (e.contentRich != null) 'contentRich': e.contentRich,
       if (e.aiSummary != null) 'aiSummary': e.aiSummary,
       'aiStatus': e.aiStatus.name,
       if (e.mood != null) 'mood': e.mood!.name,
@@ -221,6 +227,7 @@ DiaryEntry _entryFromJson(Map<String, dynamic> m) {
     lang: (m['lang'] as String?) ?? 'ko',
     title: m['title'] as String?,
     content: (m['content'] as String?) ?? '',
+    contentRich: m['contentRich'] as String?,
     aiSummary: m['aiSummary'] as String?,
     aiStatus: _enumOr(AiStatus.values, m['aiStatus'], AiStatus.none),
     mood: _enumOrNull(Mood.values, m['mood']),

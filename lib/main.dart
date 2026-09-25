@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/config/firebase_status.dart';
 import 'core/i18n/locale_provider.dart';
 import 'firebase_options.dart';
 import 'core/router/app_router.dart';
@@ -21,17 +22,25 @@ Future<void> main() async {
   // Remote config (feature flags + notices) lives in Firebase. A failure here
   // must never block the app — remoteConfigProvider falls back to a dummy, so
   // we just log and continue if init fails (e.g. no network on first launch).
+  // ARCHITECTURE_RISK_REVIEW F2: 웹은 firebase_options.dart에 web 옵션이 없어
+  // 이 호출이 항상 실패한다(UnsupportedError). 실패해도 앱은 로컬 모드로 계속
+  // 실행하되, firebaseAvailableProvider로 성공 여부를 관찰 가능하게 남긴다.
+  var firebaseAvailable = true;
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
   } catch (e) {
+    firebaseAvailable = false;
     debugPrint('Firebase init failed (using dummy config): $e');
   }
   final prefs = await SharedPreferences.getInstance();
   runApp(
     ProviderScope(
-      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
+      overrides: [
+        sharedPrefsProvider.overrideWithValue(prefs),
+        firebaseAvailableProvider.overrideWithValue(firebaseAvailable),
+      ],
       child: const LifelogApp(),
     ),
   );
