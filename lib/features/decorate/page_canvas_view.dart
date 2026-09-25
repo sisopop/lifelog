@@ -188,6 +188,33 @@ Widget _decoLayerBody(
       child: PhotoView(l.value, width: side, height: side, iconSize: side * 0.4),
     );
   }
+  if (l.richValue != null) {
+    // 부분 서식(리치텍스트)이 있는 글자 레이어: 굵게·색·형광펜·글꼴·크기 등은 Delta가
+    // 담고, 레이어 전체 속성인 자간·그림자만 바깥 스타일로 입힌다(옛 굵게/형광펜
+    // 플래그는 쓰지 않는다 — 다이얼로그가 저장할 때 Delta로 옮겨 담았다). 줄 높이는
+    // 평문 글자 레이어와 같게(null) 해서 서식을 넣어도 크기·중심이 튀지 않게 한다.
+    return Text.rich(TextSpan(
+      style: TextStyle(
+        letterSpacing: l.letterSpacing == 0.0
+            ? null
+            : stickerSize * l.letterSpacing * 0.06,
+        shadows: l.shadow ? _textShadows(stickerSize) : null,
+      ),
+      children: [
+        richTextSpan(
+          richValue: l.richValue,
+          plainFallback: l.value,
+          baseFontSize: stickerSize,
+          fontId: l.fontId,
+          baseColor: l.colorValue == null
+              ? const Color(0xFF3A3A3A)
+              : Color(l.colorValue!),
+          trimTrailingNewline: true,
+          lineHeight: null,
+        ),
+      ],
+    ));
+  }
   final text = Text(
     l.value,
     style: TextStyle(
@@ -202,15 +229,7 @@ Widget _decoLayerBody(
         if (l.underline) TextDecoration.underline,
         if (l.strike) TextDecoration.lineThrough,
       ]),
-      shadows: l.shadow
-          ? [
-              Shadow(
-                offset: Offset(stickerSize * 0.06, stickerSize * 0.06),
-                blurRadius: stickerSize * 0.08,
-                color: Colors.black.withValues(alpha: 0.35),
-              ),
-            ]
-          : null,
+      shadows: l.shadow ? _textShadows(stickerSize) : null,
     ),
   );
   if (l.bgColorValue == null) return text;
@@ -227,6 +246,15 @@ Widget _decoLayerBody(
     child: text,
   );
 }
+
+/// 글자 레이어의 옅은 그림자(평문·리치 두 경로 공용).
+List<Shadow> _textShadows(double stickerSize) => [
+      Shadow(
+        offset: Offset(stickerSize * 0.06, stickerSize * 0.06),
+        blurRadius: stickerSize * 0.08,
+        color: Colors.black.withValues(alpha: 0.35),
+      ),
+    ];
 
 /// 속지 무늬 간격(px)을 캔버스 폭에 비례시켜, 작은 카드 썸네일도 큰 상세 뷰의
 /// 축소판처럼 같은 밀도(≈12칸)로 보이게 한다. 6~34px로 제한해 너무 촘촘하거나

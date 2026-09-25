@@ -50,6 +50,7 @@ PageCanvas addTextLayer(
   String fontId = kDefaultCoverFont,
   double scale = 1.0,
   double letterSpacing = 0.0,
+  String? richValue,
 }) {
   final trimmed = text.trim();
   if (trimmed.isEmpty) return canvas;
@@ -71,6 +72,7 @@ PageCanvas addTextLayer(
       bgColorValue: bgColorValue,
       fontId: fontId,
       letterSpacing: letterSpacing,
+      richValue: richValue,
     ),
   );
 }
@@ -418,7 +420,8 @@ PageCanvas flipLayerY(PageCanvas canvas, String id) {
 /// 반환한다(위치·크기·회전·z는 그대로). 오타 수정 등 이미 올린 글자를 고칠 때 쓴다.
 /// [bgColorValue]에 null을 주면 형광펜을 없앨 수 있다(copyWith로는 불가). [text]가
 /// 공백이면 잘못된 편집을 막기 위해 원본 그대로. id가 없거나 글자 레이어가 아니면
-/// 원본 그대로. 원본은 불변.
+/// 원본 그대로. [richValue]는 부분 서식(Delta JSON, null=없음)으로 그대로 갈아끼운다.
+/// 뒤집기·투명도는 보존한다. 원본은 불변.
 PageCanvas updateTextLayer(
   PageCanvas canvas,
   String id,
@@ -433,6 +436,7 @@ PageCanvas updateTextLayer(
   String fontId = kDefaultCoverFont,
   double? scale,
   double? letterSpacing,
+  String? richValue,
 }) {
   final trimmed = text.trim();
   if (trimmed.isEmpty) return canvas;
@@ -459,6 +463,13 @@ PageCanvas updateTextLayer(
       bgColorValue: bgColorValue,
       fontId: fontId,
       letterSpacing: letterSpacing ?? src.letterSpacing,
+      // 뒤집기·투명도는 다이얼로그가 다루지 않으므로 원래 값을 그대로 이어받는다
+      // (예전엔 새 DecoLayer로 갈아끼우며 기본값으로 초기화되던 버그).
+      flipX: src.flipX,
+      flipY: src.flipY,
+      opacity: src.opacity,
+      // 부분 서식(Delta JSON). null이면 서식 없는 평문 레이어.
+      richValue: richValue,
     ),
   );
 }

@@ -46,17 +46,25 @@ String richColorHex(Color c) =>
 /// 바꾼다. richValue가 없거나 깨졌으면 평문 [plainFallback]을 기본 스타일로 그린다.
 /// [baseFontSize]는 이 렌더 자리(편집/상세/카드)의 기본 글자 크기라, 화면마다 달라도
 /// 상대 크기·서식은 동일하게 재현된다. [fontId]·[baseColor]는 상자 기본 글꼴·색.
+///
+/// [trimTrailingNewline]: Quill 문서는 항상 끝에 개행이 붙는다. 상자(텍스트박스)는
+/// 크기가 고정이라 상관없지만, 글 길이만큼만 차지하는 "글자 넣기" 레이어는 그 개행이
+/// 빈 줄로 그려져 높이·중심이 어긋나므로 true로 넘겨 마지막 개행 하나를 떼어낸다.
+/// [lineHeight]: 줄 높이 배수(기본 1.35=텍스트박스). null이면 글꼴 기본 줄 높이 —
+/// 평문 글자 레이어와 같은 높이로 그려야 할 때 쓴다.
 InlineSpan richTextSpan({
   required String? richValue,
   required String plainFallback,
   required double baseFontSize,
   required String fontId,
   required Color baseColor,
+  bool trimTrailingNewline = false,
+  double? lineHeight = 1.35,
 }) {
   final base = TextStyle(
     fontFamily: coverFontFamily(fontId),
     fontSize: baseFontSize,
-    height: 1.35,
+    height: lineHeight,
     color: baseColor,
   );
   if (richValue == null || richValue.trim().isEmpty) {
@@ -76,6 +84,15 @@ InlineSpan richTextSpan({
         style: _styleFromAttrs(base, baseFontSize,
             attrs is Map ? attrs.cast<String, dynamic>() : const {}),
       ));
+    }
+    if (trimTrailingNewline && spans.isNotEmpty) {
+      final last = spans.last as TextSpan;
+      final t = last.text ?? '';
+      if (t.endsWith('\n')) {
+        final cut = t.substring(0, t.length - 1);
+        spans.removeLast();
+        if (cut.isNotEmpty) spans.add(TextSpan(text: cut, style: last.style));
+      }
     }
     if (spans.isEmpty) return TextSpan(text: plainFallback, style: base);
     return TextSpan(children: spans, style: base);
